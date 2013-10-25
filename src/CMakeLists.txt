@@ -5,11 +5,13 @@ include_directories(
 # Copy macro
 include(Copy)
 
-file( GLOB_RECURSE project_SRCS *.cpp *.cxx *.cc *.C *.c *.h *.hpp )
+add_subdirectory(mld)
+
+#file( GLOB_RECURSE project_SRCS *.cpp *.cxx *.cc *.C *.c *.h *.hpp )
 
 # All sources, add sources group here
 set( ALL_SRCS
-    ${project_SRCS}
+    ${project_SRCS} # defined in mld subdirectory
 #    ${MOC_HDRS}
 )
 
@@ -18,13 +20,6 @@ set( LIBS_TO_LINK
     ${DEX_LIBRARIES}
     ${LIBCPLUSPLUS}
 #    ${Boost_LIBRARIES}
-)
-
-# Public headers
-set( SRCS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/mld )
-set( PUBLIC_HDRS
-    ${SRCS_DIR}/common.h
-    ${SRCS_DIR}/config.h
 )
 
 # Shared library
@@ -49,6 +44,7 @@ target_link_libraries( ${PROJECT_NAME}
 # You need to put the list (PUBLIC_HDRS) with quotes, otherwise
 # the macro only takes the first element.
 # NICE !
+# VARIABLE PUBLIC_HDRS definied in subdirectory
 COPY_FILES_INTO_DIRECTORY_IF_CHANGED( "${PUBLIC_HDRS}" ${PUBLIC_HDRS_DIR} ${PROJECT_NAME} )
 
 ## INSTALL LIBS AND EXECUTABLES

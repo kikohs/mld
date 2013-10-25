@@ -47,6 +47,9 @@ install_manifest.txt
 *.sqlite
 *.dat
 
+# Config files
+*.cfg
+
 # OS generated files #
 ######################
 .DS_Store*

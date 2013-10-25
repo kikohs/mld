@@ -103,7 +103,9 @@ file( COPY ${DEX_LIB_FILES} DESTINATION ${LIBRARY_OUTPUT_PATH} )
 # PROJECT SETTINGS
 #
 message( STATUS "Using ${CMAKE_CXX_COMPILER_ID}" )
-add_definitions( -Wall -Wextra -Wno-unused-parameter -Wdeprecated-declarations )
+if( NOT WIN32 )
+    add_definitions( -Wall -Wextra -Wno-unused-parameter -Wdeprecated-declarations )
+endif()
 # C++11
 add_definitions(-std=c++11) #-std=c++11 std=gnu++11
 if( APPLE )

@@ -1,27 +1,23 @@
 
 #include <iostream>
-
-#include <dex/gdb/Dex.h>
-#include <dex/gdb/Database.h>
-#include <dex/gdb/Session.h>
 #include <dex/gdb/Graph.h>
 #include <dex/gdb/Objects.h>
 #include <dex/gdb/ObjectsIterator.h>
 
 #include <mld/common.h>
+#include <mld/DexManager.h>
 
 using namespace dex::gdb;
+using namespace mld;
 
 int main(int argc, char *argv[])
 {
     //
     // Create a sample database
-    //
-    DexConfig cfg;
-    Dex *dex = new Dex(cfg);
-    Database *db = dex->Create(L"HelloDex.dex", L"HelloDex");
-    Session *sess = db->NewSession();
-    Graph *g = sess->GetGraph();
+    mld::DexManager dexManager(mld::kRESOURCES_DIR + L"mydex.cfg");
+    dexManager.createDatabase(mld::kRESOURCES_DIR + L"HelloDex.dex", L"HelloDex");
+    SessionPtr sess = dexManager.newSession();
+    Graph* g = sess->GetGraph();
 
 
     //
@@ -180,8 +176,7 @@ int main(int argc, char *argv[])
     //
     // Close the database
     //
-    delete sess;
-    delete db;
-    delete dex;
+    sess.reset();
+
     return 0;
 }
