@@ -5,6 +5,7 @@
 #include <dex/gdb/ObjectsIterator.h>
 
 #include <mld/common.h>
+#include <mld/config.h>
 #include <mld/DexManager.h>
 
 using namespace dex::gdb;

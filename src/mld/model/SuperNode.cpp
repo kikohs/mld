@@ -16,26 +16,43 @@
 **
 ****************************************************************************/
 
-#ifndef MLD_COMMON_H
-#define MLD_COMMON_H
+#include <dex/gdb/Objects.h>
+#include "mld/model/SuperNode.h"
 
-// EXPORT API FOR DLL
-#if( defined(_WIN32) || defined(_WIN64) )
-#	ifdef MLD_NODLL
-#		define MLD_API
-#	else
-#		ifdef MLD_API_EXPORTS
-#			define MLD_API __declspec(dllexport)
-#		else
-#			define MLD_API __declspec(dllimport)
-#		endif
-#	endif
-#else
-#   if __GNUC__ >= 4 || __clang__
-#       define MLD_API __attribute__ ((visibility("default")))
-#   else
-#       define MLD_API
-#   endif
-#endif
+using namespace mld;
 
-#endif // MLD_COMMON_H
+
+Node::Node()
+    : m_id(dex::gdb::Objects::InvalidOID)
+{
+}
+
+Node::Node( dex::gdb::oid_t id )
+    : m_id(id)
+{
+}
+
+Node::~Node()
+{
+}
+
+SuperNode::SuperNode()
+    : Node()
+{
+}
+
+SuperNode::SuperNode( dex::gdb::oid_t id )
+    : Node(id)
+    , m_weight()
+{
+}
+
+SuperNode::SuperNode( dex::gdb::oid_t id, double weight )
+    : Node(id)
+    , m_weight(weight)
+{
+}
+
+SuperNode::~SuperNode()
+{
+}

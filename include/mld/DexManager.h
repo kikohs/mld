@@ -37,8 +37,8 @@
 namespace dex {
 namespace gdb {
     class Dex;
-    class Database;
     class DexConfig;
+    class Database;
 }}
 
 namespace mld {
@@ -100,6 +100,19 @@ public:
      * @return dex database, DO NOT DELETE
      */
     dex::gdb::Database* database() { return m_db.get(); }
+
+    /**
+     * @brief Create databse scheme, Nodes and relation types
+     */
+    void createScheme( dex::gdb::Graph* g );
+
+private:
+    /**
+     * @brief Create NodeType if not already in the db
+     * @param g
+     */
+    void createNodeTypes( dex::gdb::Graph *g );
+    void createEdgeTypes( dex::gdb::Graph* g );
 
 private:
     DexPtr m_dex;

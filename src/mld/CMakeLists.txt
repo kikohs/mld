@@ -5,6 +5,12 @@ set( project_SRCS
     mld/common.h
     mld/config.h
     mld/DexManager.cpp
+    mld/Graph_types.cpp
+    mld/dao/SNodeDao.cpp
+    mld/dao/LayerDao.cpp
+    mld/model/SuperNode.cpp
+    mld/model/Layer.cpp
+
     PARENT_SCOPE
 )
 

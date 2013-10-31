@@ -16,26 +16,36 @@
 **
 ****************************************************************************/
 
-#ifndef MLD_COMMON_H
-#define MLD_COMMON_H
+#ifndef MLD_SNODEDAO_H
+#define MLD_SNODEDAO_H
 
-// EXPORT API FOR DLL
-#if( defined(_WIN32) || defined(_WIN64) )
-#	ifdef MLD_NODLL
-#		define MLD_API
-#	else
-#		ifdef MLD_API_EXPORTS
-#			define MLD_API __declspec(dllexport)
-#		else
-#			define MLD_API __declspec(dllimport)
-#		endif
-#	endif
-#else
-#   if __GNUC__ >= 4 || __clang__
-#       define MLD_API __attribute__ ((visibility("default")))
-#   else
-#       define MLD_API
-#   endif
-#endif
+#include "mld/common.h"
+#include "mld/model/SuperNode.h"
 
-#endif // MLD_COMMON_H
+namespace dex {
+namespace gdb {
+    class Graph;
+    class Value;
+}}
+
+namespace mld {
+
+class MLD_API SNodeDao
+{
+public:
+    SNodeDao( dex::gdb::Graph* g );
+    ~SNodeDao();
+
+    SuperNode addNode();
+    void removeNode( const SuperNode& n );
+    void updateNode( const SuperNode& n );
+    SuperNode getNode( dex::gdb::oid_t id );
+
+private:
+    dex::gdb::Graph* m_g;
+    std::unique_ptr<dex::gdb::Value> m_v;
+    dex::gdb::type_t m_snType;
+};
+
+} // end namespace mld
+#endif // MLD_SNODEDAO_H

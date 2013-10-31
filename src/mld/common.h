@@ -38,6 +38,4 @@
 #   endif
 #endif
 
-#include "mld/config.h"
-
 #endif // MLD_COMMON_H

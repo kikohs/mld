@@ -16,26 +16,28 @@
 **
 ****************************************************************************/
 
-#ifndef MLD_COMMON_H
-#define MLD_COMMON_H
+#include <dex/gdb/Objects.h>
 
-// EXPORT API FOR DLL
-#if( defined(_WIN32) || defined(_WIN64) )
-#	ifdef MLD_NODLL
-#		define MLD_API
-#	else
-#		ifdef MLD_API_EXPORTS
-#			define MLD_API __declspec(dllexport)
-#		else
-#			define MLD_API __declspec(dllimport)
-#		endif
-#	endif
-#else
-#   if __GNUC__ >= 4 || __clang__
-#       define MLD_API __attribute__ ((visibility("default")))
-#   else
-#       define MLD_API
-#   endif
-#endif
+#include "mld/model/Layer.h"
 
-#endif // MLD_COMMON_H
+using namespace mld;
+
+Layer::Layer()
+    : m_id(dex::gdb::Objects::InvalidOID)
+    , m_parent(dex::gdb::Objects::InvalidOID)
+    , m_child(dex::gdb::Objects::InvalidOID)
+    , m_isBase(false)
+{
+}
+
+Layer::Layer( dex::gdb::oid_t id )
+    : m_id(id)
+    , m_parent(dex::gdb::Objects::InvalidOID)
+    , m_child(dex::gdb::Objects::InvalidOID)
+    , m_isBase(false)
+{
+}
+
+Layer::~Layer()
+{
+}
