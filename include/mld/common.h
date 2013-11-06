@@ -38,4 +38,19 @@
 #   endif
 #endif
 
+#include <mld/log.h>
+
+namespace mld {
+
+/**
+ * @brief H_LINK default weight value
+ */
+static const double kHLINK_DEF_VALUE = 1.0;
+/**
+ * @brief V_LINK default weight value
+ */
+static const double kVLINK_DEF_VALUE = 1.0;
+
+} // end namespace mld
+
 #endif // MLD_COMMON_H

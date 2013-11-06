@@ -7,8 +7,6 @@ include(Copy)
 
 add_subdirectory(mld)
 
-#file( GLOB_RECURSE project_SRCS *.cpp *.cxx *.cc *.C *.c *.h *.hpp )
-
 # All sources, add sources group here
 set( ALL_SRCS
     ${project_SRCS} # defined in mld subdirectory
@@ -40,12 +38,24 @@ target_link_libraries( ${PROJECT_NAME}
     ${LIBS_TO_LINK}
 )
 
+
 # Copy public headers in directory
 # You need to put the list (PUBLIC_HDRS) with quotes, otherwise
 # the macro only takes the first element.
 # NICE !
 # VARIABLE PUBLIC_HDRS definied in subdirectory
-COPY_FILES_INTO_DIRECTORY_IF_CHANGED( "${PUBLIC_HDRS}" ${PUBLIC_HDRS_DIR} ${PROJECT_NAME} )
+COPY_FILES_INTO_DIRECTORY_IF_CHANGED( "${CUR_PUB_HDRS}" ${PUBLIC_HDRS_DIR} ${PROJECT_NAME} )
+
+if( NOT EXISTS ${DAO_PUB_HDRS_DIR} )
+    file( MAKE_DIRECTORY ${DAO_PUB_HDRS_DIR} )
+endif()
+COPY_FILES_INTO_DIRECTORY_IF_CHANGED( "${DAO_PUBLIC_HDRS}" ${DAO_PUB_HDRS_DIR} ${PROJECT_NAME} )
+
+if( NOT EXISTS ${MODEL_PUB_HDRS_DIR} )
+    file( MAKE_DIRECTORY ${MODEL_PUB_HDRS_DIR} )
+endif()
+COPY_FILES_INTO_DIRECTORY_IF_CHANGED( "${MODEL_PUBLIC_HDRS}" ${MODEL_PUB_HDRS_DIR} ${PROJECT_NAME} )
+
 
 ## INSTALL LIBS AND EXECUTABLES
 install( TARGETS ${PROJECT_NAME}

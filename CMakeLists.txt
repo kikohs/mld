@@ -99,6 +99,11 @@ file( GLOB DEX_LIB_FILES ${DEX_LIB_DIR}/*.* )
 # Copy dex libs to /lib because install name id is @loader_path
 file( COPY ${DEX_LIB_FILES} DESTINATION ${LIBRARY_OUTPUT_PATH} )
 
+#### OPTIONS
+option( BUILD_TESTS "Build the test suite" ON )
+option( BUILD_TOOLS "Build standard tools" ON )
+option( BUILD_DOC "Build documentation" ON )
+option( SAFE_CHECKS "Enable safe checking" ON )
 #
 # PROJECT SETTINGS
 #
@@ -123,14 +128,14 @@ elseif( CMAKE_BUILD_TYPE STREQUAL "Debug" )
     add_definitions( -DMLD_DEBUG )
 endif()
 
+if( SAFE_CHECKS )
+    add_definitions( -DMLD_SAFE )
+endif()
+
 #### SRC && CUSTOM DEFINITIONS
 # Config file
 configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/src/config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/src/mld/config.h )
 
-#### OPTIONS
-option( BUILD_TESTS "Build the test suite" ON )
-option( BUILD_TOOLS "Build standard tools" ON )
-option( BUILD_DOC "Build documentation" ON )
 
 # SOURCES
 add_subdirectory( src )
@@ -142,6 +147,10 @@ endif( BUILD_TOOLS )
 
 # TESTS
 if( BUILD_TESTS )
+    add_definitions(-DGTEST_USE_OWN_TR1_TUPLE=1 -DGTEST_HAS_TR1_TUPLE=1 -std=c++11 -stdlib=libc++ -Wno-narrowing )
+    add_subdirectory( ${3RDPARTY_DIR}/gtest-1.6.0 )
+    enable_testing()
+    include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
     add_subdirectory( test )
 endif( BUILD_TESTS )
 
@@ -169,7 +178,4 @@ endif( BUILD_DOC )
 if( EXISTS ${PUBLIC_HDRS_DIR} AND IS_DIRECTORY ${PUBLIC_HDRS_DIR} )
     install( DIRECTORY ${PUBLIC_HDRS_DIR} DESTINATION ${INCLUDE_INSTALL_DIR} )
 endif()
-
-
-
 

@@ -64,10 +64,6 @@ struct MLD_API EdgeType
      */
     static const std::wstring OWNS;
     /**
-     * @brief PARENT_OF, Layer - Layer relation
-     */
-    static const std::wstring PARENT_OF;
-    /**
      * @brief CHILD_OF, Layer - Layer relation
      */
     static const std::wstring CHILD_OF;

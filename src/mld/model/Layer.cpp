@@ -24,16 +24,12 @@ using namespace mld;
 
 Layer::Layer()
     : m_id(dex::gdb::Objects::InvalidOID)
-    , m_parent(dex::gdb::Objects::InvalidOID)
-    , m_child(dex::gdb::Objects::InvalidOID)
     , m_isBase(false)
 {
 }
 
 Layer::Layer( dex::gdb::oid_t id )
     : m_id(id)
-    , m_parent(dex::gdb::Objects::InvalidOID)
-    , m_child(dex::gdb::Objects::InvalidOID)
     , m_isBase(false)
 {
 }

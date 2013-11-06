@@ -29,7 +29,6 @@ const std::wstring NodeType::LAYER(L"MLD_LAYER");
 const std::wstring EdgeType::H_LINK(L"MLD_H_LINK");
 const std::wstring EdgeType::V_LINK(L"MLD_V_LINK");
 const std::wstring EdgeType::OWNS(L"MLD_OWNS");
-const std::wstring EdgeType::PARENT_OF(L"MLD_PARENT_OF");
 const std::wstring EdgeType::CHILD_OF(L"MLD_CHILD_OF");
 
 // Node Attributes

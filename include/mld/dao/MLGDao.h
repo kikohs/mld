@@ -16,12 +16,14 @@
 **
 ****************************************************************************/
 
-#ifndef MLD_SNODEDAO_H
-#define MLD_SNODEDAO_H
+#ifndef MLD_MLGDAO_H
+#define MLD_MLGDAO_H
 
 #include "mld/common.h"
 #include "mld/dao/AbstractDao.h"
 #include "mld/model/SuperNode.h"
+#include "mld/model/Layer.h"
+#include "mld/model/Link.h"
 
 namespace dex {
 namespace gdb {
@@ -30,21 +32,35 @@ namespace gdb {
 }}
 
 namespace mld {
+    class SNodeDao;
+    class LayerDao;
+}
 
-class MLD_API SNodeDao : public AbstractDao
+namespace mld {
+
+/**
+ * @brief The MultiLayerGraph dao
+ * Main class for accessing the underlying database structure
+ */
+class MLD_API MLGDao: public AbstractDao
 {
 public:
-    SNodeDao( dex::gdb::Graph* g );
-    ~SNodeDao();
+    MLGDao( dex::gdb::Graph* g );
+    virtual ~MLGDao() override;
 
-    SuperNode addNode();
-    void removeNode( dex::gdb::oid_t id );
-    void updateNode( const SuperNode& n );
-    SuperNode getNode( dex::gdb::oid_t id );
+    /**
+     * @brief Manages Layers via LayerDao
+     * DO NOT DELETE
+     * @return
+     */
+    LayerDao* layerHandle() { return m_ldao.get(); }
 
+//    SuperNode addNode( const Layer& layer );
 private:
-    dex::gdb::type_t m_snType;
+    std::unique_ptr<SNodeDao> m_sndao;
+    std::unique_ptr<LayerDao> m_ldao;
 };
 
 } // end namespace mld
-#endif // MLD_SNODEDAO_H
+
+#endif // MLD_MLGDAO_H

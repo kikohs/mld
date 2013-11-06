@@ -38,6 +38,7 @@ namespace dex {
 namespace gdb {
     class Dex;
     class Database;
+    class DexConfig;
 }}
 
 namespace mld {
@@ -79,7 +80,7 @@ public:
      * @param read [in] If TRUE, open Database in read-only mode.
      * @exception dex::gdb::FileNotFoundException If the given file does not exist.
      */
-    void openDatabase( const std::wstring& path, bool read );
+    void openDatabase( const std::wstring& path, bool readOnly = false );
 
     /**
      * @brief Restores a Database from a backup file. See Graph::Backup.

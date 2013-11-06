@@ -28,8 +28,7 @@ using namespace mld;
 using namespace dex::gdb;
 
 SNodeDao::SNodeDao( dex::gdb::Graph* g )
-    : m_g(g)
-    , m_v( new dex::gdb::Value )
+    : AbstractDao(g)
     , m_snType(m_g->FindType(NodeType::SUPERNODE))
 {
 }
@@ -44,13 +43,29 @@ SuperNode SNodeDao::addNode()
     return SuperNode( m_g->NewNode(m_snType) );
 }
 
-void SNodeDao::removeNode( const SuperNode& n )
+void SNodeDao::removeNode( dex::gdb::oid_t id )
 {
-    m_g->Drop(n.id());
+#ifdef MLD_SAFE
+    if( id == Objects::InvalidOID )
+        return;
+#endif
+#ifdef MLD_SAFE
+    try {
+#endif
+        m_g->Drop(id);
+#ifdef MLD_SAFE
+    } catch( dex::gdb::Error& e ) {
+        LOG(logERROR) << "SNodeDao::removeNode " << e.Message();
+    }
+#endif
 }
 
 void SNodeDao::updateNode( const SuperNode& n )
 {
+#ifdef MLD_SAFE
+    if( n.id() == Objects::InvalidOID )
+        return;
+#endif
     attr_t att = m_g->FindAttribute(m_snType, SNAttr::WEIGHT);
     m_v->SetDoubleVoid(n.weight());
     m_g->SetAttribute(n.id(), att, *m_v);
@@ -58,6 +73,20 @@ void SNodeDao::updateNode( const SuperNode& n )
 
 SuperNode SNodeDao::getNode( dex::gdb::oid_t id )
 {
-    m_g->GetAttribute(id, m_g->FindAttribute(m_snType, SNAttr::WEIGHT), *m_v);
-    return SuperNode(id, m_v->GetDouble() );
+#ifdef MLD_SAFE
+    if( id == Objects::InvalidOID )
+        return SuperNode();
+#endif
+
+#ifdef MLD_SAFE
+    try {
+#endif
+        m_g->GetAttribute(id, m_g->FindAttribute(m_snType, SNAttr::WEIGHT), *m_v);
+#ifdef MLD_SAFE
+    } catch( dex::gdb::Error& e ) {
+        LOG(logERROR) << "SNodeDao::getNode(): " << e.Message();
+        return SuperNode();
+    }
+#endif
+    return SuperNode(id, m_v->GetDouble());
 }

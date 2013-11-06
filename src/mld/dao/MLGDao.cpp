@@ -16,55 +16,27 @@
 **
 ****************************************************************************/
 
+#include <dex/gdb/Graph.h>
 #include <dex/gdb/Objects.h>
-#include "mld/model/SuperNode.h"
+#include <dex/gdb/Graph_data.h>
+#include <dex/gdb/Value.h>
+
+#include "mld/Graph_types.h"
+
+#include "mld/dao/MLGDao.h"
+#include "mld/dao/LayerDao.h"
+#include "mld/dao/SNodeDao.h"
 
 using namespace mld;
 
-// ****** NODE ****** //
-
-Node::Node()
-    : m_id(dex::gdb::Objects::InvalidOID)
+MLGDao::MLGDao( dex::gdb::Graph* g )
+    : AbstractDao(g)
+    , m_sndao( new SNodeDao(g) )
+    , m_ldao( new LayerDao(g) )
 {
 }
 
-Node::Node( dex::gdb::oid_t id )
-    : m_id(id)
+MLGDao::~MLGDao()
 {
-}
-
-Node::~Node()
-{
-}
-
-
-// ****** SUPER NODE ****** //
-
-SuperNode::SuperNode()
-    : Node()
-{
-}
-
-SuperNode::SuperNode( dex::gdb::oid_t id )
-    : Node(id)
-    , m_weight()
-{
-}
-
-SuperNode::SuperNode( dex::gdb::oid_t id, double weight )
-    : Node(id)
-    , m_weight(weight)
-{
-}
-
-SuperNode::~SuperNode()
-{
-}
-
-std::ostream& operator<<( std::ostream& out, const SuperNode& sn )
-{
-    out << "id: " << sn.id() << " "
-        << "weight: " << sn.weight()
-        ;
-    return out;
+    // DO NOT DELETE GRAPH
 }

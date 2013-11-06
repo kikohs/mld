@@ -16,55 +16,34 @@
 **
 ****************************************************************************/
 
-#include <dex/gdb/Objects.h>
-#include "mld/model/SuperNode.h"
+#ifndef MLD_ABSTRACTDAO_H
+#define MLD_ABSTRACTDAO_H
 
-using namespace mld;
+#include "mld/common.h"
 
-// ****** NODE ****** //
+namespace dex {
+namespace gdb {
+    class Graph;
+    class Value;
+}}
 
-Node::Node()
-    : m_id(dex::gdb::Objects::InvalidOID)
+namespace mld {
+/**
+ * @brief Abstract dao class, implemented by all daos
+ */
+class MLD_API AbstractDao
 {
-}
+public:
+    virtual ~AbstractDao();
 
-Node::Node( dex::gdb::oid_t id )
-    : m_id(id)
-{
-}
+protected:
+    AbstractDao( dex::gdb::Graph* g );
 
-Node::~Node()
-{
-}
+protected:
+    dex::gdb::Graph* m_g;
+    std::unique_ptr<dex::gdb::Value> m_v;
+};
 
+} // end namespace mld
 
-// ****** SUPER NODE ****** //
-
-SuperNode::SuperNode()
-    : Node()
-{
-}
-
-SuperNode::SuperNode( dex::gdb::oid_t id )
-    : Node(id)
-    , m_weight()
-{
-}
-
-SuperNode::SuperNode( dex::gdb::oid_t id, double weight )
-    : Node(id)
-    , m_weight(weight)
-{
-}
-
-SuperNode::~SuperNode()
-{
-}
-
-std::ostream& operator<<( std::ostream& out, const SuperNode& sn )
-{
-    out << "id: " << sn.id() << " "
-        << "weight: " << sn.weight()
-        ;
-    return out;
-}
+#endif // MLD_ABSTRACTDAO_H
