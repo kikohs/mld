@@ -12,8 +12,9 @@ include_directories(
  endmacro(append_test)
 
  # APPEND TESTS HERE
- append_test(SNodeDaoTest SNodeDaoTest.cpp)
+append_test(SNodeDaoTest SNodeDaoTest.cpp)
 append_test(LayerDaoTest LayerDaoTest.cpp)
+append_test(LinkDaoTest LinkDaoTest.cpp)
 
  list(LENGTH TESTS_SRCS len1)
  math(EXPR len2 "${len1} - 1")

@@ -50,6 +50,7 @@ set( DAO_PUBLIC_HDRS
     ${DAO}/LayerDao.h
     ${DAO}/MLGDao.h
     ${DAO}/AbstractDao.h
+    ${DAO}/LinkDao.h
     PARENT_SCOPE
 )
 

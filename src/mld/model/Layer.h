@@ -29,8 +29,6 @@ class MLD_API Layer
     // Access to private variables parent and child
     friend class LayerDao;
 public:
-    Layer();
-    Layer( dex::gdb::oid_t id );
     virtual ~Layer();
 
     // Read only data
@@ -39,6 +37,10 @@ public:
 
     void setDescription( const std::wstring& des ) { m_desc = des; }
     std::wstring description() const { return m_desc; }
+
+protected:
+    Layer();
+    Layer( dex::gdb::oid_t id );
 
 protected:
     dex::gdb::oid_t m_id;

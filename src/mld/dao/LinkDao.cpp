@@ -53,10 +53,19 @@ HLink LinkDao::addHLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt )
         return HLink();
     }
 #endif
-
-    auto id = m_g->NewEdge(m_hType, src, tgt);
+    dex::gdb::oid_t hid = dex::gdb::Objects::InvalidOID;
+#ifdef MLD_SAFE
+    try {
+#endif
+        hid = m_g->NewEdge(m_hType, src, tgt);
+#ifdef MLD_SAFE
+    } catch( dex::gdb::Error& ) {
+        LOG(logERROR) << "LinkDao::addHLink: invalid src or tgt";
+        return HLink();
+    }
+#endif
     HLink res(src, tgt);
-    res.setId(id);
+    res.setId(hid);
     return res;
 }
 
@@ -67,6 +76,11 @@ HLink LinkDao::addHLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt, double weight
 #ifdef MLD_SAFE
     if( res.id() == dex::gdb::Objects::InvalidOID )
         return HLink();
+
+    if( weight < 0.0 ) {
+        LOG(logERROR) << "LinkDao:addHLink: weight is < 0.0";
+        return HLink();
+    }
 #endif
     // Set weight attribute
     m_g->SetAttribute(res.id(), m_g->FindAttribute(m_hType, H_LinkAttr::WEIGHT), m_v->SetDouble(weight));
@@ -88,10 +102,19 @@ VLink LinkDao::addVLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt )
         return VLink();
     }
 #endif
-
-    auto id = m_g->NewEdge(m_vType, src, tgt);
+    dex::gdb::oid_t vid = dex::gdb::Objects::InvalidOID;
+#ifdef MLD_SAFE
+    try {
+#endif
+        vid = m_g->NewEdge(m_vType, src, tgt);
+#ifdef MLD_SAFE
+    } catch( dex::gdb::Error& ) {
+        LOG(logERROR) << "LinkDao::addVLink: invalid src or tgt";
+        return VLink();
+    }
+#endif
     VLink res(src, tgt);
-    res.setId(id);
+    res.setId(vid);
     return res;
 }
 
@@ -101,6 +124,11 @@ VLink LinkDao::addVLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt, double weight
 #ifdef MLD_SAFE
     if( res.id() == dex::gdb::Objects::InvalidOID )
         return VLink();
+
+    if( weight < 0.0 ) {
+        LOG(logERROR) << "LinkDao:addVLink: weight is < 0.0";
+        return VLink();
+    }
 #endif
     // Set weight attribute
     m_g->SetAttribute(res.id(), m_g->FindAttribute(m_vType, V_LinkAttr::WEIGHT), m_v->SetDouble(weight));
@@ -110,15 +138,24 @@ VLink LinkDao::addVLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt, double weight
 
 HLink LinkDao::getHLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt )
 {
-    ObjectsPtr obj(m_g->Edges(m_hType, src, tgt));
+    dex::gdb::oid_t hid = dex::gdb::Objects::InvalidOID;
 #ifdef MLD_SAFE
-    if( obj->Count() == 0 ) {
+    try {
+#endif
+        hid = m_g->FindEdge(m_hType, src, tgt);
+#ifdef MLD_SAFE
+    } catch( dex::gdb::Error& e ) {
+        LOG(logERROR) << "LinkDao::getHLink: " << e.Message();
+        return HLink();
+    }
+
+    if( hid == dex::gdb::Objects::InvalidOID ) {
         LOG(logERROR) << "LinkDao::getHLink: edge doesn't exist: " << src << " " << tgt;
         return HLink();
     }
 #endif
     HLink hlink(src, tgt);
-    hlink.setId(obj->Any());
+    hlink.setId(hid);
     hlink.setWeight(getWeight(m_hType, hlink.id()));
     return hlink;
 }
@@ -131,7 +168,17 @@ HLink LinkDao::getHLink( dex::gdb::oid_t hid )
         return HLink();
     }
 #endif
-    std::unique_ptr<dex::gdb::EdgeData> data(m_g->GetEdgeData(hid));
+    std::unique_ptr<dex::gdb::EdgeData> data;
+#ifdef MLD_SAFE
+    try {
+#endif
+        data.reset(m_g->GetEdgeData(hid));
+#ifdef MLD_SAFE
+    } catch( dex::gdb::Error& e ) {
+        LOG(logERROR) << "LinkDao::getHLink: " << e.Message();
+        return HLink();
+    }
+#endif
     HLink hlink(data->GetTail(), data->GetHead());
     hlink.setId(hid);
     hlink.setWeight(getWeight(m_hType, hid));
@@ -140,15 +187,24 @@ HLink LinkDao::getHLink( dex::gdb::oid_t hid )
 
 VLink LinkDao::getVLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt )
 {
-    ObjectsPtr obj(m_g->Edges(m_vType, src, tgt));
+    dex::gdb::oid_t vid = dex::gdb::Objects::InvalidOID;
 #ifdef MLD_SAFE
-    if( obj->Count() == 0 ) {
+    try {
+#endif
+    vid = m_g->FindEdge(m_vType, src, tgt);
+#ifdef MLD_SAFE
+    } catch( dex::gdb::Error& e ) {
+        LOG(logERROR) << "LinkDao::getVLink: " << e.Message();
+        return VLink();
+    }
+
+    if( vid == dex::gdb::Objects::InvalidOID ) {
         LOG(logERROR) << "LinkDao::getVLink: edge doesn't exist: " << src << " " << tgt;
         return VLink();
     }
 #endif
     VLink vlink(src, tgt);
-    vlink.setId(obj->Any());
+    vlink.setId(vid);
     vlink.setWeight(getWeight(m_vType, vlink.id()));
     return vlink;
 }
@@ -161,7 +217,17 @@ VLink LinkDao::getVLink( dex::gdb::oid_t vid )
         return VLink();
     }
 #endif
-    std::unique_ptr<dex::gdb::EdgeData> data(m_g->GetEdgeData(vid));
+    std::unique_ptr<dex::gdb::EdgeData> data;
+#ifdef MLD_SAFE
+    try {
+#endif
+        data.reset(m_g->GetEdgeData(vid));
+#ifdef MLD_SAFE
+    } catch( dex::gdb::Error& e ) {
+        LOG(logERROR) << "LinkDao::getVLink: " << e.Message();
+        return VLink();
+    }
+#endif
     VLink vlink(data->GetTail(), data->GetHead());
     vlink.setId(vid);
     vlink.setWeight(getWeight(m_vType, vid));
@@ -190,14 +256,18 @@ bool LinkDao::removeVLink( dex::gdb::oid_t vid )
 
 bool LinkDao::updateHLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt, double weight )
 {
-    ObjectsPtr obj(m_g->Edges(m_hType, src, tgt));
+    dex::gdb::oid_t hid = dex::gdb::Objects::InvalidOID;
 #ifdef MLD_SAFE
-    if( obj->Count() == 0 ) {
-        LOG(logERROR) << "LinkDao::updateHLink: edge doesn't exist: " << src << " " << tgt;
+    try {
+#endif
+        hid = m_g->FindEdge(m_hType, src, tgt);
+#ifdef MLD_SAFE
+    } catch( dex::gdb::Error& ) {
+        LOG(logERROR) << "LinkDao::updateHLink: invalid src or tgt";
         return false;
     }
 #endif
-    return updateHLink(obj->Any(), weight);
+    return updateHLink(hid, weight);
 }
 
 bool LinkDao::updateHLink( dex::gdb::oid_t hid, double weight )
@@ -208,20 +278,22 @@ bool LinkDao::updateHLink( dex::gdb::oid_t hid, double weight )
         return false;
     }
 #endif
-    setWeight(m_vType, hid, weight);
-    return true;
+    return setWeight(m_hType, hid, weight);
 }
 
 bool LinkDao::updateVLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt, double weight )
 {
-    ObjectsPtr obj(m_g->Edges(m_vType, src, tgt));
-#ifdef MLD_SAFE
-    if( obj->Count() == 0 ) {
-        LOG(logERROR) << "LinkDao::updateVLink: edge doesn't exist: " << src << " " << tgt;
-        return false;
-    }
-#endif
-    return updateVLink(obj->Any(), weight);
+    dex::gdb::oid_t vid = dex::gdb::Objects::InvalidOID;
+ #ifdef MLD_SAFE
+     try {
+ #endif
+         vid = m_g->FindEdge(m_vType, src, tgt);
+ #ifdef MLD_SAFE
+     } catch( dex::gdb::Error& ) {
+         LOG(logERROR) << "LinkDao::updateVLink: invalid src or tgt";
+     }
+ #endif
+    return updateVLink(vid, weight);
 }
 
 bool LinkDao::updateVLink( dex::gdb::oid_t vid, double weight )
@@ -232,8 +304,7 @@ bool LinkDao::updateVLink( dex::gdb::oid_t vid, double weight )
         return false;
     }
 #endif
-    setWeight(m_vType, vid, weight);
-    return true;
+    return setWeight(m_vType, vid, weight);
 }
 
 // ****** PRIVATE METHODS ****** //
@@ -241,46 +312,59 @@ bool LinkDao::updateVLink( dex::gdb::oid_t vid, double weight )
 double LinkDao::getWeight( dex::gdb::type_t edgeType, dex::gdb::oid_t id )
 {
     double weight = 0;
-    if( edgeType == m_hType ) {
-        auto t = m_g->FindAttribute(m_hType, H_LinkAttr::WEIGHT);
-        weight = m_g->GetAttribute(id, t)->GetDouble();
+    dex::gdb::attr_t attr;
+    if( edgeType == m_hType )
+        attr = m_g->FindAttribute(m_hType, H_LinkAttr::WEIGHT);
+    else
+        attr = m_g->FindAttribute(m_vType, V_LinkAttr::WEIGHT);
+
+#ifdef MLD_SAFE
+    try {
+#endif
+        weight = m_g->GetAttribute(id, attr)->GetDouble();
+#ifdef MLD_SAFE
+    } catch( dex::gdb::Error& e ) {
+        LOG(logERROR) << "LinkDao::getWeight: " << e.Message();
     }
-    else if( edgeType == m_vType ) {
-        auto t = m_g->FindAttribute(m_hType, V_LinkAttr::WEIGHT);
-        weight = m_g->GetAttribute(id, t)->GetDouble();
-    }
-    else {
-        LOG(logERROR) << "LinkDao::getWeight: unsupported edge type";
-    }
+#endif
     return weight;
 }
 
-void LinkDao::setWeight( dex::gdb::type_t edgeType, dex::gdb::oid_t id , double weight )
+bool LinkDao::setWeight( dex::gdb::type_t edgeType, dex::gdb::oid_t id , double weight )
 {
-    if( edgeType == m_hType ) {
-        auto t = m_g->FindAttribute(m_hType, H_LinkAttr::WEIGHT);
-        m_g->SetAttribute(id, t, m_v->SetDouble(weight));
+    dex::gdb::attr_t attr;
+    if( edgeType == m_hType )
+        attr = m_g->FindAttribute(m_hType, H_LinkAttr::WEIGHT);
+    else
+        attr = m_g->FindAttribute(m_vType, V_LinkAttr::WEIGHT);
+
+#ifdef MLD_SAFE
+    try {
+#endif
+        m_g->SetAttribute(id, attr, m_v->SetDouble(weight));
+#ifdef MLD_SAFE
+    } catch( dex::gdb::Error& e ) {
+        LOG(logERROR) << "LinkDao::setWeight: " << e.Message();
+        return false;
     }
-    else if( edgeType == m_vType ) {
-        auto t = m_g->FindAttribute(m_hType, V_LinkAttr::WEIGHT);
-        m_g->SetAttribute(id, t, m_v->SetDouble(weight));
-    }
-    else {
-        LOG(logERROR) << "LinkDao::setWeight: unsupported edge type";
-    }
+#endif
+    return true;
 }
 
 bool LinkDao::removeLinkImpl( dex::gdb::type_t edgeType, dex::gdb::oid_t src, dex::gdb::oid_t tgt )
 {
-    ObjectsPtr obj(m_g->Edges(edgeType, src, tgt));
+    dex::gdb::oid_t id = dex::gdb::Objects::InvalidOID;
 #ifdef MLD_SAFE
-    if( obj->Count() == 0 ) {
-        LOG(logERROR) << "LinkDao::removeLinkImpl: edge doesn't exist: " << src << " " << tgt;
+    try {
+#endif
+        id = m_g->FindEdge(edgeType, src, tgt);
+#ifdef MLD_SAFE
+    } catch( dex::gdb::Error& ) {
+        LOG(logERROR) << "LinkDao::removeLinkImpl: invalid src and or target";
         return false;
     }
 #endif
-    m_g->Drop(obj.get());
-    return true;
+    return removeLinkImpl(edgeType, id);
 }
 
 bool LinkDao::removeLinkImpl( dex::gdb::type_t edgeType, dex::gdb::oid_t id )
@@ -290,12 +374,21 @@ bool LinkDao::removeLinkImpl( dex::gdb::type_t edgeType, dex::gdb::oid_t id )
         LOG(logERROR) << "LinkDao::removeLinkImpl: invalid oid";
         return false;
     }
-    if( edgeType != m_g->GetObjectType(id) ) {
-        LOG(logERROR) << "LinkDao::removeLinkImpl: type mismatch";
+
+    try {
+        auto t = m_g->GetObjectType(id);
+        if( edgeType != t || t == dex::gdb::Type::InvalidType ) {
+            LOG(logERROR) << "LinkDao::removeLinkImpl: type mismatch";
+            return false;
+        }
+#endif
+        m_g->Drop(id);
+#ifdef MLD_SAFE
+    } catch( dex::gdb::Error& e ) {
+        LOG(logERROR) << "LinkDao::removeLinkImpl: " << e.Message();
         return false;
     }
 #endif
-    m_g->Drop(id);
     return true;
 }
 

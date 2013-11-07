@@ -25,13 +25,15 @@ using namespace mld;
 // ****** LINK ****** //
 
 Link::Link()
-    : m_src(dex::gdb::Objects::InvalidOID)
+    : m_id(dex::gdb::Objects::InvalidOID)
+    , m_src(dex::gdb::Objects::InvalidOID)
     , m_tgt(dex::gdb::Objects::InvalidOID)
 {
 }
 
 Link::Link( dex::gdb::oid_t src, dex::gdb::oid_t tgt )
-    : m_src(src)
+    : m_id(dex::gdb::Objects::InvalidOID)
+    , m_src(src)
     , m_tgt(tgt)
 {
 }

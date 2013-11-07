@@ -84,7 +84,7 @@ SuperNode SNodeDao::getNode( dex::gdb::oid_t id )
         m_g->GetAttribute(id, m_g->FindAttribute(m_snType, SNAttr::WEIGHT), *m_v);
 #ifdef MLD_SAFE
     } catch( dex::gdb::Error& e ) {
-        LOG(logERROR) << "SNodeDao::getNode(): " << e.Message();
+        LOG(logERROR) << "SNodeDao::getNode: " << e.Message();
         return SuperNode();
     }
 #endif

@@ -86,6 +86,7 @@ class MLD_API VLink : public Link
     friend class LinkDao;
 public:
     virtual ~VLink() override;
+
     double weight() const { return m_weight; }
     void setWeight( double v ) { m_weight = v; }
 
