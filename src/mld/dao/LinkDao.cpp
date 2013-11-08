@@ -18,6 +18,7 @@
 
 #include <dex/gdb/Graph.h>
 #include <dex/gdb/Objects.h>
+#include <dex/gdb/ObjectsIterator.h>
 #include <dex/gdb/Graph_data.h>
 #include <dex/gdb/Value.h>
 
@@ -25,8 +26,6 @@
 #include "mld/dao/LinkDao.h"
 
 using namespace mld;
-
-typedef std::unique_ptr<dex::gdb::Objects> ObjectsPtr;
 
 LinkDao::LinkDao( dex::gdb::Graph* g )
     : AbstractDao(g)
@@ -171,6 +170,10 @@ HLink LinkDao::getHLink( dex::gdb::oid_t hid )
     std::unique_ptr<dex::gdb::EdgeData> data;
 #ifdef MLD_SAFE
     try {
+        if( m_g->GetObjectType(hid) != m_hType ) {
+            LOG(logERROR) << "LinkDao::getHLink: invalid type";
+            return HLink();
+        }
 #endif
         data.reset(m_g->GetEdgeData(hid));
 #ifdef MLD_SAFE
@@ -183,6 +186,22 @@ HLink LinkDao::getHLink( dex::gdb::oid_t hid )
     hlink.setId(hid);
     hlink.setWeight(getWeight(m_hType, hid));
     return hlink;
+}
+
+std::vector<HLink> LinkDao::getHLink( const ObjectsPtr& objs )
+{
+    std::vector<HLink> res;
+    res.reserve(objs->Count());
+    ObjectsIt it(objs->Iterator());
+    while( it->HasNext() ) {
+        HLink e = getHLink(it->Next());
+#ifdef MLD_SAFE
+        // Watch for the if, no { }
+        if( e.id() != dex::gdb::Objects::InvalidOID )
+#endif
+            res.push_back(e);
+    }
+    return res;
 }
 
 VLink LinkDao::getVLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt )
@@ -220,6 +239,10 @@ VLink LinkDao::getVLink( dex::gdb::oid_t vid )
     std::unique_ptr<dex::gdb::EdgeData> data;
 #ifdef MLD_SAFE
     try {
+        if( m_g->GetObjectType(vid) != m_vType ) {
+            LOG(logERROR) << "LinkDao::getVLink: invalid type";
+            return VLink();
+        }
 #endif
         data.reset(m_g->GetEdgeData(vid));
 #ifdef MLD_SAFE
@@ -232,6 +255,22 @@ VLink LinkDao::getVLink( dex::gdb::oid_t vid )
     vlink.setId(vid);
     vlink.setWeight(getWeight(m_vType, vid));
     return vlink;
+}
+
+std::vector<VLink> LinkDao::getVLink( const ObjectsPtr& objs )
+{
+    std::vector<VLink> res;
+    res.reserve(objs->Count());
+    ObjectsIt it(objs->Iterator());
+    while( it->HasNext() ) {
+        VLink e = getVLink(it->Next());
+#ifdef MLD_SAFE
+        // Watch for the if, no { }
+        if( e.id() != dex::gdb::Objects::InvalidOID )
+#endif
+            res.push_back(e);
+    }
+    return res;
 }
 
 bool LinkDao::removeHLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt )

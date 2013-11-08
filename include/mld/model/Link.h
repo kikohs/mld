@@ -29,7 +29,6 @@ namespace mld {
  */
 class MLD_API Link
 {
-    friend class LinkDao;
 public:
     virtual ~Link() = 0;
 
@@ -59,6 +58,7 @@ protected:
 class MLD_API HLink : public Link
 {
     friend class LinkDao;
+    friend class MLGDao;
 public:
     virtual ~HLink() override;
 
@@ -84,6 +84,7 @@ private:
 class MLD_API VLink : public Link
 {
     friend class LinkDao;
+    friend class MLGDao;
 public:
     virtual ~VLink() override;
 

@@ -75,10 +75,20 @@ Layer LayerDao::addLayerOnBottom()
     return res;
 }
 
-void LayerDao::updateLayer( const Layer& layer )
+bool LayerDao::updateLayer( const Layer& layer )
 {
     auto attrDes = m_g->FindAttribute(m_lType, LayerAttr::DESCRIPTION);
-    m_g->SetAttribute(layer.id(), attrDes, m_v->SetString(layer.description()));
+#ifdef MLD_SAFE
+    try {
+#endif
+        m_g->SetAttribute(layer.id(), attrDes, m_v->SetString(layer.description()));
+#ifdef MLD_SAFE
+    } catch( dex::gdb::Error& e ) {
+        LOG(logERROR) << "LayerDao::updateLayer: " << e.Message();
+        return false;
+    }
+#endif
+    return true;
 }
 
 Layer LayerDao::getLayer( dex::gdb::oid_t id )
@@ -195,6 +205,30 @@ bool LayerDao::removeAllButBaseLayer()
 
     auto nb = countLayers();
     return nb == 1 ? true : false;
+}
+
+bool LayerDao::affiliated( oid_t layer1, oid_t layer2 )
+{
+    auto childType = m_g->FindType(EdgeType::CHILD_OF);
+    oid_t eid = Objects::InvalidOID;
+#ifdef MLD_SAFE
+    try {
+#endif
+        // Check child_of
+        eid = m_g->FindEdge(childType, layer1, layer2);
+        if( eid == Objects::InvalidOID ) {
+            // Check reverse child_of
+            eid = m_g->FindEdge(childType, layer2, layer1);
+            if( eid == Objects::InvalidOID )
+                return false;
+        }
+#ifdef MLD_SAFE
+    } catch( Error& e ) {
+        LOG(logERROR) << "LayerDao::affiliated: " << e.Message();
+        return false;
+    }
+#endif
+    return true;
 }
 
 // ********** PRIVATE METHODS ********** //
@@ -334,5 +368,30 @@ oid_t LayerDao::childImpl( oid_t lid )
     else
         return obj->Any();
 }
+
+bool LayerDao::exists( const Layer& layer )
+{
+    try {
+        auto type = m_g->GetObjectType(layer.id());
+        if( type == dex::gdb::Type::InvalidType )
+            return false;
+    } catch( dex::gdb::Error& ) {
+        return false;
+    }
+    return true;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

@@ -18,6 +18,7 @@
 
 #include <dex/gdb/Graph.h>
 #include <dex/gdb/Objects.h>
+#include <dex/gdb/ObjectsIterator.h>
 #include <dex/gdb/Graph_data.h>
 #include <dex/gdb/Value.h>
 
@@ -90,3 +91,25 @@ SuperNode SNodeDao::getNode( dex::gdb::oid_t id )
 #endif
     return SuperNode(id, m_v->GetDouble());
 }
+
+
+std::vector<SuperNode> SNodeDao::getNode( const ObjectsPtr& objs )
+{
+    std::vector<SuperNode> res;
+    res.reserve(objs->Count());
+    ObjectsIt it(objs->Iterator());
+    while( it->HasNext() ) {
+        SuperNode n = getNode(it->Next());
+#ifdef MLD_SAFE
+        // Watch for the if, no { }
+        if( n.id() != dex::gdb::Objects::InvalidOID )
+#endif
+            res.push_back(n);
+    }
+    return res;
+}
+
+
+
+
+

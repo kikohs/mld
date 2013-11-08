@@ -19,6 +19,8 @@
 #ifndef MLD_SNODEDAO_H
 #define MLD_SNODEDAO_H
 
+#include <vector>
+
 #include "mld/common.h"
 #include "mld/dao/AbstractDao.h"
 #include "mld/model/SuperNode.h"
@@ -41,6 +43,9 @@ public:
     void removeNode( dex::gdb::oid_t id );
     void updateNode( const SuperNode& n );
     SuperNode getNode( dex::gdb::oid_t id );
+    std::vector<SuperNode> getNode( const ObjectsPtr& objs );
+
+    dex::gdb::type_t superNodeType() const { return m_snType; }
 
 private:
     dex::gdb::type_t m_snType;

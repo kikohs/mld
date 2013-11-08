@@ -19,6 +19,8 @@
 #ifndef MLD_LINKDAO_H
 #define MLD_LINKDAO_H
 
+#include <vector>
+
 #include "mld/common.h"
 #include "mld/dao/AbstractDao.h"
 #include "mld/model/Link.h"
@@ -49,9 +51,11 @@ public:
 
     HLink getHLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt );
     HLink getHLink( dex::gdb::oid_t hid );
+    std::vector<HLink> getHLink( const ObjectsPtr& objs );
 
     VLink getVLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt );
     VLink getVLink( dex::gdb::oid_t vid );
+    std::vector<VLink> getVLink( const ObjectsPtr& objs );
 
     bool removeHLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt );
     bool removeHLink( dex::gdb::oid_t hid );
@@ -64,6 +68,9 @@ public:
 
     bool updateVLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt, double weight );
     bool updateVLink( dex::gdb::oid_t vid, double weight );
+
+    dex::gdb::type_t hlinkType() const { return m_hType; }
+    dex::gdb::type_t vlinkType() const { return m_vType; }
 
 private:
     double getWeight( dex::gdb::type_t edgeType, dex::gdb::oid_t id );

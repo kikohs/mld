@@ -75,6 +75,16 @@ TEST( SNodeDaoTest, CRUD )
     EXPECT_EQ(u.id(), Objects::InvalidOID);
 #endif
 
+    dao->addNode();
+    dao->addNode();
+
+    // Get from Objets
+    ObjectsPtr all(g->Select(dao->superNodeType()));
+    EXPECT_EQ(all->Count(), 2);
+    std::vector<SuperNode> allVec = dao->getNode(all);
+    EXPECT_EQ(allVec.size(), size_t(2));
+
+    all.reset();
     dao.reset();
     sess.reset();
 }

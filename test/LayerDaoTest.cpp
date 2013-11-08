@@ -68,6 +68,7 @@ TEST( LayerDaoTest, BaseLayer )
     // Create base layer
     Layer base = dao->addBaseLayer();
     EXPECT_NE(base.id(), Objects::InvalidOID);
+    EXPECT_EQ(base.isBaseLayer(), true);
     // Try to recreate a base layer
     Layer base2 = dao->addBaseLayer();
     EXPECT_EQ(base2.id(), Objects::InvalidOID);
@@ -105,12 +106,14 @@ TEST( LayerDaoTest, AddRemoveLayers )
     dexManager.createScheme(g);
 
     std::unique_ptr<LayerDao> dao( new LayerDao(g) );
+    bool success = false;
     // No layers yet
     EXPECT_EQ(0, dao->countLayers());
     // Create base layer
     Layer base = dao->addBaseLayer();
     EXPECT_NE(base.id(), Objects::InvalidOID);
     EXPECT_NE(base.id(), 0);
+    EXPECT_EQ(base.isBaseLayer(), true);
 
     // Add Layers on top and bottom
     Layer top = dao->addLayerOnTop();
@@ -131,8 +134,16 @@ TEST( LayerDaoTest, AddRemoveLayers )
     Layer bot2 = dao->child(exbase);
     EXPECT_EQ(bot2.id(), bot.id());
 
+    // Check affiliation
+    success = dao->affiliated(exbase.id(), bot2.id());
+    EXPECT_EQ(success, true);
+    success = dao->affiliated(exbase.id(), top.id());
+    EXPECT_EQ(success, true);
+    success = dao->affiliated(bot2.id(), top.id());
+    EXPECT_EQ(success, false);
+
     // Remove top layer, should not work, toplayer is base
-    bool success = dao->removeTopLayer();
+    success = dao->removeTopLayer();
     EXPECT_EQ(success, false);
 
     EXPECT_EQ(3, dao->countLayers());
@@ -163,7 +174,7 @@ TEST( LayerDaoTest, AddRemoveLayers )
     dao->addLayerOnBottom();
     dao->addLayerOnBottom();
     dao->addLayerOnBottom();
-    dao->addLayerOnBottom();
+    auto last = dao->addLayerOnBottom();
 
     success = dao->removeBaseLayer();
     EXPECT_EQ(success, false);
@@ -174,7 +185,40 @@ TEST( LayerDaoTest, AddRemoveLayers )
     EXPECT_EQ(dao->countLayers(), 1);
     EXPECT_EQ(base.id(), dao->baseLayer().id());
 
+    // Check if exists
+    success = dao->exists(base);
+    EXPECT_EQ(success, true);
+
+    // All should have been removed
+    success = dao->exists(last);
+    EXPECT_EQ(success, false);
+
     dao.reset();
     sess.reset();
 }
 
+TEST( LayerDaoTest, GetUpdateLayer )
+{
+    mld::DexManager dexManager(mld::kRESOURCES_DIR + L"mydex.cfg");
+    dexManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.dex", L"MLDTest");
+
+    SessionPtr sess = dexManager.newSession();
+    Graph* g = sess->GetGraph();
+    // Create Db scheme
+    dexManager.createScheme(g);
+
+    std::unique_ptr<LayerDao> dao( new LayerDao(g) );
+
+    auto base = dao->addBaseLayer();
+    base.setDescription(L"Base layer blabla");
+    bool success = dao->updateLayer(base);
+    EXPECT_EQ(success, true);
+
+    auto base_get = dao->getLayer(base.id());
+    EXPECT_EQ(base_get.id(), base.id());
+    EXPECT_EQ(base_get.description(), base.description());
+    EXPECT_EQ(base_get.isBaseLayer(), true);
+
+    dao.reset();
+    sess.reset();
+}

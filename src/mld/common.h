@@ -40,8 +40,16 @@
 
 #include <mld/log.h>
 
+namespace dex {
+namespace gdb {
+    class Objects;
+    class ObjectsIterator;
+}}
+
 namespace mld {
 
+typedef std::unique_ptr<dex::gdb::Objects> ObjectsPtr;
+typedef std::unique_ptr<dex::gdb::ObjectsIterator> ObjectsIt;
 /**
  * @brief H_LINK default weight value
  */

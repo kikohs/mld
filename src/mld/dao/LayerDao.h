@@ -45,29 +45,16 @@ public:
     LayerDao( dex::gdb::Graph* g );
     virtual ~LayerDao() override;
 
-    int64_t countLayers();
+    Layer addBaseLayer();
+    void setAsBaseLayer( Layer& layer );
 
     Layer addLayerOnTop();
     Layer addLayerOnBottom();
 
-    void updateLayer( const Layer& layer );
-    Layer getLayer( dex::gdb::oid_t id );
-
-    /**
-     * @brief Remove Top Layer
-     * Delete all the node OWNED by the layer
-     */
     bool removeTopLayer();
-    /**
-     * @brief Remove Bottom Layer
-     * Delete all the node OWNED by the layer
-     */
     bool removeBottomLayer();
-    /**
-     * @brief Set Layer as Base layer
-     * @param layer[in|out]
-     */
-    void setAsBaseLayer( Layer& layer );
+    bool removeBaseLayer();
+    bool removeAllButBaseLayer();
 
     Layer bottomLayer();
     Layer topLayer();
@@ -76,18 +63,18 @@ public:
     Layer parent( const Layer& layer );
     Layer child( const Layer& layer );
 
-    Layer addBaseLayer();
-    /**
-     * @brief Remove base layer iff it is the only layer
-     * @return success
-     */
-    bool removeBaseLayer();
+    int64_t countLayers();
+    bool updateLayer( const Layer& layer );
+    Layer getLayer( dex::gdb::oid_t id );
+    bool exists( const Layer& layer );
 
     /**
-     * @brief Remove all the layers except the base one
-     * @return success
+     * @brief Check filiation
+     * @param layer1
+     * @param layer2
+     * @return TRue is one of the layer is child of the other
      */
-    bool removeAllButBaseLayer();
+    bool affiliated( dex::gdb::oid_t src, dex::gdb::oid_t tgt );
 
 private:
     dex::gdb::oid_t addLayer();
@@ -110,4 +97,5 @@ private:
 };
 
 } // end namespace mld
+
 #endif // MLD_LAYERDAO_H

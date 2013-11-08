@@ -201,6 +201,20 @@ TEST( LinkDaoTest, H_LINK_get )
     EXPECT_EQ(res2_get.target(), res2.target());
     EXPECT_EQ(res2_get.weight(), res2.weight());
 
+    // Get from Objets
+    ObjectsPtr all(g->Select(lkDao->hlinkType()));
+    EXPECT_EQ(all->Count(), 2);
+    std::vector<HLink> allVec = lkDao->getHLink(all);
+    EXPECT_EQ(allVec.size(), size_t(2));
+
+#ifdef MLD_SAFE
+    // Get Invalid Objects
+    all.reset(g->Select(snDao->superNodeType()));
+    allVec = lkDao->getHLink(all);
+    EXPECT_EQ(allVec.size(), size_t(0));
+#endif
+
+    all.reset();
     snDao.reset();
     lkDao.reset();
     sess.reset();
@@ -251,6 +265,20 @@ TEST( LinkDaoTest, V_LINK_get )
     EXPECT_EQ(res2_get.target(), res2.target());
     EXPECT_EQ(res2_get.weight(), res2.weight());
 
+    // Get from Objets
+    ObjectsPtr all(g->Select(lkDao->vlinkType()));
+    EXPECT_EQ(all->Count(), 2);
+    std::vector<VLink> allVec = lkDao->getVLink(all);
+    EXPECT_EQ(allVec.size(), size_t(2));
+
+#ifdef MLD_SAFE
+    // Get Invalid Objects
+    all.reset(g->Select(snDao->superNodeType()));
+    allVec = lkDao->getVLink(all);
+    EXPECT_EQ(allVec.size(), size_t(0));
+#endif
+
+    all.reset();
     snDao.reset();
     lkDao.reset();
     sess.reset();
