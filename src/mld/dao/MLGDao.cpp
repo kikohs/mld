@@ -16,8 +16,11 @@
 **
 ****************************************************************************/
 
+#include <map>
+
 #include <dex/gdb/Graph.h>
 #include <dex/gdb/Objects.h>
+#include <dex/gdb/ObjectsIterator.h>
 #include <dex/gdb/Graph_data.h>
 #include <dex/gdb/Value.h>
 
@@ -66,7 +69,7 @@ HLink MLGDao::addHLink( const SuperNode& src, const SuperNode& tgt, double weigh
     if( srcLayer != tgtLayer
             || srcLayer == dex::gdb::Objects::InvalidOID
             || tgtLayer == dex::gdb::Objects::InvalidOID ) {
-        LOG(logERROR) << "MLGDao::addHLink: SuperNode are not in the same layer";
+        LOG(logERROR) << "MLGDao::addHLink: SuperNodes are not on the same layer";
         return HLink();
     }
 #endif
@@ -76,19 +79,21 @@ HLink MLGDao::addHLink( const SuperNode& src, const SuperNode& tgt, double weigh
         return m_link->addHLink(src.id(), tgt.id(), weight);
 }
 
-VLink MLGDao::addVLink( const SuperNode& src, const SuperNode& tgt, double weight )
+VLink MLGDao::addVLink( const SuperNode& child, const SuperNode& parent, double weight )
 {
 #ifdef MLD_SAFE
-    bool affiliated = m_layer->affiliated(src.id(), tgt.id());
+    auto srcLayer = getLayerIdForSuperNode(child.id());
+    auto tgtLayer = getLayerIdForSuperNode(parent.id());
+    bool affiliated = m_layer->affiliated(srcLayer, tgtLayer);
     if( !affiliated ) {
         LOG(logERROR) << "MLGDao::addVLink: Layers are not affiliated";
         return VLink();
     }
 #endif
     if( weight == kVLINK_DEF_VALUE )
-        return m_link->addVLink(src.id(), tgt.id());
+        return m_link->addVLink(child.id(), parent.id());
     else
-        return m_link->addVLink(src.id(), tgt.id(), weight);
+        return m_link->addVLink(child.id(), parent.id(), weight);
 }
 
 ObjectsPtr MLGDao::getAllNodeIds( const Layer& l )
@@ -138,6 +143,56 @@ std::vector<HLink> MLGDao::getAllHLinks( const Layer& l )
     return m_link->getHLink(links);
 }
 
+Layer MLGDao::mirrorTopLayer()
+{
+    return mirrorLayerImpl(TOP);
+}
+
+Layer MLGDao::mirrorBottomLayer()
+{
+    return mirrorLayerImpl(BOTTOM);
+}
+
+std::vector<SuperNode> MLGDao::getParentNodes( dex::gdb::oid_t id )
+{
+    std::vector<SuperNode> res;
+#ifdef MLD_SAFE
+    try {
+#endif
+        ObjectsPtr parents(m_g->Neighbors(id, m_link->vlinkType(), dex::gdb::Outgoing));
+        ObjectsIt parIt(parents->Iterator());
+
+        while( parIt->HasNext() ) {
+            res.push_back(m_sn->getNode(parIt->Next()));
+        }
+#ifdef MLD_SAFE
+    } catch( dex::gdb::Error& e ) {
+        LOG(logERROR) << "MLGDao::getParentNodes: " << e.Message();
+    }
+#endif
+    return res;
+}
+
+std::vector<SuperNode> MLGDao::getChildNodes( dex::gdb::oid_t id )
+{
+    std::vector<SuperNode> res;
+#ifdef MLD_SAFE
+    try {
+#endif
+        ObjectsPtr children(m_g->Neighbors(id, m_link->vlinkType(), dex::gdb::Ingoing));
+        ObjectsIt childIt(children->Iterator());
+
+        while( childIt->HasNext() ) {
+            res.push_back(m_sn->getNode(childIt->Next()));
+        }
+#ifdef MLD_SAFE
+    } catch( dex::gdb::Error& e ) {
+        LOG(logERROR) << "MLGDao::getChildNodes: " << e.Message();
+    }
+#endif
+    return res;
+}
+
 // ****** PRIVATE METHODS ****** //
 
 dex::gdb::oid_t MLGDao::getLayerIdForSuperNode( dex::gdb::oid_t nid )
@@ -164,6 +219,82 @@ dex::gdb::oid_t MLGDao::getLayerIdForSuperNode( dex::gdb::oid_t nid )
     }
 #endif
     return obj->Any();
+}
+
+Layer MLGDao::mirrorLayerImpl( const Direction& dir )
+{
+    Layer previous = dir == TOP ? topLayer(): bottomLayer();
+#ifdef MLD_SAFE
+    if( previous.id() == dex::gdb::Objects::InvalidOID )
+        return previous; // invalid
+#endif
+    // New top layer
+    Layer newLayer = dir == TOP ? addLayerOnTop(): addLayerOnBottom();
+    // Get all nodes from previous layer
+    ObjectsPtr nodes(getAllNodeIds(previous));
+
+    if( nodes->Count() == 0 ) {
+        LOG(logWARNING) << "MLGDao::mirrorTopLayer: empty previous top layer";
+        return newLayer;
+    }
+
+    // Id map from previous node ids to top layer nodes, needed to add
+    // corresponding edges
+    std::map<dex::gdb::oid_t, SuperNode> nodeMap;
+
+    ObjectsIt nodesIt(nodes->Iterator());
+    // Duplicate nodes and VLink them
+    while( nodesIt->HasNext() ) {
+        // Get each node on the previous layer
+        SuperNode prevNode = m_sn->getNode(nodesIt->Next());
+        // Add node in top layer
+        SuperNode newNode = addNodeToLayer(newLayer);
+
+        // Link them
+        if( dir == TOP )
+            m_link->addVLink(prevNode.id(), newNode.id());
+        else
+            m_link->addVLink(newNode.id(), prevNode.id());
+
+        // Update node weight if needed
+        if( prevNode.weight() != kSUPERNODE_DEF_VALUE ) {
+            newNode.setWeight(prevNode.weight());
+            m_sn->updateNode(newNode);
+        }
+        // Add to map to retrieve edges
+        nodeMap[prevNode.id()] = newNode;
+    }
+
+    // Duplicate edges
+    ObjectsPtr edges(m_g->Explode(nodes.get(), m_link->hlinkType(), dex::gdb::Outgoing));
+    ObjectsIt edgesIt(edges->Iterator());
+    while( edgesIt->HasNext() ) {
+        // Get previous layer HLink
+        HLink link = m_link->getHLink(edgesIt->Next());
+        // Find equivalent in top layer
+        SuperNode topSrc = nodeMap[link.source()];
+        SuperNode topTgt = nodeMap[link.target()];
+        // Add new HLink
+        m_link->addHLink(topSrc.id(), topTgt.id(), link.weight());
+    }
+    return newLayer;
+}
+
+// ****** FORWARD METHOD OF SN DAO ****** //
+
+void MLGDao::removeNode( dex::gdb::oid_t id )
+{
+    m_sn->removeNode(id);
+}
+
+void MLGDao::updateNode( const SuperNode& n )
+{
+    m_sn->updateNode(n);
+}
+
+SuperNode MLGDao::getNode( dex::gdb::oid_t id )
+{
+    return m_sn->getNode(id);
 }
 
 // ****** FORWARD METHOD OF LINK DAO ****** //

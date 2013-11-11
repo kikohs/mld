@@ -87,16 +87,16 @@ HLink LinkDao::addHLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt, double weight
     return res;
 }
 
-VLink LinkDao::addVLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt )
+VLink LinkDao::addVLink( dex::gdb::oid_t child, dex::gdb::oid_t parent )
 {
 #ifdef MLD_SAFE
-    if( src == tgt ) { // no self loop
+    if( child == parent ) { // no self loop
         LOG(logWARNING) << "LinkDao::addVLink: no self-loop allowed";
         return VLink();
     }
 
     // no invalid edge
-    if( src == dex::gdb::Objects::InvalidOID || tgt == dex::gdb::Objects::InvalidOID ) {
+    if( child == dex::gdb::Objects::InvalidOID || parent == dex::gdb::Objects::InvalidOID ) {
         LOG(logERROR) << "LinkDao::addVLink: source or target is invalid";
         return VLink();
     }
@@ -105,21 +105,21 @@ VLink LinkDao::addVLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt )
 #ifdef MLD_SAFE
     try {
 #endif
-        vid = m_g->NewEdge(m_vType, src, tgt);
+        vid = m_g->NewEdge(m_vType, child, parent);
 #ifdef MLD_SAFE
     } catch( dex::gdb::Error& ) {
         LOG(logERROR) << "LinkDao::addVLink: invalid src or tgt";
         return VLink();
     }
 #endif
-    VLink res(src, tgt);
+    VLink res(child, parent);
     res.setId(vid);
     return res;
 }
 
-VLink LinkDao::addVLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt, double weight )
+VLink LinkDao::addVLink( dex::gdb::oid_t src, dex::gdb::oid_t parent, double weight )
 {
-    VLink res = addVLink(src, tgt);
+    VLink res = addVLink(src, parent);
 #ifdef MLD_SAFE
     if( res.id() == dex::gdb::Objects::InvalidOID )
         return VLink();

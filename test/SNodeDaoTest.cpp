@@ -44,7 +44,7 @@ TEST( SNodeDaoTest, CRUD )
     std::unique_ptr<SNodeDao> dao( new SNodeDao(g) );
 
     SuperNode n1 = dao->addNode();
-    EXPECT_EQ(n1.weight(), 0);
+    EXPECT_EQ(n1.weight(), kSUPERNODE_DEF_VALUE);
 
     n1.setWeight(15);
     // Update node content

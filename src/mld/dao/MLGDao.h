@@ -46,6 +46,11 @@ namespace mld {
  */
 class MLD_API MLGDao: public AbstractDao
 {
+    enum Direction {
+        TOP,
+        BOTTOM
+    };
+
 public:
     MLGDao( dex::gdb::Graph* g );
     virtual ~MLGDao() override;
@@ -75,7 +80,7 @@ public:
      * @param weight
      * @return New created VLink
      */
-    VLink addVLink( const SuperNode& src, const SuperNode& tgt, double weight = kVLINK_DEF_VALUE );
+    VLink addVLink( const SuperNode& child, const SuperNode& parent, double weight = kVLINK_DEF_VALUE );
 
 
     /**
@@ -105,6 +110,41 @@ public:
      * @return HLinks
      */
     std::vector<HLink> getAllHLinks( const Layer& l );
+
+    /**
+     * @brief Mirror top layer
+     * Duplicate top layer and link each new supernode to the
+     * previous one with a VLINK
+     * @return top layer
+     */
+    Layer mirrorTopLayer();
+
+    /**
+     * @brief Mirror bottom layer
+     * Duplicate bottom layer and link each new supernode to the
+     * previous one with a VLINK
+     * @return bottom layer
+     */
+    Layer mirrorBottomLayer();
+
+    /**
+     * @brief Get parent nodes for the given supernode id
+     * @param id SuperNode id
+     * @return Parent SuperNodes
+     */
+    std::vector<SuperNode> getParentNodes( dex::gdb::oid_t id );
+
+    /**
+     * @brief Get child nodes for the given supernode id
+     * @param id SuperNode id
+     * @return Child SuperNodes
+     */
+    std::vector<SuperNode> getChildNodes( dex::gdb::oid_t id );
+
+    // Forward to SNDao
+    void removeNode( dex::gdb::oid_t id );
+    void updateNode( const SuperNode& n );
+    SuperNode getNode( dex::gdb::oid_t id );
 
     // Forward to LinkDao
     HLink getHLink( const SuperNode& src, const SuperNode& tgt );
@@ -230,6 +270,7 @@ public:
 
 private:
     dex::gdb::oid_t getLayerIdForSuperNode( dex::gdb::oid_t nid );
+    Layer mirrorLayerImpl( const Direction& dir );
 
 private:
     std::unique_ptr<SNodeDao> m_sn;

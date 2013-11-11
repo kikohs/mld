@@ -46,8 +46,8 @@ public:
     HLink addHLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt );
     HLink addHLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt, double weight );
 
-    VLink addVLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt );
-    VLink addVLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt, double weight );
+    VLink addVLink( dex::gdb::oid_t child, dex::gdb::oid_t parent );
+    VLink addVLink( dex::gdb::oid_t child, dex::gdb::oid_t parent, double weight );
 
     HLink getHLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt );
     HLink getHLink( dex::gdb::oid_t hid );

@@ -59,6 +59,8 @@ static const double kHLINK_DEF_VALUE = 1.0;
  */
 static const double kVLINK_DEF_VALUE = 1.0;
 
+static const double kSUPERNODE_DEF_VALUE = 1.0;
+
 } // end namespace mld
 
 #endif // MLD_COMMON_H

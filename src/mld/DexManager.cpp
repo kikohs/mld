@@ -82,7 +82,7 @@ void DexManager::createNodeTypes( Graph* g )
     if( nType == Type::InvalidType ) {
         nType = g->NewNodeType(NodeType::SUPERNODE);
         attr = g->NewAttribute(nType, SNAttr::WEIGHT, Double, Indexed);
-        g->SetAttributeDefaultValue(attr, val.SetDouble(0));
+        g->SetAttributeDefaultValue(attr, val.SetDouble(kSUPERNODE_DEF_VALUE));
     }
 
     // Create Layer type

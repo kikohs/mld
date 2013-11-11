@@ -47,7 +47,7 @@ SuperNode::SuperNode()
 
 SuperNode::SuperNode( dex::gdb::oid_t id )
     : Node(id)
-    , m_weight()
+    , m_weight(kSUPERNODE_DEF_VALUE)
 {
 }
 

@@ -52,4 +52,5 @@ private:
 };
 
 } // end namespace mld
+
 #endif // MLD_SNODEDAO_H

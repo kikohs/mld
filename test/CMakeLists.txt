@@ -1,7 +1,7 @@
 ## Since we are testing we have access to all the headers
 include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/mld
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/
 )
 
  enable_testing(true)
@@ -15,6 +15,7 @@ include_directories(
 append_test(SNodeDaoTest SNodeDaoTest.cpp)
 append_test(LayerDaoTest LayerDaoTest.cpp)
 append_test(LinkDaoTest LinkDaoTest.cpp)
+append_test(MLGDaoTest MLGDaoTest.cpp)
 
  list(LENGTH TESTS_SRCS len1)
  math(EXPR len2 "${len1} - 1")
