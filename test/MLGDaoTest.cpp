@@ -188,15 +188,6 @@ TEST( MLGDaoTest, MirrorLayer )
     HLink pHl21 = dao->getHLink(ed->Any());
     ed.reset();
     EXPECT_EQ(pHl21.weight(), hl21.weight());
-//    auto nodeIds = dao->getAllNodeIds(top);
-//    EXPECT_EQ(nodeIds->Count(), 3);
-//    ObjectsPtr vlinkIds(g->Explode(nodeIds.get(),
-//                                 g->FindType(EdgeType::CHILD_OF), dex::gdb::Ingoing));
-//    EXPECT_EQ(vlinkIds->Count(), 3);
-
-
-//    vlinkIds.reset();
-//    nodeIds.reset();
 
     dao.reset();
     sess.reset();
