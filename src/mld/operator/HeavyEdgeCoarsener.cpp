@@ -16,36 +16,10 @@
 **
 ****************************************************************************/
 
-#ifndef MLD_ABSTRACTDAO_H
-#define MLD_ABSTRACTDAO_H
+#include "mld/operator/HeavyEdgeCoarsener.h"
 
-#include "mld/common.h"
+using namespace mld;
 
-namespace dex {
-namespace gdb {
-    class Graph;
-    class Value;
-}}
-
-namespace mld {
-/**
- * @brief Abstract dao class, implemented by all daos
- */
-class MLD_API AbstractDao
+HeavyEdgeCoarsener::HeavyEdgeCoarsener()
 {
-public:
-    virtual ~AbstractDao() = 0;
-    AbstractDao( const AbstractDao& ) = delete;
-    AbstractDao& operator=( const AbstractDao& ) = delete;
-
-protected:
-    AbstractDao( dex::gdb::Graph* g );
-
-protected:
-    dex::gdb::Graph* m_g;
-    std::unique_ptr<dex::gdb::Value> m_v;
-};
-
-} // end namespace mld
-
-#endif // MLD_ABSTRACTDAO_H
+}

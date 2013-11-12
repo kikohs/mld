@@ -16,36 +16,25 @@
 **
 ****************************************************************************/
 
-#ifndef MLD_ABSTRACTDAO_H
-#define MLD_ABSTRACTDAO_H
+#include "mld/MLGBuilder.h"
+#include "mld/operator/AbstractOperator.h"
 
-#include "mld/common.h"
+using namespace mld;
 
-namespace dex {
-namespace gdb {
-    class Graph;
-    class Value;
-}}
-
-namespace mld {
-/**
- * @brief Abstract dao class, implemented by all daos
- */
-class MLD_API AbstractDao
+MLGBuilder::MLGBuilder()
 {
-public:
-    virtual ~AbstractDao() = 0;
-    AbstractDao( const AbstractDao& ) = delete;
-    AbstractDao& operator=( const AbstractDao& ) = delete;
+}
 
-protected:
-    AbstractDao( dex::gdb::Graph* g );
-
-protected:
-    dex::gdb::Graph* m_g;
-    std::unique_ptr<dex::gdb::Value> m_v;
-};
-
-} // end namespace mld
-
-#endif // MLD_ABSTRACTDAO_H
+void MLGBuilder::run()
+{
+    if( m_steps.empty() ) {
+        LOG(logWARNING) << "MLGBuilder::run queue is empty";
+        return;
+    }
+    // Run each step and remove it from the queue
+    while( !m_steps.empty() ) {
+        OperatorPtr& step = m_steps.front();
+        step->run();
+        m_steps.pop_front();
+    }
+}

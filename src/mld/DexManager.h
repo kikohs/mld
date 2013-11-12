@@ -28,9 +28,6 @@
  *
  * @author Kirell
  */
-
-#include <boost/noncopyable.hpp>
-
 #include "mld/common.h"
 #include "mld/Session.h"
 
@@ -43,7 +40,7 @@ namespace gdb {
 
 namespace mld {
 
-class MLD_API DexManager: public boost::noncopyable
+class MLD_API DexManager
 {
     typedef std::unique_ptr<dex::gdb::Dex> DexPtr;
     typedef std::unique_ptr<dex::gdb::Database> DatabasePtr;
@@ -54,6 +51,9 @@ public:
      * @param conf. DexConfig object
      */
     DexManager( const dex::gdb::DexConfig& conf );
+    // Disable copy and assignement constructors
+    DexManager( const DexManager& ) = delete;
+    DexManager& operator=( const DexManager& ) = delete;
 
     /**
      * @brief DexManager second constructor

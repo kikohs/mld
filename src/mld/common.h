@@ -38,6 +38,8 @@
 #   endif
 #endif
 
+#define MLD_UNUSED(expr) do { (void)(expr); } while (0)
+
 #include <mld/log.h>
 
 namespace dex {

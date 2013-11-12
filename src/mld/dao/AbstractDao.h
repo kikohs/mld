@@ -34,7 +34,9 @@ namespace mld {
 class MLD_API AbstractDao
 {
 public:
-    virtual ~AbstractDao();
+    virtual ~AbstractDao() = 0;
+    AbstractDao( const AbstractDao& ) = delete;
+    AbstractDao& operator=( const AbstractDao& ) = delete;
 
 protected:
     AbstractDao( dex::gdb::Graph* g );

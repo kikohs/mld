@@ -16,36 +16,44 @@
 **
 ****************************************************************************/
 
-#ifndef MLD_ABSTRACTDAO_H
-#define MLD_ABSTRACTDAO_H
+#ifndef MLD_MLGBUILDER_H
+#define MLD_MLGBUILDER_H
+
+#include <deque>
 
 #include "mld/common.h"
 
-namespace dex {
-namespace gdb {
-    class Graph;
-    class Value;
-}}
-
 namespace mld {
+
+class AbstractOperator;
+
+typedef std::shared_ptr<AbstractOperator> OperatorPtr;
 /**
- * @brief Abstract dao class, implemented by all daos
+ * @brief The Multi-layer graph builder class
  */
-class MLD_API AbstractDao
+class MLD_API MLGBuilder
 {
 public:
-    virtual ~AbstractDao() = 0;
-    AbstractDao( const AbstractDao& ) = delete;
-    AbstractDao& operator=( const AbstractDao& ) = delete;
+    MLGBuilder();
+    MLGBuilder( const MLGBuilder& ) = delete;
+    MLGBuilder& operator=( const MLGBuilder& ) = delete;
 
-protected:
-    AbstractDao( dex::gdb::Graph* g );
+    /**
+     * @brief Add step to the queue
+     * @param step
+     */
+    void addStep( const OperatorPtr& step ) { m_steps.push_back(step); }
+    void clearSteps() { m_steps.clear(); }
 
-protected:
-    dex::gdb::Graph* m_g;
-    std::unique_ptr<dex::gdb::Value> m_v;
+    /**
+     * @brief Run all the steps FIFO, empyting the queue
+     */
+    void run();
+private:
+    std::deque<OperatorPtr> m_steps;
 };
 
 } // end namespace mld
 
-#endif // MLD_ABSTRACTDAO_H
+#endif // MLD_MLGBUILDER_H
+

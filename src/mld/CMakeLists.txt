@@ -2,6 +2,7 @@
 set( MLD ${CMAKE_CURRENT_SOURCE_DIR} )
 set( DAO ${MLD}/dao )
 set( MODEL ${MLD}/model )
+set( OPERATOR ${MLD}/operator )
 
 # DAO SRCS
 set( DAO_SRCS
@@ -19,14 +20,21 @@ set( MODEL_SRCS
     ${MODEL}/Link.cpp
 )
 
+# OPERATOR SRCS
+set( OPERATOR_SRCS
+    ${OPERATOR}/AbstractOperator.cpp
+)
+
 # SOURCES FILES
 set( project_SRCS
     mld/common.h
     mld/config.h
     mld/DexManager.cpp
     mld/Graph_types.cpp
+    mld/MLGBuilder.cpp
     ${DAO_SRCS}
     ${MODEL_SRCS}
+    ${OPERATOR_SRCS}
 
     PARENT_SCOPE
 )
@@ -40,17 +48,15 @@ set( CUR_PUB_HDRS
     ${MLD}/log.h
     ${MLD}/DexManager.h
     ${MLD}/Session.h
+    ${MLD}/MLGBuilder.h
 
     PARENT_SCOPE
 )
 
 # DAO
 set( DAO_PUBLIC_HDRS
-    ${DAO}/SNodeDao.h
-    ${DAO}/LayerDao.h
     ${DAO}/MLGDao.h
     ${DAO}/AbstractDao.h
-    ${DAO}/LinkDao.h
     PARENT_SCOPE
 )
 
@@ -73,4 +79,14 @@ set( MODEL_PUB_HDRS_DIR
     PARENT_SCOPE
 )
 
+# OPERATOR
+set( OPERATOR_PUBLIC_HDRS
+    ${OPERATOR}/AbstractOperator.h
+    PARENT_SCOPE
+)
+
+set( OPERATOR_PUB_HDRS_DIR
+    ${PUBLIC_HDRS_DIR}/operator
+    PARENT_SCOPE
+)
 

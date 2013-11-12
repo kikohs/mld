@@ -16,36 +16,29 @@
 **
 ****************************************************************************/
 
-#ifndef MLD_ABSTRACTDAO_H
-#define MLD_ABSTRACTDAO_H
+#include "mld/operator/AbstractOperator.h"
+#include "mld/dao/MLGDao.h"
 
-#include "mld/common.h"
+using namespace mld;
 
-namespace dex {
-namespace gdb {
-    class Graph;
-    class Value;
-}}
-
-namespace mld {
-/**
- * @brief Abstract dao class, implemented by all daos
- */
-class MLD_API AbstractDao
+AbstractOperator::AbstractOperator( dex::gdb::Graph* g )
+    : m_g(g)
+    , m_dao( new MLGDao(g) )
+    , m_scaleFac(1.0)
 {
-public:
-    virtual ~AbstractDao() = 0;
-    AbstractDao( const AbstractDao& ) = delete;
-    AbstractDao& operator=( const AbstractDao& ) = delete;
+    MLD_UNUSED(m_g);
+}
 
-protected:
-    AbstractDao( dex::gdb::Graph* g );
+AbstractOperator::~AbstractOperator()
+{
+    // DO NOT DELETE GRAPH
+}
 
-protected:
-    dex::gdb::Graph* m_g;
-    std::unique_ptr<dex::gdb::Value> m_v;
-};
+void AbstractOperator::run()
+{
+    pre_exec();
+    exec();
+    post_exec();
+}
 
-} // end namespace mld
 
-#endif // MLD_ABSTRACTDAO_H
