@@ -23,6 +23,12 @@ set( MODEL_SRCS
 # OPERATOR SRCS
 set( OPERATOR_SRCS
     ${OPERATOR}/AbstractOperator.cpp
+    ${OPERATOR}/AbstractCoarsener.cpp
+    ${OPERATOR}/AbstractSelector.cpp
+    ${OPERATOR}/AbstractMerger.cpp
+    ${OPERATOR}/coarseners.cpp
+    ${OPERATOR}/mergers.cpp
+    ${OPERATOR}/selectors.cpp
 )
 
 # SOURCES FILES
@@ -82,6 +88,12 @@ set( MODEL_PUB_HDRS_DIR
 # OPERATOR
 set( OPERATOR_PUBLIC_HDRS
     ${OPERATOR}/AbstractOperator.h
+    ${OPERATOR}/AbstractCoarsener.h
+    ${OPERATOR}/AbstractSelector.h
+    ${OPERATOR}/AbstractMerger.h
+    ${OPERATOR}/coarseners.h
+    ${OPERATOR}/mergers.h
+    ${OPERATOR}/selectors.h
     PARENT_SCOPE
 )
 

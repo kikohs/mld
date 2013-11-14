@@ -16,58 +16,38 @@
 **
 ****************************************************************************/
 
-#ifndef MLD_ABSTRACTOPERATOR_H
-#define MLD_ABSTRACTOPERATOR_H
+#ifndef MLD_ABSTRACTSELECTOR_H
+#define MLD_ABSTRACTSELECTOR_H
 
 #include "mld/common.h"
+#include "mld/model/Link.h"
+#include "mld/model/Layer.h"
 
 namespace dex {
 namespace gdb {
     class Graph;
-    class Value;
-    class Objects;
 }}
-
 namespace mld {
-
+// Forward declaration
 class MLGDao;
 
 /**
- * @brief Abstract MLG Operator
- *  Base class for Coarseners or Expanders and Refiners
+ * @brief Base class inherited by all edge selectors
+ * Provides a common interface for all mergers.
+ * Used by all coarseners
  */
-class MLD_API AbstractOperator
+class MLD_API AbstractSelector
 {
 public:
-    AbstractOperator( dex::gdb::Graph* g );
-    virtual ~AbstractOperator() = 0;
+    AbstractSelector( dex::gdb::Graph* g );
+    virtual ~AbstractSelector() = 0;
 
     // Disable copy and assignement ctor
-    AbstractOperator( const AbstractOperator& ) = delete;
-    AbstractOperator& operator=( const AbstractOperator& ) = delete;
+    AbstractSelector( const AbstractSelector& ) = delete;
+    AbstractSelector& operator=( const AbstractSelector& ) = delete;
 
-    /**
-     * @brief Run the underlying algorithms
-     *  Call pre_exec(), exec() and post_exec()
-     */
-    void run();
-
-protected:
-    /**
-     * @brief Pre execution process
-     *  To reimplement
-     */
-    virtual void pre_exec() = 0;
-
-    /**
-     * @brief Main method to be reimplemented
-     */
-    virtual void exec() = 0;
-
-    /**
-     * @brief Run after exec, post execution method
-     */
-    virtual void post_exec() = 0;
+    virtual HLink selectBestHLink( const Layer& layer ) = 0;
+//    virtual VLink selectBestVLink() = 0;
 
 protected:
     std::unique_ptr<MLGDao> m_dao;
@@ -75,4 +55,4 @@ protected:
 
 } // end namespace mld
 
-#endif // MLD_ABSTRACTOPERATOR_H
+#endif // MLD_ABSTRACTSELECTOR_H

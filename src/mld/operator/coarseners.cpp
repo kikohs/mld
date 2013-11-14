@@ -16,25 +16,25 @@
 **
 ****************************************************************************/
 
-#include "mld/operator/AbstractOperator.h"
+#include "mld/operator/coarseners.h"
+#include "mld/operator/mergers.h"
+#include "mld/operator/selectors.h"
 #include "mld/dao/MLGDao.h"
 
 using namespace mld;
+using namespace dex::gdb;
 
-AbstractOperator::AbstractOperator( dex::gdb::Graph* g )
-    : m_dao( new MLGDao(g) )
+namespace {
+
+} // end namespace anonymous
+
+HeavyEdgeCoarsener::HeavyEdgeCoarsener( Graph* g )
+    : AbstractCoarsener(g)
 {
+    m_sel.reset( new HeavyEdgeSelector(g) );
+    m_merger.reset( new BasicAdditiveMerger(g) );
 }
 
-AbstractOperator::~AbstractOperator()
+HeavyEdgeCoarsener::~HeavyEdgeCoarsener()
 {
 }
-
-void AbstractOperator::run()
-{
-    pre_exec();
-    exec();
-    post_exec();
-}
-
-

@@ -65,6 +65,8 @@ TEST( MLGDaoTest, CRUD )
     // Add a top layer
     Layer top = dao->addLayerOnTop();
     SuperNode n3 = dao->addNodeToLayer(top);
+    // Check node count
+    EXPECT_EQ(dao->getNodeCount(top), 1);
 
     // Not on the same layer
     HLink hl13 = dao->addHLink(n1, n3);
@@ -107,6 +109,7 @@ TEST( MLGDaoTest, CRUD )
     bot = dao->addLayerOnBottom();
     ObjectsPtr noNodes = dao->getAllNodeIds(bot);
     EXPECT_EQ(noNodes->Count(), 0);
+    EXPECT_EQ(dao->getNodeCount(bot), 0);
     noNodes.reset();
     nodes = dao->getAllSuperNode(bot);
     EXPECT_EQ(nodes.empty(), true);
@@ -192,4 +195,68 @@ TEST( MLGDaoTest, MirrorLayer )
     dao.reset();
     sess.reset();
 }
+
+TEST( MLGDaoTest, GetHeaviestHLink )
+{
+    mld::DexManager dexManager(mld::kRESOURCES_DIR + L"mydex.cfg");
+    dexManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.dex", L"MLDTest");
+
+    SessionPtr sess = dexManager.newSession();
+    Graph* g = sess->GetGraph();
+    // Create Db scheme
+    dexManager.createScheme(g);
+
+    std::unique_ptr<MLGDao> dao( new MLGDao(g) );
+    Layer base = dao->addBaseLayer();
+
+    // Add nodes
+    SuperNode n1 = dao->addNodeToLayer(base);
+    n1.setWeight(10);
+    dao->updateNode(n1);
+    SuperNode n2 = dao->addNodeToLayer(base);
+    SuperNode n3 = dao->addNodeToLayer(base);
+    n3.setWeight(20);
+    dao->updateNode(n3);
+
+    // Add HLinks
+    HLink hl21 = dao->addHLink(n2, n1, 40);
+    dao->addHLink(n2, n3, 2);
+
+    // Mirror Layers
+    Layer top = dao->mirrorTopLayer();
+
+    // Get heaviest edge, use trick
+    HLink maxHlink = dao->getUnsafeHeaviestHLink();
+    EXPECT_GT(maxHlink.id(), hl21.id());
+    EXPECT_FLOAT_EQ(maxHlink.weight(), 40);
+
+    // Add new hlink in base layer not top layer
+    dao->addHLink(n1, n3, 10);
+    // Trick should work because, the new hlink has not the max value
+    auto maxHlink2 = dao->getUnsafeHeaviestHLink();
+    EXPECT_EQ(maxHlink.id(), maxHlink2.id());
+    EXPECT_FLOAT_EQ(maxHlink.weight(), maxHlink2.weight());
+
+    // Add new hlink in base layer with the highest value
+    SuperNode n4 = dao->addNodeToLayer(base);
+    HLink hl41 = dao->addHLink(n4, n1, 50);
+
+    // It should fail, the return maxlink is not in the top layer
+    auto maxHlink3 = dao->getUnsafeHeaviestHLink();
+    // The layer is not checked
+    EXPECT_EQ(maxHlink3.id(), hl41.id());
+    EXPECT_FLOAT_EQ(maxHlink3.weight(), hl41.weight());
+
+    // DISABLE TRICK, layer should account
+    auto maxHlink4 = dao->getHeaviestHLink(top);
+    // The layer should be checked
+    EXPECT_EQ(maxHlink4.id(), maxHlink.id());
+    EXPECT_FLOAT_EQ(maxHlink4.weight(), maxHlink.weight());
+
+
+
+    dao.reset();
+    sess.reset();
+}
+
 

@@ -67,7 +67,6 @@ HLink::~HLink()
 {
 }
 
-
 // ****** VLINK ****** //
 
 VLink::VLink()

@@ -16,25 +16,23 @@
 **
 ****************************************************************************/
 
-#include "mld/operator/AbstractOperator.h"
-#include "mld/dao/MLGDao.h"
+#ifndef MLD_SELECTORS_H
+#define MLD_SELECTORS_H
 
-using namespace mld;
+#include "mld/common.h"
+#include "mld/operator/AbstractSelector.h"
 
-AbstractOperator::AbstractOperator( dex::gdb::Graph* g )
-    : m_dao( new MLGDao(g) )
+namespace mld {
+
+class MLD_API HeavyEdgeSelector: public AbstractSelector
 {
-}
+public:
+    HeavyEdgeSelector( dex::gdb::Graph* g );
+    virtual ~HeavyEdgeSelector() override;
 
-AbstractOperator::~AbstractOperator()
-{
-}
+    virtual HLink selectBestHLink( const Layer& layer ) override;
+};
 
-void AbstractOperator::run()
-{
-    pre_exec();
-    exec();
-    post_exec();
-}
+} // end namespace mld
 
-
+#endif // MLD_SELECTORS_H

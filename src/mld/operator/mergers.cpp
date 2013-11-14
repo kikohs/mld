@@ -16,25 +16,20 @@
 **
 ****************************************************************************/
 
-#include "mld/operator/AbstractOperator.h"
-#include "mld/dao/MLGDao.h"
+#include "mld/operator/mergers.h"
 
 using namespace mld;
 
-AbstractOperator::AbstractOperator( dex::gdb::Graph* g )
-    : m_dao( new MLGDao(g) )
+BasicAdditiveMerger::BasicAdditiveMerger( dex::gdb::Graph* g )
+    : AbstractMerger(g)
 {
 }
 
-AbstractOperator::~AbstractOperator()
+BasicAdditiveMerger::~BasicAdditiveMerger()
 {
 }
 
-void AbstractOperator::run()
+bool BasicAdditiveMerger::merge( const HLink& hlink, const AbstractSelector& selector )
 {
-    pre_exec();
-    exec();
-    post_exec();
+    return false;
 }
-
-

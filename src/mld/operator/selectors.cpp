@@ -16,25 +16,30 @@
 **
 ****************************************************************************/
 
-#include "mld/operator/AbstractOperator.h"
+#include "mld/operator/selectors.h"
+
+#include "mld/model/Layer.h"
+#include "mld/model/Link.h"
 #include "mld/dao/MLGDao.h"
 
 using namespace mld;
 
-AbstractOperator::AbstractOperator( dex::gdb::Graph* g )
-    : m_dao( new MLGDao(g) )
+HeavyEdgeSelector::HeavyEdgeSelector( dex::gdb::Graph* g )
+    : AbstractSelector(g)
 {
 }
 
-AbstractOperator::~AbstractOperator()
+HeavyEdgeSelector::~HeavyEdgeSelector()
 {
 }
 
-void AbstractOperator::run()
+
+HLink HeavyEdgeSelector::selectBestHLink( const Layer& layer )
 {
-    pre_exec();
-    exec();
-    post_exec();
+#ifdef MLD_SAFE
+    return m_dao->getHeaviestHLink(layer);
+#else
+    UNUSED(layer);
+    return m_dao->getUnsafeHeaviestLink();
+#endif
 }
-
-

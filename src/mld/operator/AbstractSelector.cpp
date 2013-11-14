@@ -16,25 +16,17 @@
 **
 ****************************************************************************/
 
-#include "mld/operator/AbstractOperator.h"
+#include "mld/operator/AbstractSelector.h"
 #include "mld/dao/MLGDao.h"
 
 using namespace mld;
+using namespace dex::gdb;
 
-AbstractOperator::AbstractOperator( dex::gdb::Graph* g )
+AbstractSelector::AbstractSelector( Graph* g )
     : m_dao( new MLGDao(g) )
 {
 }
 
-AbstractOperator::~AbstractOperator()
+AbstractSelector::~AbstractSelector()
 {
 }
-
-void AbstractOperator::run()
-{
-    pre_exec();
-    exec();
-    post_exec();
-}
-
-

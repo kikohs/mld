@@ -52,15 +52,6 @@ public:
      */
     void run();
 
-    /**
-     * @brief Scale Factor, for coarsener or expanders
-     *  The factor is always calculated from the Base layer
-     * E.g 0.9 means that the goal is to keep 90% of base layer nodes
-     * @param fac
-     */
-    void setScaleFactor( float fac ) { m_scaleFac = fac; }
-    float scaleFactor() const { return m_scaleFac; }
-
 protected:
     /**
      * @brief Pre execution process
@@ -79,9 +70,7 @@ protected:
     virtual void post_exec() = 0;
 
 protected:
-    dex::gdb::Graph* m_g;
     std::unique_ptr<MLGDao> m_dao;
-    float m_scaleFac;
 };
 
 } // end namespace mld

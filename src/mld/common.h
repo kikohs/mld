@@ -63,6 +63,8 @@ static const double kVLINK_DEF_VALUE = 1.0;
 
 static const double kSUPERNODE_DEF_VALUE = 1.0;
 
+static const int64_t kINVALID_NODE_COUNT = -1;
+
 } // end namespace mld
 
 #endif // MLD_COMMON_H

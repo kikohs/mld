@@ -16,25 +16,27 @@
 **
 ****************************************************************************/
 
-#include "mld/operator/AbstractOperator.h"
-#include "mld/dao/MLGDao.h"
+#ifndef MLD_COARSENERS_H
+#define MLD_COARSENERS_H
 
-using namespace mld;
+#include "mld/common.h"
+#include "mld/operator/AbstractCoarsener.h"
 
-AbstractOperator::AbstractOperator( dex::gdb::Graph* g )
-    : m_dao( new MLGDao(g) )
+namespace mld {
+
+/**
+ * @brief The HeavyEdgeCoarsener class
+ *  Mirrors the top layer
+ *  Iteratively get the heaviest edge in the top layer and merge
+ *  the 2 nodes until goal is reached
+ */
+class MLD_API HeavyEdgeCoarsener: public AbstractCoarsener
 {
-}
+public:
+    HeavyEdgeCoarsener( dex::gdb::Graph* g );
+    virtual ~HeavyEdgeCoarsener() override;
+};
 
-AbstractOperator::~AbstractOperator()
-{
-}
+} // end namespace mld
 
-void AbstractOperator::run()
-{
-    pre_exec();
-    exec();
-    post_exec();
-}
-
-
+#endif // MLD_COARSENERS_H

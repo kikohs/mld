@@ -16,10 +16,23 @@
 **
 ****************************************************************************/
 
-#include "mld/operator/HeavyEdgeCoarsener.h"
+#ifndef MLD_SELECTORS_H
+#define MLD_SELECTORS_H
 
-using namespace mld;
+#include "mld/common.h"
+#include "mld/operator/AbstractSelector.h"
 
-HeavyEdgeCoarsener::HeavyEdgeCoarsener()
+namespace mld {
+
+class MLD_API HeavyEdgeSelector: public AbstractSelector
 {
-}
+public:
+    HeavyEdgeSelector( dex::gdb::Graph* g );
+    virtual ~HeavyEdgeSelector() override;
+
+    virtual HLink selectBestHLink( const Layer& layer ) override;
+};
+
+} // end namespace mld
+
+#endif // MLD_SELECTORS_H

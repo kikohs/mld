@@ -55,6 +55,7 @@ public:
     MLGDao( dex::gdb::Graph* g );
     virtual ~MLGDao() override;
 
+
     /**
      * @brief Add a node to a specified Layer
      * @param if MLD_SAFE flag is set, it checks for the existence of the layer
@@ -140,6 +141,28 @@ public:
      * @return Child SuperNodes
      */
     std::vector<SuperNode> getChildNodes( dex::gdb::oid_t id );
+
+    /**
+     * @brief Get number of SuperNode for input layer
+     * @param l Input Layer
+     * @return count
+     */
+    int64_t getNodeCount( const Layer& l );
+
+    /**
+     * @brief Get heaviest edge between supernodes on layer
+     * @param l Input Layer
+     * @return heaviest HLink
+     */
+    HLink getHeaviestHLink( const Layer& l );
+
+    /**
+     * @brief Get heaviest edge between supernodes
+     * it assumes that the heaviest weight is always on the latest layer with the highest oid values.
+     * Skip validation and does not need a layer in input.
+     * @return heaviest HLink
+     */
+    HLink getUnsafeHeaviestHLink();
 
     // Forward to SNDao
     void removeNode( dex::gdb::oid_t id );

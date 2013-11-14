@@ -16,25 +16,29 @@
 **
 ****************************************************************************/
 
+#ifndef MLD_HEAVYEDGECOARSENER_H
+#define MLD_HEAVYEDGECOARSENER_H
+
+#include "mld/common.h"
 #include "mld/operator/AbstractOperator.h"
-#include "mld/dao/MLGDao.h"
 
-using namespace mld;
+namespace mld {
 
-AbstractOperator::AbstractOperator( dex::gdb::Graph* g )
-    : m_dao( new MLGDao(g) )
+class MLD_API HeavyEdgeCoarsener: public AbstractOperator
 {
-}
+public:
+    HeavyEdgeCoarsener( dex::gdb::Graph* g );
+    virtual ~HeavyEdgeCoarsener() override;
 
-AbstractOperator::~AbstractOperator()
-{
-}
+protected:
+    virtual void pre_exec() override;
+    virtual void exec() override;
+    virtual void post_exec() override;
 
-void AbstractOperator::run()
-{
-    pre_exec();
-    exec();
-    post_exec();
-}
+private:
+    bool m_success;
+};
 
+} // end namespace mld
 
+#endif // MLD_HEAVYEDGECOARSENER_H

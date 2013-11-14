@@ -16,58 +16,44 @@
 **
 ****************************************************************************/
 
-#ifndef MLD_ABSTRACTOPERATOR_H
-#define MLD_ABSTRACTOPERATOR_H
+#ifndef MLD_ABSTRACTMERGER_H
+#define MLD_ABSTRACTMERGER_H
 
 #include "mld/common.h"
 
 namespace dex {
 namespace gdb {
     class Graph;
-    class Value;
-    class Objects;
 }}
 
 namespace mld {
-
+// Forward declaration
 class MLGDao;
+class HLink;
+class AbstractSelector;
 
 /**
- * @brief Abstract MLG Operator
- *  Base class for Coarseners or Expanders and Refiners
+ * @brief Base class inherited by all edge mergers
+ * Used by all coarseners
  */
-class MLD_API AbstractOperator
+class MLD_API AbstractMerger
 {
 public:
-    AbstractOperator( dex::gdb::Graph* g );
-    virtual ~AbstractOperator() = 0;
+    AbstractMerger( dex::gdb::Graph* g );
+    virtual ~AbstractMerger() = 0;
 
     // Disable copy and assignement ctor
-    AbstractOperator( const AbstractOperator& ) = delete;
-    AbstractOperator& operator=( const AbstractOperator& ) = delete;
+    AbstractMerger( const AbstractMerger& ) = delete;
+    AbstractMerger& operator=( const AbstractMerger& ) = delete;
 
     /**
-     * @brief Run the underlying algorithms
-     *  Call pre_exec(), exec() and post_exec()
+     * @brief Collapse a HLink depending on the underlying algorithm
+     * Update graph and selector
+     * @param hlink
+     * @param selector
+     * @return success
      */
-    void run();
-
-protected:
-    /**
-     * @brief Pre execution process
-     *  To reimplement
-     */
-    virtual void pre_exec() = 0;
-
-    /**
-     * @brief Main method to be reimplemented
-     */
-    virtual void exec() = 0;
-
-    /**
-     * @brief Run after exec, post execution method
-     */
-    virtual void post_exec() = 0;
+    virtual bool merge( const HLink& hlink, const AbstractSelector& selector ) = 0;
 
 protected:
     std::unique_ptr<MLGDao> m_dao;
@@ -75,4 +61,4 @@ protected:
 
 } // end namespace mld
 
-#endif // MLD_ABSTRACTOPERATOR_H
+#endif // MLD_ABSTRACTMERGER_H
