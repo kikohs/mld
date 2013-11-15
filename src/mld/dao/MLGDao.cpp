@@ -361,14 +361,19 @@ SuperNode MLGDao::getNode( oid_t id )
 
 // ****** FORWARD METHOD OF LINK DAO ****** //
 
-HLink MLGDao::getHLink( const SuperNode& src, const SuperNode& tgt )
+HLink MLGDao::getHLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt )
 {
-    return m_link->getHLink(src.id(), tgt.id());
+    return m_link->getHLink(src, tgt);
 }
 
 HLink MLGDao::getHLink( oid_t hid )
 {
     return m_link->getHLink(hid);
+}
+
+bool MLGDao::updateHLink( dex::gdb::oid_t hid, double weight )
+{
+    return m_link->updateHLink(hid, weight);
 }
 
 VLink MLGDao::getVLink( const SuperNode& src, const SuperNode& tgt )
@@ -469,4 +474,12 @@ bool MLGDao::exists( const Layer& layer )
     return m_layer->exists(layer);
 }
 
+type_t MLGDao::hlinkType() const
+{
+    return m_link->hlinkType();
+}
 
+type_t MLGDao::vlinkType() const
+{
+    return m_link->vlinkType();
+}

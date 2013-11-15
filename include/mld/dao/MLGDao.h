@@ -55,6 +55,11 @@ public:
     MLGDao( dex::gdb::Graph* g );
     virtual ~MLGDao() override;
 
+    /**
+     * @brief Give access to the inner dex graph handle
+     * @return Graph
+     */
+    dex::gdb::Graph* graph() const { return m_g; }
 
     /**
      * @brief Add a node to a specified Layer
@@ -170,8 +175,9 @@ public:
     SuperNode getNode( dex::gdb::oid_t id );
 
     // Forward to LinkDao
-    HLink getHLink( const SuperNode& src, const SuperNode& tgt );
+    HLink getHLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt );
     HLink getHLink( dex::gdb::oid_t hid );
+    bool updateHLink( dex::gdb::oid_t hid, double weight );
 
     VLink getVLink( const SuperNode& src, const SuperNode& tgt );
     VLink getVLink( dex::gdb::oid_t vid );
@@ -290,6 +296,9 @@ public:
      * @return exists
      */
     bool exists( const Layer& layer );
+
+    dex::gdb::type_t hlinkType() const;
+    dex::gdb::type_t vlinkType() const;
 
 private:
     dex::gdb::oid_t getLayerIdForSuperNode( dex::gdb::oid_t nid );
