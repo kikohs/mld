@@ -49,25 +49,29 @@ public:
     /**
      * @brief Run the underlying algorithms
      *  Call pre_exec(), exec() and post_exec()
+     * @return success
      */
-    void run();
+    bool run();
 
 protected:
     /**
      * @brief Pre execution process
      *  To reimplement
+     *  @return success
      */
-    virtual void pre_exec() = 0;
+    virtual bool pre_exec() = 0;
 
     /**
      * @brief Main method to be reimplemented
+     * @return success
      */
-    virtual void exec() = 0;
+    virtual bool exec() = 0;
 
     /**
      * @brief Run after exec, post execution method
+     * @return success
      */
-    virtual void post_exec() = 0;
+    virtual bool post_exec() = 0;
 
 protected:
     std::unique_ptr<MLGDao> m_dao;

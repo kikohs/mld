@@ -34,22 +34,22 @@ public:
     virtual ~AbstractCoarsener() = 0;
 
     /**
-     * @brief Scale Factor, for coarsener or expanders
-     *  The factor is always calculated from the Base layer
-     * E.g 0.9 means that the goal is to keep 90% of base layer nodes
+     * @brief Scale Factor, for coarsener
+     * The factor is always calculated from the Base layer
+     * E.g 0.1 means that the goal is to keep 90% of base layer nodes
      * @param fac
      */
-    void setScaleFactor( float fac ) { m_scaleFac = fac; }
-    float scaleFactor() const { return m_scaleFac; }
+    void setReductionFactor( float fac );
+    float reductionFactor() const { return m_reductionFac; }
+    uint64_t computeMergeCount( int64_t numVertices );
 
 protected:
-    virtual void pre_exec() override;
-    virtual void exec() override;
-    virtual void post_exec() override;
+    virtual bool pre_exec() override;
+    virtual bool exec() override;
+    virtual bool post_exec() override;
 
 protected:
-    bool m_success;
-    float m_scaleFac;
+    float m_reductionFac;
     std::unique_ptr<AbstractSelector> m_sel;
     std::unique_ptr<AbstractMerger> m_merger;
 };

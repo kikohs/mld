@@ -28,8 +28,7 @@ using namespace dex::gdb;
 
 AbstractCoarsener::AbstractCoarsener( dex::gdb::Graph* g )
     : AbstractOperator(g)
-    , m_success(false)
-    , m_scaleFac(0)
+    , m_reductionFac(0)
 {
 }
 
@@ -37,59 +36,94 @@ AbstractCoarsener::~AbstractCoarsener()
 {
 }
 
-void AbstractCoarsener::pre_exec()
+void AbstractCoarsener::setReductionFactor( float fac )
+{
+    if( fac < 0 )
+        m_reductionFac = 0;
+    else if( fac > 1 )
+        m_reductionFac = 1;
+    else
+        m_reductionFac = fac;
+}
+
+uint64_t AbstractCoarsener::computeMergeCount( int64_t numVertices )
+{
+    if( numVertices < 2 ) {
+        LOG(logWARNING) << "AbstractCoarsener::computeMergeCount: need at least 2 nodes";
+        return 0;
+    }
+    // Set merge count
+    uint64_t mergeCount = 0;
+    // Check scale factor
+    if( m_reductionFac == 1.0 ) { // 100% reduction
+        LOG(logWARNING) << "AbstractCoarsener::computeMergeCount: reduction factor is 100%, collapsing graph into 1 node";
+        mergeCount = numVertices - 1;
+    }
+    else if( m_reductionFac == 0.0 ) { // No reduction only 1 node
+        LOG(logWARNING) << "AbstractCoarsener::computeMergeCount: reduction factor is 0%, coarsening only 1 node";
+        mergeCount = 1;
+    }
+    else {
+        mergeCount = m_reductionFac * numVertices + 1;
+    }
+    return mergeCount;
+}
+
+bool AbstractCoarsener::pre_exec()
 {
     if( !m_sel || !m_merger ) {
         LOG(logERROR) << "AbstractCoarsener::pre_exec: You need to set a \
                          Selector and a Merger in children classes";
-        return;
+        return false;
     }
+
+    // Check base layer node count
+    auto numVertices = m_dao->getNodeCount(m_dao->baseLayer());
+    if( numVertices < 2 ) {
+        LOG(logERROR) << "AbstractCoarsener::pre_exec: invalid base layer contains less than 2 nodes";
+        return false;
+    }
+
+    // Check current layer node count
+    Layer current = m_dao->topLayer();
+    numVertices = m_dao->getNodeCount(current);
+    if( numVertices < 2 ) {
+        LOG(logERROR) << "AbstractCoarsener::pre_exec: current layer contains less than 2 nodes";
+        return false;
+    }
+
     Layer top = m_dao->mirrorTopLayer();
-    if( top.id() != Objects::InvalidOID )
-        m_success = true;
+    if( top.id() == Objects::InvalidOID )
+        return false;
+
+    return true;
 }
 
-void AbstractCoarsener::exec()
-{
-    if( !m_success ) {
-        LOG(logERROR) << "AbstractCoarsener::exec: pre_exec phase failed, abort";
-        return;
-    }
-    m_success = false;
-
-    int64_t numVertices = m_dao->getNodeCount(m_dao->baseLayer());
-    if( numVertices == kINVALID_NODE_COUNT ) {
-        LOG(logERROR) << "AbstractCoarsener::exec: invalid base layer node count";
-        return;
-    }
-
+bool AbstractCoarsener::exec()
+{    
     Layer current = m_dao->topLayer();
-
-    // Use default rounding
-    uint64_t merge_count = m_scaleFac * numVertices + 1;
+    auto numVertices = m_dao->getNodeCount(current);
+    auto mergeCount = computeMergeCount(numVertices);
     // While there are edge to collapse
-    while( merge_count > 0 ) {
+    while( mergeCount > 0 ) {
         HLink link = m_sel->selectBestHLink(current);
         if( link.id() != Objects::InvalidOID ) {
             bool success = m_merger->merge(link, *m_sel);
             if( !success ) {
                 LOG(logERROR) << "AbstractCoarsener::exec: Merger failed to collapse HLink " << link;
-                return;
+                return false;
             }
-            merge_count--;
+            mergeCount--;
         }
         else {
             LOG(logERROR) << "AbstractCoarsener::exec: best HLink is invalid";
-            return;
+            return false;
         }
     }
-    m_success = true;
+    return true;
 }
 
-void AbstractCoarsener::post_exec()
+bool AbstractCoarsener::post_exec()
 {
-    if( !m_success ) {
-        LOG(logERROR) << "AbstractCoarsener::post_exec: exec phase failed, abort";
-        return;
-    }
+    return true;
 }

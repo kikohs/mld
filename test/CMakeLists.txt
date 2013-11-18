@@ -19,8 +19,10 @@ append_test(LayerDaoTest dao/LayerDaoTest.cpp)
 append_test(LinkDaoTest dao/LinkDaoTest.cpp)
 append_test(MLGDaoTest dao/MLGDaoTest.cpp)
 
-# MERGERS
-append_test(BAMergerTest merger/BasicAdditiveMergerTest.cpp)
+# OPERATOR
+append_test(BAMergerTest operator/BasicAdditiveMergerTest.cpp)
+append_test(CoarsenerTest operator/CoarsenerTest.cpp)
+append_test(MLGBuilderTest operator/MLGBuilderTest.cpp)
 
 list(LENGTH TESTS_SRCS len1)
 math(EXPR len2 "${len1} - 1")

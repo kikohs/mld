@@ -30,11 +30,15 @@ AbstractOperator::~AbstractOperator()
 {
 }
 
-void AbstractOperator::run()
+bool AbstractOperator::run()
 {
-    pre_exec();
-    exec();
-    post_exec();
+    if( pre_exec() ) {
+        if( exec() ) {
+            if( post_exec() )
+                return true;
+        }
+    }
+    return false;
 }
 
 

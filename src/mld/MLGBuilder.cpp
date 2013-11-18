@@ -25,16 +25,26 @@ MLGBuilder::MLGBuilder()
 {
 }
 
-void MLGBuilder::run()
+MLGBuilder::~MLGBuilder()
+{
+}
+
+bool MLGBuilder::run()
 {
     if( m_steps.empty() ) {
         LOG(logWARNING) << "MLGBuilder::run queue is empty";
-        return;
+        return false;
     }
     // Run each step and remove it from the queue
     while( !m_steps.empty() ) {
         OperatorPtr& step = m_steps.front();
-        step->run();
+        bool ok = step->run();
+        if( !ok ) {
+            LOG(logERROR) << "MLGBuilder::run: an operation failed, stop";
+            clearSteps();
+            return false;
+        }
         m_steps.pop_front();
     }
+    return true;
 }

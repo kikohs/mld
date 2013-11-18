@@ -35,6 +35,7 @@ class MLD_API MLGBuilder
 {
 public:
     MLGBuilder();
+    virtual ~MLGBuilder();
     MLGBuilder( const MLGBuilder& ) = delete;
     MLGBuilder& operator=( const MLGBuilder& ) = delete;
 
@@ -47,8 +48,9 @@ public:
 
     /**
      * @brief Run all the steps FIFO, empyting the queue
+     * @return success
      */
-    void run();
+    bool run();
 private:
     std::deque<OperatorPtr> m_steps;
 };
