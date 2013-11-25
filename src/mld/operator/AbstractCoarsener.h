@@ -24,14 +24,17 @@
 
 namespace mld {
 
-class AbstractSelector;
-class AbstractMerger;
+class AbstractSingleSelector;
+class AbstractSingleMerger;
 
-class MLD_API AbstractCoarsener : public AbstractOperator
+class AbstractMultiSelector;
+class AbstractMultiMerger;
+
+class MLD_API AbstractSingleCoarsener : public AbstractOperator
 {
 public:
-    AbstractCoarsener( dex::gdb::Graph* g );
-    virtual ~AbstractCoarsener() = 0;
+    AbstractSingleCoarsener( dex::gdb::Graph* g );
+    virtual ~AbstractSingleCoarsener() = 0;
 
     /**
      * @brief Scale Factor, for coarsener
@@ -50,8 +53,8 @@ protected:
 
 protected:
     float m_reductionFac;
-    std::unique_ptr<AbstractSelector> m_sel;
-    std::unique_ptr<AbstractMerger> m_merger;
+    std::unique_ptr<AbstractSingleSelector> m_sel;
+    std::unique_ptr<AbstractSingleMerger> m_merger;
 };
 
 } // end namespace mld

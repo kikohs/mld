@@ -100,7 +100,7 @@ void createHLinkFromSrc( const SuperNode& target, const SuperNode& source , MLGD
 } // end namespace anonymous
 
 BasicAdditiveMerger::BasicAdditiveMerger( dex::gdb::Graph* g )
-    : AbstractMerger(g)
+    : AbstractSingleMerger(g)
 {
 }
 
@@ -108,7 +108,7 @@ BasicAdditiveMerger::~BasicAdditiveMerger()
 {
 }
 
-bool BasicAdditiveMerger::merge( const HLink& hlink, const AbstractSelector& selector )
+bool BasicAdditiveMerger::merge( const HLink& hlink, const AbstractSingleSelector& selector )
 {
     if( hlink.id() == Objects::InvalidOID ) {
         LOG(logERROR) << "BasicAdditiveMerger::merge: invalid HLink";

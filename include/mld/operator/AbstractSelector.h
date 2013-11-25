@@ -46,12 +46,28 @@ public:
     AbstractSelector( const AbstractSelector& ) = delete;
     AbstractSelector& operator=( const AbstractSelector& ) = delete;
 
-    virtual HLink selectBestHLink( const Layer& layer ) = 0;
-//    virtual VLink selectBestVLink() = 0;
-
 protected:
     std::unique_ptr<MLGDao> m_dao;
 };
+
+// Single edge selector
+class MLD_API AbstractSingleSelector: public AbstractSelector
+{
+public:
+    AbstractSingleSelector( dex::gdb::Graph* g );
+    virtual ~AbstractSingleSelector() = 0;
+    virtual HLink selectBestHLink( const Layer& layer ) = 0;
+};
+
+
+// Multi edge selector
+class MLD_API AbstractMultiSelector: public AbstractSelector
+{
+public:
+    AbstractMultiSelector( dex::gdb::Graph* g );
+    virtual ~AbstractMultiSelector() = 0;
+};
+
 
 } // end namespace mld
 

@@ -22,11 +22,36 @@
 using namespace mld;
 using namespace dex::gdb;
 
+// AbstractSelector
+
 AbstractSelector::AbstractSelector( Graph* g )
     : m_dao( new MLGDao(g) )
 {
 }
 
 AbstractSelector::~AbstractSelector()
+{
+}
+
+// AbstractSingleSelector
+
+AbstractSingleSelector::AbstractSingleSelector( Graph* g )
+    : AbstractSelector(g)
+{
+}
+
+AbstractSingleSelector::~AbstractSingleSelector()
+{
+}
+
+
+// AbstractMultiSelector
+
+AbstractMultiSelector::AbstractMultiSelector( Graph* g )
+    : AbstractSelector(g)
+{
+}
+
+AbstractMultiSelector::~AbstractMultiSelector()
 {
 }

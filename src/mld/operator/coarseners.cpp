@@ -29,7 +29,7 @@ namespace {
 } // end namespace anonymous
 
 HeavyEdgeCoarsener::HeavyEdgeCoarsener( Graph* g )
-    : AbstractCoarsener(g)
+    : AbstractSingleCoarsener(g)
 {
     m_sel.reset( new HeavyEdgeSelector(g) );
     m_merger.reset( new BasicAdditiveMerger(g) );

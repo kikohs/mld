@@ -24,13 +24,13 @@
 
 namespace mld {
 
-class MLD_API BasicAdditiveMerger: public AbstractMerger
+class MLD_API BasicAdditiveMerger: public AbstractSingleMerger
 {
 public:
     BasicAdditiveMerger( dex::gdb::Graph* g );
     virtual ~BasicAdditiveMerger() override;
 
-    virtual bool merge( const HLink& hlink, const AbstractSelector& selector ) override;
+    virtual bool merge( const HLink& hlink, const AbstractSingleSelector& selector ) override;
 };
 
 } // end namespace mld

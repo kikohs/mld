@@ -26,17 +26,17 @@
 using namespace mld;
 using namespace dex::gdb;
 
-AbstractCoarsener::AbstractCoarsener( dex::gdb::Graph* g )
+AbstractSingleCoarsener::AbstractSingleCoarsener( dex::gdb::Graph* g )
     : AbstractOperator(g)
     , m_reductionFac(0)
 {
 }
 
-AbstractCoarsener::~AbstractCoarsener()
+AbstractSingleCoarsener::~AbstractSingleCoarsener()
 {
 }
 
-void AbstractCoarsener::setReductionFactor( float fac )
+void AbstractSingleCoarsener::setReductionFactor( float fac )
 {
     if( fac < 0 )
         m_reductionFac = 0;
@@ -46,21 +46,21 @@ void AbstractCoarsener::setReductionFactor( float fac )
         m_reductionFac = fac;
 }
 
-uint64_t AbstractCoarsener::computeMergeCount( int64_t numVertices )
+uint64_t AbstractSingleCoarsener::computeMergeCount( int64_t numVertices )
 {
     if( numVertices < 2 ) {
-        LOG(logWARNING) << "AbstractCoarsener::computeMergeCount: need at least 2 nodes";
+        LOG(logWARNING) << "AbstractSingleCoarsener::computeMergeCount: need at least 2 nodes";
         return 0;
     }
     // Set merge count
     uint64_t mergeCount = 0;
     // Check scale factor
     if( m_reductionFac == 1.0 ) { // 100% reduction
-        LOG(logWARNING) << "AbstractCoarsener::computeMergeCount: reduction factor is 100%, collapsing graph into 1 node";
+        LOG(logWARNING) << "AbstractSingleCoarsener::computeMergeCount: reduction factor is 100%, collapsing graph into 1 node";
         mergeCount = numVertices - 1;
     }
     else if( m_reductionFac == 0.0 ) { // No reduction only 1 node
-        LOG(logWARNING) << "AbstractCoarsener::computeMergeCount: reduction factor is 0%, coarsening only 1 node";
+        LOG(logWARNING) << "AbstractSingleCoarsener::computeMergeCount: reduction factor is 0%, coarsening only 1 node";
         mergeCount = 1;
     }
     else {
@@ -69,10 +69,10 @@ uint64_t AbstractCoarsener::computeMergeCount( int64_t numVertices )
     return mergeCount;
 }
 
-bool AbstractCoarsener::pre_exec()
+bool AbstractSingleCoarsener::pre_exec()
 {
     if( !m_sel || !m_merger ) {
-        LOG(logERROR) << "AbstractCoarsener::pre_exec: You need to set a \
+        LOG(logERROR) << "AbstractSingleCoarsener::pre_exec: You need to set a \
                          Selector and a Merger in children classes";
         return false;
     }
@@ -80,7 +80,7 @@ bool AbstractCoarsener::pre_exec()
     // Check base layer node count
     auto numVertices = m_dao->getNodeCount(m_dao->baseLayer());
     if( numVertices < 2 ) {
-        LOG(logERROR) << "AbstractCoarsener::pre_exec: invalid base layer contains less than 2 nodes";
+        LOG(logERROR) << "AbstractSingleCoarsener::pre_exec: invalid base layer contains less than 2 nodes";
         return false;
     }
 
@@ -88,7 +88,7 @@ bool AbstractCoarsener::pre_exec()
     Layer current = m_dao->topLayer();
     numVertices = m_dao->getNodeCount(current);
     if( numVertices < 2 ) {
-        LOG(logERROR) << "AbstractCoarsener::pre_exec: current layer contains less than 2 nodes";
+        LOG(logERROR) << "AbstractSingleCoarsener::pre_exec: current layer contains less than 2 nodes";
         return false;
     }
 
@@ -99,7 +99,7 @@ bool AbstractCoarsener::pre_exec()
     return true;
 }
 
-bool AbstractCoarsener::exec()
+bool AbstractSingleCoarsener::exec()
 {    
     Layer current = m_dao->topLayer();
     auto numVertices = m_dao->getNodeCount(current);
@@ -110,20 +110,20 @@ bool AbstractCoarsener::exec()
         if( link.id() != Objects::InvalidOID ) {
             bool success = m_merger->merge(link, *m_sel);
             if( !success ) {
-                LOG(logERROR) << "AbstractCoarsener::exec: Merger failed to collapse HLink " << link;
+                LOG(logERROR) << "AbstractSingleCoarsener::exec: Merger failed to collapse HLink " << link;
                 return false;
             }
             mergeCount--;
         }
         else {
-            LOG(logERROR) << "AbstractCoarsener::exec: best HLink is invalid";
+            LOG(logERROR) << "AbstractSingleCoarsener::exec: best HLink is invalid";
             return false;
         }
     }
     return true;
 }
 
-bool AbstractCoarsener::post_exec()
+bool AbstractSingleCoarsener::post_exec()
 {
     return true;
 }

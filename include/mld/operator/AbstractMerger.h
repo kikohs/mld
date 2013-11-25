@@ -30,7 +30,8 @@ namespace mld {
 // Forward declaration
 class MLGDao;
 class HLink;
-class AbstractSelector;
+class AbstractSingleSelector;
+class AbstractMultiSelector;
 
 /**
  * @brief Base class inherited by all edge mergers
@@ -45,6 +46,16 @@ public:
     // Disable copy and assignement ctor
     AbstractMerger( const AbstractMerger& ) = delete;
     AbstractMerger& operator=( const AbstractMerger& ) = delete;
+protected:
+    std::unique_ptr<MLGDao> m_dao;
+};
+
+// Single Merger
+class MLD_API AbstractSingleMerger: public AbstractMerger
+{
+public:
+    AbstractSingleMerger( dex::gdb::Graph* g );
+    virtual ~AbstractSingleMerger() = 0;
 
     /**
      * @brief Collapse a HLink depending on the underlying algorithm
@@ -53,11 +64,17 @@ public:
      * @param selector
      * @return success
      */
-    virtual bool merge( const HLink& hlink, const AbstractSelector& selector ) = 0;
-
-protected:
-    std::unique_ptr<MLGDao> m_dao;
+    virtual bool merge( const HLink& hlink, const AbstractSingleSelector& selector ) = 0;
 };
+
+// Multi Merger
+class MLD_API AbstractMultiMerger: public AbstractMerger
+{
+public:
+    AbstractMultiMerger( dex::gdb::Graph* g );
+    virtual ~AbstractMultiMerger() = 0;
+};
+
 
 } // end namespace mld
 

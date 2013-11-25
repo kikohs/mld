@@ -25,7 +25,7 @@
 using namespace mld;
 
 HeavyEdgeSelector::HeavyEdgeSelector( dex::gdb::Graph* g )
-    : AbstractSelector(g)
+    : AbstractSingleSelector(g)
 {
 }
 

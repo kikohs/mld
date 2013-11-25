@@ -24,7 +24,7 @@
 
 namespace mld {
 
-class MLD_API HeavyEdgeSelector: public AbstractSelector
+class MLD_API HeavyEdgeSelector: public AbstractSingleSelector
 {
 public:
     HeavyEdgeSelector( dex::gdb::Graph* g );

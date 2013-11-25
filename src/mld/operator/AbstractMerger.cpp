@@ -29,3 +29,25 @@ AbstractMerger::AbstractMerger( dex::gdb::Graph* g )
 AbstractMerger::~AbstractMerger()
 {
 }
+
+// Single Merger
+
+AbstractSingleMerger::AbstractSingleMerger( dex::gdb::Graph* g )
+    : AbstractMerger(g)
+{
+}
+
+AbstractSingleMerger::~AbstractSingleMerger()
+{
+}
+
+// MultiMerger
+
+AbstractMultiMerger::AbstractMultiMerger( dex::gdb::Graph* g )
+    : AbstractMerger(g)
+{
+}
+
+AbstractMultiMerger::~AbstractMultiMerger()
+{
+}

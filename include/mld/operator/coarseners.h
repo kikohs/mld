@@ -30,7 +30,7 @@ namespace mld {
  *  Iteratively get the heaviest edge in the top layer and merge
  *  the 2 nodes until goal is reached
  */
-class MLD_API HeavyEdgeCoarsener: public AbstractCoarsener
+class MLD_API HeavyEdgeCoarsener: public AbstractSingleCoarsener
 {
 public:
     HeavyEdgeCoarsener( dex::gdb::Graph* g );
