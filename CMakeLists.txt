@@ -99,7 +99,9 @@ file( GLOB DEX_LIB_FILES ${DEX_LIB_DIR}/*.* )
 # Copy dex libs to /lib because install name id is @loader_path
 file( COPY ${DEX_LIB_FILES} DESTINATION ${LIBRARY_OUTPUT_PATH} )
 
-#### OPTIONS
+#
+# OPTIONS
+#
 option( BUILD_TESTS "Build the test suite" ON )
 option( BUILD_TOOLS "Build standard tools" ON )
 option( BUILD_DOC "Build documentation" ON )

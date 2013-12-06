@@ -45,7 +45,7 @@ std::pair<SuperNode, SuperNode> getHeaviestNodeFirst( const HLink& hlink, MLGDao
     }
 }
 
-void createVLinkFromSrc( const SuperNode& target, const SuperNode& source , MLGDao* dao )
+void createVLinkFromSrc( const SuperNode& target, const SuperNode& source, MLGDao* dao )
 {
     // Add vlink to source's children
     for( auto& c: dao->getChildNodes(source.id()) ) {
@@ -57,7 +57,7 @@ void createVLinkFromSrc( const SuperNode& target, const SuperNode& source , MLGD
     }
 }
 
-void createHLinkFromSrc( const SuperNode& target, const SuperNode& source , MLGDao* dao )
+void createHLinkFromSrc( const SuperNode& target, const SuperNode& source, MLGDao* dao )
 {
     // Get target's neighbors
     ObjectsPtr tgtNeighbors(dao->graph()->Neighbors(target.id(), dao->hlinkType(), Outgoing));

@@ -1,0 +1,21 @@
+
+set( DAO_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/SNodeDao.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/LayerDao.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/LinkDao.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/MLGDao.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/AbstractDao.cpp
+    PARENT_SCOPE
+)
+
+# Public headersß
+set( DAO_PUBLIC_HDRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/MLGDao.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/AbstractDao.h
+    PARENT_SCOPE
+)
+
+set( DAO_PUB_HDRS_DIR
+    ${PUBLIC_HDRS_DIR}/dao
+    PARENT_SCOPE
+)

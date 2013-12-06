@@ -1,0 +1,20 @@
+# MODEL SRCS
+set( MODEL_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/Layer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SuperNode.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Link.cpp
+    PARENT_SCOPE
+)
+
+# Public headers
+set( MODEL_PUBLIC_HDRS
+    ${CMAKE_CURRENT_SOURCE_DIR}/Layer.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/SuperNode.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Link.h
+    PARENT_SCOPE
+)
+
+set( MODEL_PUB_HDRS_DIR
+    ${PUBLIC_HDRS_DIR}/model
+    PARENT_SCOPE
+)

@@ -1,104 +1,101 @@
+# Copy macro
+include(Copy)
 
-set( MLD ${CMAKE_CURRENT_SOURCE_DIR} )
-set( DAO ${MLD}/dao )
-set( MODEL ${MLD}/model )
-set( OPERATOR ${MLD}/operator )
+add_subdirectory(dao)
 
-# DAO SRCS
-set( DAO_SRCS
-    ${DAO}/SNodeDao.cpp
-    ${DAO}/LayerDao.cpp
-    ${DAO}/LinkDao.cpp
-    ${DAO}/MLGDao.cpp
-    ${DAO}/AbstractDao.cpp
-)
+add_subdirectory(model)
 
-# MODEL SRCS
-set( MODEL_SRCS
-    ${MODEL}/Layer.cpp
-    ${MODEL}/SuperNode.cpp
-    ${MODEL}/Link.cpp
-)
-
-# OPERATOR SRCS
-set( OPERATOR_SRCS
-    ${OPERATOR}/AbstractOperator.cpp
-    ${OPERATOR}/AbstractCoarsener.cpp
-    ${OPERATOR}/AbstractSelector.cpp
-    ${OPERATOR}/AbstractMerger.cpp
-    ${OPERATOR}/coarseners.cpp
-    ${OPERATOR}/mergers.cpp
-    ${OPERATOR}/selectors.cpp
-)
+add_subdirectory(operator)
 
 # SOURCES FILES
 set( project_SRCS
-    mld/common.h
-    mld/config.h
-    mld/DexManager.cpp
-    mld/Graph_types.cpp
-    mld/MLGBuilder.cpp
+    common.h
+    config.h
+    DexManager.cpp
+    Graph_types.cpp
+    MLGBuilder.cpp
     ${DAO_SRCS}
     ${MODEL_SRCS}
     ${OPERATOR_SRCS}
-
-    PARENT_SCOPE
 )
 
 ####### PUBLIC HEADERS ########
 
 # Current dir
 set( CUR_PUB_HDRS
-    ${MLD}/common.h
-    ${MLD}/config.h
-    ${MLD}/log.h
-    ${MLD}/DexManager.h
-    ${MLD}/Session.h
-    ${MLD}/MLGBuilder.h
-
-    PARENT_SCOPE
+    ${CMAKE_CURRENT_SOURCE_DIR}/common.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/config.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/log.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/DexManager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Session.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/MLGBuilder.h
 )
 
+# All sources, add sources group here
+set( ALL_SRCS
+    ${project_SRCS} # defined in mld subdirectory
+#    ${MOC_HDRS}
+)
+
+# Set here libraries to link to the target
+set( LIBS_TO_LINK
+    ${DEX_LIBRARIES}
+    ${LIBCPLUSPLUS}
+#    ${Boost_LIBRARIES}
+)
+
+# Shared library
+add_library( ${PROJECT_NAME}
+    SHARED
+    ${ALL_SRCS}
+)
+
+set_target_properties( ${PROJECT_NAME} PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    SOVERSION ${PROJECT_SOVERSION}
+    INSTALL_NAME_DIR ${LIB_INSTALL_DIR}
+    DEFINE_SYMBOL MLD_API_EXPORTS
+    OUTPUT_NAME ${PROJECT_NAME} CLEAN_DIRECT_OUTPUT 1
+)
+
+target_link_libraries( ${PROJECT_NAME}
+    ${LIBS_TO_LINK}
+)
+
+
+# Copy public headers in directory
+# You need to put the list (PUBLIC_HDRS) with quotes, otherwise
+# the macro only takes the first element.
+# NICE !
+# VARIABLE PUBLIC_HDRS definied in subdirectory
+COPY_FILES_INTO_DIRECTORY_IF_CHANGED( "${CUR_PUB_HDRS}" ${PUBLIC_HDRS_DIR} ${PROJECT_NAME} )
 # DAO
-set( DAO_PUBLIC_HDRS
-    ${DAO}/MLGDao.h
-    ${DAO}/AbstractDao.h
-    PARENT_SCOPE
-)
-
-set( DAO_PUB_HDRS_DIR
-    ${PUBLIC_HDRS_DIR}/dao
-    PARENT_SCOPE
-)
-
+if( NOT EXISTS ${DAO_PUB_HDRS_DIR} )
+    file( MAKE_DIRECTORY ${DAO_PUB_HDRS_DIR} )
+endif()
+COPY_FILES_INTO_DIRECTORY_IF_CHANGED( "${DAO_PUBLIC_HDRS}" ${DAO_PUB_HDRS_DIR} ${PROJECT_NAME} )
 # MODEL
-set( MODEL_PUBLIC_HDRS
-    ${MODEL}/Layer.h
-    ${MODEL}/SuperNode.h
-    ${MODEL}/Link.h
-
-    PARENT_SCOPE
-)
-
-set( MODEL_PUB_HDRS_DIR
-    ${PUBLIC_HDRS_DIR}/model
-    PARENT_SCOPE
-)
-
+if( NOT EXISTS ${MODEL_PUB_HDRS_DIR} )
+    file( MAKE_DIRECTORY ${MODEL_PUB_HDRS_DIR} )
+endif()
+COPY_FILES_INTO_DIRECTORY_IF_CHANGED( "${MODEL_PUBLIC_HDRS}" ${MODEL_PUB_HDRS_DIR} ${PROJECT_NAME} )
 # OPERATOR
-set( OPERATOR_PUBLIC_HDRS
-    ${OPERATOR}/AbstractOperator.h
-    ${OPERATOR}/AbstractCoarsener.h
-    ${OPERATOR}/AbstractSelector.h
-    ${OPERATOR}/AbstractMerger.h
-    ${OPERATOR}/coarseners.h
-    ${OPERATOR}/mergers.h
-    ${OPERATOR}/selectors.h
-    PARENT_SCOPE
-)
+if( NOT EXISTS ${OPERATOR_PUB_HDRS_DIR} )
+    file( MAKE_DIRECTORY ${OPERATOR_PUB_HDRS_DIR} )
+endif()
+COPY_FILES_INTO_DIRECTORY_IF_CHANGED( "${OPERATOR_PUBLIC_HDRS}" ${OPERATOR_PUB_HDRS_DIR} ${PROJECT_NAME} )
 
-set( OPERATOR_PUB_HDRS_DIR
-    ${PUBLIC_HDRS_DIR}/operator
-    PARENT_SCOPE
+
+
+## INSTALL LIBS AND EXECUTABLES
+install( TARGETS ${PROJECT_NAME}
+    FRAMEWORK DESTINATION ${FRAMEWORK_INSTALL_DIR}
+    LIBRARY DESTINATION ${LIB_INSTALL_DIR}
+    RUNTIME DESTINATION ${BIN_INSTALL_DIR}
+    ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
 )
+# Copy DEX_LIBRARIES
+install( FILES ${DEX_LIB_FILES} DESTINATION ${LIB_INSTALL_DIR} )
+
+
 
