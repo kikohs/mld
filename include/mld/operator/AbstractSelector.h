@@ -22,6 +22,7 @@
 #include "mld/common.h"
 #include "mld/model/Link.h"
 #include "mld/model/Layer.h"
+#include "mld/model/SuperNode.h"
 
 namespace dex {
 namespace gdb {
@@ -59,15 +60,15 @@ public:
     virtual HLink selectBestHLink( const Layer& layer ) = 0;
 };
 
-
 // Multi edge selector
 class MLD_API AbstractMultiSelector: public AbstractSelector
 {
 public:
     AbstractMultiSelector( dex::gdb::Graph* g );
     virtual ~AbstractMultiSelector() = 0;
-};
 
+    virtual SuperNode selectBestNode( const Layer& layer ) = 0;
+};
 
 } // end namespace mld
 

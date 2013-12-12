@@ -7,6 +7,9 @@ set( OPERATOR_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/coarseners.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/mergers.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/selectors.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/XCoarsener.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/XSelector.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/MultiAdditiveMerger.cpp
     PARENT_SCOPE
 )
 
@@ -19,6 +22,9 @@ set( OPERATOR_PUBLIC_HDRS
     ${CMAKE_CURRENT_SOURCE_DIR}/coarseners.h
     ${CMAKE_CURRENT_SOURCE_DIR}/mergers.h
     ${CMAKE_CURRENT_SOURCE_DIR}/selectors.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/XCoarsener.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/XSelector.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/MultiAdditiveMerger.h
     PARENT_SCOPE
 )
 

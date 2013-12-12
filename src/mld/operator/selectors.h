@@ -21,6 +21,7 @@
 
 #include "mld/common.h"
 #include "mld/operator/AbstractSelector.h"
+#include "mld/operator/XSelector.h"
 
 namespace mld {
 

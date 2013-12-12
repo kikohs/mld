@@ -16,24 +16,22 @@
 **
 ****************************************************************************/
 
-#ifndef MLD_SELECTORS_H
-#define MLD_SELECTORS_H
+#include "XSelector.h"
 
-#include "mld/common.h"
-#include "mld/operator/AbstractSelector.h"
-#include "mld/operator/XSelector.h"
+using namespace mld;
+using namespace dex::gdb;
 
-namespace mld {
-
-class MLD_API HeavyEdgeSelector: public AbstractSingleSelector
+XSelector::XSelector( Graph* g )
+    : AbstractMultiSelector(g)
 {
-public:
-    HeavyEdgeSelector( dex::gdb::Graph* g );
-    virtual ~HeavyEdgeSelector() override;
+}
 
-    virtual HLink selectBestHLink( const Layer& layer ) override;
-};
+XSelector::~XSelector()
+{
+}
 
-} // end namespace mld
-
-#endif // MLD_SELECTORS_H
+SuperNode XSelector::selectBestNode( const Layer& layer )
+{
+    // TODO
+    return SuperNode();
+}

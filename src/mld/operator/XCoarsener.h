@@ -16,24 +16,34 @@
 **
 ****************************************************************************/
 
-#ifndef MLD_SELECTORS_H
-#define MLD_SELECTORS_H
+#ifndef MLD_XCOARSENER_H
+#define MLD_XCOARSENER_H
 
 #include "mld/common.h"
-#include "mld/operator/AbstractSelector.h"
-#include "mld/operator/XSelector.h"
+#include "mld/operator/AbstractCoarsener.h"
 
 namespace mld {
 
-class MLD_API HeavyEdgeSelector: public AbstractSingleSelector
+/**
+ * @brief The XCoarsener class
+ *  Special multi-coarsener with auto adjust layering
+ */
+class MLD_API XCoarsener: public AbstractOperator
 {
-public:
-    HeavyEdgeSelector( dex::gdb::Graph* g );
-    virtual ~HeavyEdgeSelector() override;
+    XCoarsener( dex::gdb::Graph* g );
+    virtual ~XCoarsener() override;
 
-    virtual HLink selectBestHLink( const Layer& layer ) override;
+protected:
+    virtual bool pre_exec() override;
+    virtual bool exec() override;
+    virtual bool post_exec() override;
+
+protected:
+    std::unique_ptr<AbstractMultiSelector> m_sel;
+    std::unique_ptr<AbstractMultiMerger> m_merger;
 };
+
 
 } // end namespace mld
 
-#endif // MLD_SELECTORS_H
+#endif // XCOARSENER_H

@@ -30,6 +30,7 @@ namespace mld {
 // Forward declaration
 class MLGDao;
 class HLink;
+class SuperNode;
 class AbstractSingleSelector;
 class AbstractMultiSelector;
 
@@ -73,6 +74,15 @@ class MLD_API AbstractMultiMerger: public AbstractMerger
 public:
     AbstractMultiMerger( dex::gdb::Graph* g );
     virtual ~AbstractMultiMerger() = 0;
+
+    /**
+     * @brief Collapse all available HLinks around a node depending on the underlying algorithm
+     * Update graph and selector
+     * @param source node
+     * @param selector
+     * @return success
+     */
+    virtual bool merge( const SuperNode& source, const AbstractMultiSelector& selector ) = 0;
 };
 
 

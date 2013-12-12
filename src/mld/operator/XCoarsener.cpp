@@ -16,24 +16,38 @@
 **
 ****************************************************************************/
 
-#ifndef MLD_SELECTORS_H
-#define MLD_SELECTORS_H
-
-#include "mld/common.h"
-#include "mld/operator/AbstractSelector.h"
+#include "mld/operator/XCoarsener.h"
 #include "mld/operator/XSelector.h"
+#include "mld/operator/MultiAdditiveMerger.h"
 
-namespace mld {
+using namespace mld;
+using namespace dex::gdb;
 
-class MLD_API HeavyEdgeSelector: public AbstractSingleSelector
+XCoarsener::XCoarsener( Graph* g )
+    : AbstractOperator(g)
+    , m_sel( new XSelector(g) )
+    , m_merger( new MultiAdditiveMerger(g) )
 {
-public:
-    HeavyEdgeSelector( dex::gdb::Graph* g );
-    virtual ~HeavyEdgeSelector() override;
+}
 
-    virtual HLink selectBestHLink( const Layer& layer ) override;
-};
+XCoarsener::~XCoarsener()
+{
+}
 
-} // end namespace mld
+bool XCoarsener::pre_exec()
+{
+    // TODO
+    return false;
+}
 
-#endif // MLD_SELECTORS_H
+bool XCoarsener::exec()
+{
+    // TODO
+    return false;
+}
+
+bool XCoarsener::post_exec()
+{
+    // TODO
+    return false;
+}

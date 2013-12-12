@@ -16,24 +16,23 @@
 **
 ****************************************************************************/
 
-#ifndef MLD_SELECTORS_H
-#define MLD_SELECTORS_H
+#ifndef MLD_MULTIADDITIVEMERGER_H
+#define MLD_MULTIADDITIVEMERGER_H
 
 #include "mld/common.h"
-#include "mld/operator/AbstractSelector.h"
-#include "mld/operator/XSelector.h"
+#include "mld/operator/AbstractMerger.h"
 
 namespace mld {
 
-class MLD_API HeavyEdgeSelector: public AbstractSingleSelector
+class MLD_API MultiAdditiveMerger : public AbstractMultiMerger
 {
 public:
-    HeavyEdgeSelector( dex::gdb::Graph* g );
-    virtual ~HeavyEdgeSelector() override;
+    MultiAdditiveMerger( dex::gdb::Graph* g );
+    virtual ~MultiAdditiveMerger() override;
 
-    virtual HLink selectBestHLink( const Layer& layer ) override;
+    virtual bool merge( const SuperNode& source, const AbstractMultiSelector& selector ) override;
 };
 
 } // end namespace mld
 
-#endif // MLD_SELECTORS_H
+#endif // MULTIADDITIVEMERGER_H

@@ -57,6 +57,7 @@ protected:
     std::unique_ptr<AbstractSingleMerger> m_merger;
 };
 
+
 } // end namespace mld
 
 #endif // MLD_ABSTRACTCOARSENER_H

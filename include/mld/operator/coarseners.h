@@ -21,6 +21,7 @@
 
 #include "mld/common.h"
 #include "mld/operator/AbstractCoarsener.h"
+#include "mld/operator/XCoarsener.h"
 
 namespace mld {
 
