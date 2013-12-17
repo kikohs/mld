@@ -149,7 +149,7 @@ HLink LinkDao::getHLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt )
     }
 
     if( hid == dex::gdb::Objects::InvalidOID ) {
-        LOG(logERROR) << "LinkDao::getHLink: edge doesn't exist: " << src << " " << tgt;
+        LOG(logWARNING) << "LinkDao::getHLink: edge doesn't exist: " << src << " " << tgt;
         return HLink();
     }
 #endif
@@ -218,7 +218,7 @@ VLink LinkDao::getVLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt )
     }
 
     if( vid == dex::gdb::Objects::InvalidOID ) {
-        LOG(logERROR) << "LinkDao::getVLink: edge doesn't exist: " << src << " " << tgt;
+        LOG(logWARNING) << "LinkDao::getVLink: edge doesn't exist: " << src << " " << tgt;
         return VLink();
     }
 #endif

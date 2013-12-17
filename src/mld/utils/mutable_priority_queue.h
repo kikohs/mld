@@ -55,23 +55,33 @@ public:
 
 	// default constructor, uses std::greater and std::less for key and value comparisons
     mutable_priority_queue()
-        : key2Val(_KeyComp()), val2Key(_ValueComp()) { }
+        : key2Val(_KeyComp())
+        , val2Key(_ValueComp())
+    {}
 
 	// constructor with key comparison predicate
     mutable_priority_queue( const _KeyComp& keyComp )
-        : key2Val(keyComp), val2Key(_ValueComp()) { }
+        : key2Val(keyComp)
+        , val2Key(_ValueComp())
+    {}
 
 	// constructor with value comparison predicate
     mutable_priority_queue( const _ValueComp& valComp )
-        : key2Val(_KeyComp()), val2Key(valComp) { }
+        : key2Val(_KeyComp())
+        , val2Key(valComp)
+    {}
 
 	// constructor with both comparison predicates
     mutable_priority_queue( const _KeyComp& keyComp, const _ValueComp& valComp )
-        : key2Val(keyComp), val2Key(valComp) { }
+        : key2Val(keyComp)
+        , val2Key(valComp)
+    {}
 
 	// copy constructor
     mutable_priority_queue( const mutable_priority_queue<_Key,_Value,_KeyComp,_ValueComp>& x )
-        : key2Val(x.key2Val), val2Key(x.val2Key) {}
+        : key2Val(x.key2Val)
+        , val2Key(x.val2Key)
+    {}
 
 	// destructor, clears both maps
     ~mutable_priority_queue()
@@ -111,8 +121,8 @@ public:
     {
         typename std::map<_Value,_Key,_ValueComp>::iterator iter = val2Key.find(val);
         if( iter != val2Key.end() ) {
-			key2Val.erase( _find(iter->second,iter->first) );
-			val2Key.erase( iter );
+            key2Val.erase(_find(iter->second, iter->first));
+            val2Key.erase(iter);
 		}
 	}
 
@@ -125,13 +135,13 @@ public:
 	// returns the value at the front of the queue
     inline _Value front_value()
     {
-        return (*key2Val.begin()).second;
+        return key2Val.begin()->second;
 	}
 
 	// returns the key at the front of the queue
     inline _Key front_key()
     {
-        return (*key2Val.begin()).first;
+        return key2Val.begin()->first;
 	}
 
 	// removes the front entry in the queue
@@ -193,9 +203,10 @@ private:
     }
 
 private:
-	std::multimap< _Key, _Value, _KeyComp >	key2Val;
-	std::map< _Value, _Key, _ValueComp >	val2Key;
+    std::multimap<_Key, _Value, _KeyComp> key2Val;
+    std::map<_Value, _Key, _ValueComp> val2Key;
 };
 
 } // end namespace mld
+
 #endif // MLD_MUTABLE_PRIORITY_QUEUE_H

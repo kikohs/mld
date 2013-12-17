@@ -98,7 +98,7 @@ public:
      * @param node Input node
      * @return success
      */
-    virtual bool flagNode( const SuperNode& node ) = 0;
+    virtual bool flagNode( const SuperNode& root ) = 0;
     /**
      * @brief Check if some input node oid is already in the flagged set
      * @param snid input
