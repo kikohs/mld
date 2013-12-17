@@ -30,7 +30,7 @@ public:
     MultiAdditiveMerger( dex::gdb::Graph* g );
     virtual ~MultiAdditiveMerger() override;
 
-    virtual bool merge( const SuperNode& source, const AbstractMultiSelector& selector ) override;
+    virtual SuperNode merge( const SuperNode& source, const ObjectsPtr& neighbors ) override;
 };
 
 } // end namespace mld

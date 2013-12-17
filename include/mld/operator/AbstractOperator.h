@@ -59,7 +59,7 @@ protected:
      *  To reimplement
      *  @return success
      */
-    virtual bool pre_exec() = 0;
+    virtual bool preExec() = 0;
 
     /**
      * @brief Main method to be reimplemented
@@ -71,7 +71,7 @@ protected:
      * @brief Run after exec, post execution method
      * @return success
      */
-    virtual bool post_exec() = 0;
+    virtual bool postExec() = 0;
 
 protected:
     std::unique_ptr<MLGDao> m_dao;

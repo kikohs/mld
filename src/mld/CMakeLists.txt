@@ -7,6 +7,8 @@ add_subdirectory(model)
 
 add_subdirectory(operator)
 
+add_subdirectory(utils)
+
 # SOURCES FILES
 set( project_SRCS
     common.h
@@ -17,6 +19,7 @@ set( project_SRCS
     ${DAO_SRCS}
     ${MODEL_SRCS}
     ${OPERATOR_SRCS}
+    ${UTILS_SRCS}
 )
 
 ####### PUBLIC HEADERS ########
@@ -84,7 +87,11 @@ if( NOT EXISTS ${OPERATOR_PUB_HDRS_DIR} )
     file( MAKE_DIRECTORY ${OPERATOR_PUB_HDRS_DIR} )
 endif()
 COPY_FILES_INTO_DIRECTORY_IF_CHANGED( "${OPERATOR_PUBLIC_HDRS}" ${OPERATOR_PUB_HDRS_DIR} ${PROJECT_NAME} )
-
+# UTILS
+if( NOT EXISTS ${UTILS_PUB_HDRS_DIR} )
+    file( MAKE_DIRECTORY ${UTILS_PUB_HDRS_DIR} )
+endif()
+COPY_FILES_INTO_DIRECTORY_IF_CHANGED( "${UTILS_PUB_HDRS_DIR}" ${UTILS_PUB_HDRS_DIR} ${PROJECT_NAME} )
 
 
 ## INSTALL LIBS AND EXECUTABLES

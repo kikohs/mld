@@ -16,7 +16,13 @@
 **
 ****************************************************************************/
 
-#include "XSelector.h"
+#include <dex/gdb/Graph.h>
+#include <dex/gdb/Objects.h>
+#include <dex/gdb/ObjectsIterator.h>
+
+#include "mld/Graph_types.h"
+#include "mld/operator/XSelector.h"
+#include "mld/dao/MLGDao.h"
 
 using namespace mld;
 using namespace dex::gdb;
@@ -30,8 +36,60 @@ XSelector::~XSelector()
 {
 }
 
-SuperNode XSelector::selectBestNode( const Layer& layer )
+bool XSelector::rankNodes( const Layer& layer )
+{
+    m_scores.clear();
+    m_lid = layer.id();
+    ObjectsPtr nodes(m_dao->getAllNodeIds(layer));
+    ObjectsIt it(nodes->Iterator());
+    while( it->HasNext() ) {
+        auto nid = it->Next();
+        // Add values in the mutable priority queue
+        m_scores.push(nid, calcScore(nid));
+    }
+    return true;
+}
+
+bool XSelector::hasNext()
+{
+    return !m_scores.empty();
+}
+
+SuperNode XSelector::next()
+{
+    if( hasNext() ) {
+        SuperNode n = m_dao->getNode(m_scores.front_value());
+        // Remove item
+        m_scores.pop();
+        return n;
+    }
+    else {
+        return SuperNode();
+    }
+}
+
+ObjectsPtr XSelector::neighbors( const SuperNode& node )
+{
+    ObjectsPtr neighbors(m_dao->graph()->Neighbors(node.id(), m_dao->superNodeType(), Any));
+    // Return only neighbors not flagged
+    neighbors->Difference(m_flagged.get());
+    return neighbors;
+}
+
+bool XSelector::flagNode( const SuperNode& node )
+{
+    // Update 2 hop neighbors
+    // Flag node + neighbors
+    return false;
+}
+
+bool XSelector::isFlagged( oid_t snid )
+{
+    return m_flagged->Exists(snid);
+}
+
+float XSelector::calcScore( oid_t snid )
 {
     // TODO
-    return SuperNode();
+    return 1.0;
 }

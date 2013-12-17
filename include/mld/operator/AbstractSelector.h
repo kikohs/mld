@@ -67,7 +67,44 @@ public:
     AbstractMultiSelector( dex::gdb::Graph* g );
     virtual ~AbstractMultiSelector() = 0;
 
-    virtual SuperNode selectBestNode( const Layer& layer ) = 0;
+    /**
+     * @brief Give a score to each node for coarsening
+     * @param layer input layer
+     * @return success
+     */
+    virtual bool rankNodes( const Layer& layer ) = 0;
+
+    /**
+     * @brief Has available supernode to process
+     * @return SuperNode availability
+     */
+    virtual bool hasNext() = 0;
+
+    /**
+     * @brief Get best node according to score, consume node
+     * @return Best supernode
+     */
+    virtual SuperNode next() = 0;
+
+    /**
+     * @brief Get neighborhood of input node which is not already marked as unavailable
+     * @param node
+     * @return SuperNode oids
+     */
+    virtual ObjectsPtr neighbors( const SuperNode& node ) = 0;
+
+    /**
+     * @brief Flag node as processed, update 2-hop neighbors score
+     * @param node Input node
+     * @return success
+     */
+    virtual bool flagNode( const SuperNode& node ) = 0;
+    /**
+     * @brief Check if some input node oid is already in the flagged set
+     * @param snid input
+     * @return flagged
+     */
+    virtual bool isFlagged( dex::gdb::oid_t snid ) = 0;
 };
 
 } // end namespace mld

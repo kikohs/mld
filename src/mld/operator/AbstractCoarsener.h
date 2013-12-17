@@ -47,9 +47,9 @@ public:
     uint64_t computeMergeCount( int64_t numVertices );
 
 protected:
-    virtual bool pre_exec() override;
+    virtual bool preExec() override;
     virtual bool exec() override;
-    virtual bool post_exec() override;
+    virtual bool postExec() override;
 
 protected:
     float m_reductionFac;

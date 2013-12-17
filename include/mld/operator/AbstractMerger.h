@@ -76,13 +76,13 @@ public:
     virtual ~AbstractMultiMerger() = 0;
 
     /**
-     * @brief Collapse all available HLinks around a node depending on the underlying algorithm
+     * @brief Collapse all available HLinks and node around a node depending on the underlying algorithm
      * Update graph and selector
      * @param source node
-     * @param selector
-     * @return success
+     * @param neighbors Available neighbors to collapse
+     * @return updated source SuperNode
      */
-    virtual bool merge( const SuperNode& source, const AbstractMultiSelector& selector ) = 0;
+    virtual SuperNode merge( const SuperNode& source, const ObjectsPtr& neighbors ) = 0;
 };
 
 

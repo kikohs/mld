@@ -24,6 +24,8 @@
 
 namespace mld {
 
+class SuperNode;
+
 /**
  * @brief The XCoarsener class
  *  Special multi-coarsener with auto adjust layering
@@ -34,9 +36,17 @@ class MLD_API XCoarsener: public AbstractOperator
     virtual ~XCoarsener() override;
 
 protected:
-    virtual bool pre_exec() override;
+    virtual bool preExec() override;
     virtual bool exec() override;
-    virtual bool post_exec() override;
+    virtual bool postExec() override;
+
+private:
+    /**
+     * @brief Create HLINKS for newly created top root node
+     * @param root root SuperNode vlinked to rootTop
+     * @param rootTop Top root SuperNode vlinked to root
+     */
+    void createHLinksTopLayer( const SuperNode& root, const SuperNode& rootTop );
 
 protected:
     std::unique_ptr<AbstractMultiSelector> m_sel;

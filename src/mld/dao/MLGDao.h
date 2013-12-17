@@ -299,6 +299,7 @@ public:
 
     dex::gdb::type_t hlinkType() const;
     dex::gdb::type_t vlinkType() const;
+    dex::gdb::type_t superNodeType() const;
 
 private:
     dex::gdb::oid_t getLayerIdForSuperNode( dex::gdb::oid_t nid );

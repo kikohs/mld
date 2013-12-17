@@ -32,9 +32,10 @@ MultiAdditiveMerger::~MultiAdditiveMerger()
 {
 }
 
-bool MultiAdditiveMerger::merge( const SuperNode& source, const AbstractMultiSelector& selector )
+SuperNode MultiAdditiveMerger::merge( const SuperNode& source,
+                                      const ObjectsPtr& neighbors
+                                    )
 {
     // TODO
-    return false;
+    return SuperNode();
 }
-

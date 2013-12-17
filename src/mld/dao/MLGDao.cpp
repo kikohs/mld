@@ -483,3 +483,8 @@ type_t MLGDao::vlinkType() const
 {
     return m_link->vlinkType();
 }
+
+type_t MLGDao::superNodeType() const
+{
+    return m_sn->superNodeType();
+}

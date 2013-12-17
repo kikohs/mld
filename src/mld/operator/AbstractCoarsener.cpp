@@ -69,7 +69,7 @@ uint64_t AbstractSingleCoarsener::computeMergeCount( int64_t numVertices )
     return mergeCount;
 }
 
-bool AbstractSingleCoarsener::pre_exec()
+bool AbstractSingleCoarsener::preExec()
 {
     if( !m_sel || !m_merger ) {
         LOG(logERROR) << "AbstractSingleCoarsener::pre_exec: You need to set a \
@@ -123,7 +123,7 @@ bool AbstractSingleCoarsener::exec()
     return true;
 }
 
-bool AbstractSingleCoarsener::post_exec()
+bool AbstractSingleCoarsener::postExec()
 {
     return true;
 }

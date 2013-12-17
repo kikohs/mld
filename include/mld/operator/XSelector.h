@@ -19,8 +19,12 @@
 #ifndef MLD_XSELECTOR_H
 #define MLD_XSELECTOR_H
 
+#include <queue>
+#include <dex/gdb/Objects.h>
+
 #include "mld/common.h"
 #include "mld/operator/AbstractSelector.h"
+#include "mld/utils/mutable_priority_queue.h"
 
 namespace mld {
 
@@ -30,7 +34,24 @@ public:
     XSelector( dex::gdb::Graph* g );
     virtual ~XSelector() override;
 
-    virtual SuperNode selectBestNode( const Layer& layer ) override;
+    virtual bool rankNodes( const Layer& layer ) override;
+    virtual bool hasNext() override;
+    virtual SuperNode next() override;
+    virtual ObjectsPtr neighbors( const SuperNode& node ) override;
+    virtual bool flagNode( const SuperNode& node ) override;
+    virtual bool isFlagged( dex::gdb::oid_t snid ) override;
+
+    /**
+     * @brief Score function
+     * @param snid SuperNode oid
+     * @return score
+     */
+    virtual float calcScore( dex::gdb::oid_t snid );
+
+protected:
+    dex::gdb::oid_t m_lid;
+    ObjectsPtr m_flagged;
+    mutable_priority_queue<float, dex::gdb::oid_t> m_scores;
 };
 
 } // end namespace mld

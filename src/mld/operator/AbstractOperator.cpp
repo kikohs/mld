@@ -32,9 +32,9 @@ AbstractOperator::~AbstractOperator()
 
 bool AbstractOperator::run()
 {
-    if( pre_exec() ) {
+    if( preExec() ) {
         if( exec() ) {
-            if( post_exec() )
+            if( postExec() )
                 return true;
         }
     }
