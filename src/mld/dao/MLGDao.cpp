@@ -359,6 +359,11 @@ SuperNode MLGDao::getNode( oid_t id )
     return m_sn->getNode(id);
 }
 
+std::vector<SuperNode> MLGDao::getNode( const ObjectsPtr& objs )
+{
+    return m_sn->getNode(objs);
+}
+
 // ****** FORWARD METHOD OF LINK DAO ****** //
 
 HLink MLGDao::getHLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt )
@@ -386,6 +391,10 @@ VLink MLGDao::getVLink( oid_t vid )
     return m_link->getVLink(vid);
 }
 
+std::vector<HLink> MLGDao::getHLink( const ObjectsPtr& objs )
+{
+    return m_link->getHLink(objs);
+}
 
 // ****** FORWARD METHOD OF LAYER DAO ****** //
 

@@ -173,6 +173,7 @@ public:
     void removeNode( dex::gdb::oid_t id );
     void updateNode( const SuperNode& n );
     SuperNode getNode( dex::gdb::oid_t id );
+    std::vector<SuperNode> getNode( const ObjectsPtr& objs );
 
     // Forward to LinkDao
     HLink getHLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt );
@@ -181,6 +182,7 @@ public:
 
     VLink getVLink( const SuperNode& src, const SuperNode& tgt );
     VLink getVLink( dex::gdb::oid_t vid );
+    std::vector<HLink> getHLink( const ObjectsPtr& objs );
 
     // Forward to LayerDAO
     /**

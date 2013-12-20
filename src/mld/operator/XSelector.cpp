@@ -16,6 +16,7 @@
 **
 ****************************************************************************/
 
+#include <numeric>  // std::accumulate
 #include <dex/gdb/Graph.h>
 #include <dex/gdb/Objects.h>
 #include <dex/gdb/ObjectsIterator.h>
@@ -26,6 +27,118 @@
 
 using namespace mld;
 using namespace dex::gdb;
+
+namespace {
+
+void edgeRetriever( ObjectsPtr& edgeSet, oid_t source, const ObjectsPtr& targetSet, MLGDao* dao )
+{
+    ObjectsIt it(targetSet->Iterator());
+    while( it->HasNext() ) {
+        auto target = it->Next();
+        // Retrieve edge oid
+        oid_t eid = dao->graph()->FindEdge(dao->hlinkType(), source, target);
+#ifdef MLD_SAFE
+        if( eid == Objects::InvalidOID ) {
+            LOG(logERROR) << "XSelector::edgeRetriever cannot retrieve eid between 2 nodes";
+            continue;
+        }
+#endif
+        edgeSet->Add(eid);
+    }
+}
+
+/**
+ * @brief inOrOutEdges, retrieve all edges within 1hop radius or all out edges from 1 hop
+ * radius
+ * @param inEdges, if true get inedges, else out edges
+ * @param root node
+ * @param dao
+ * @return edge set
+ */
+ObjectsPtr inOrOutEdges( bool inEdges, oid_t root, MLGDao* dao )
+{
+    ObjectsPtr neighbors(dao->graph()->Neighbors(root, dao->superNodeType(), Any));
+    // Create empty edge set
+    ObjectsPtr edgeSet(neighbors->Copy());
+    edgeSet->Clear();
+
+    ObjectsIt it(neighbors->Iterator());
+    while( it->HasNext() ) {
+        auto source = it->Next();
+        ObjectsPtr hop2(dao->graph()->Neighbors(source, dao->superNodeType(), Any));
+        if( inEdges ) {
+            // Keep only neighbors within 1 hop radius from root
+            hop2->Intersection(neighbors.get());
+        }
+        else {
+            hop2->Difference(neighbors.get());
+        }
+        // Retrieve edges
+        edgeRetriever(edgeSet, source, hop2, dao);
+    }
+    return edgeSet;
+}
+
+ObjectsPtr inEdges( oid_t root, MLGDao* dao )
+{
+    return inOrOutEdges(true, root, dao);
+}
+
+ObjectsPtr outEdges( oid_t root, MLGDao* dao )
+{
+    return inOrOutEdges(false, root, dao);
+}
+
+double getEdgeWeight( const ObjectsPtr& edgeOids, MLGDao* dao )
+{
+    std::vector<HLink> hlinks = dao->getHLink(edgeOids);
+    if( hlinks.empty() ) {
+        LOG(logERROR) << "XSelector::edgeWeight << cannot retrieve hlinks or no hlinks";
+        return 1.0;
+    }
+    double total = 0.0;
+    for( auto& hlink: hlinks ) {
+        total += hlink.weight();
+    }
+    return total;
+}
+
+/**
+ * @brief In score = traverse_edge_weight / in_edge_weight
+ */
+double inScore( oid_t node, MLGDao* dao )
+{
+    ObjectsPtr traverseEdges(dao->graph()->Explode(node, dao->superNodeType(), Any));
+    double travWeight = getEdgeWeight(traverseEdges, dao);
+    double inWeight = getEdgeWeight(inEdges(node, dao), dao);
+    return travWeight / inWeight;
+}
+
+double outScore( oid_t node, MLGDao* dao )
+{
+    auto out = outEdges(node, dao);
+    double outWeight = getEdgeWeight(out, dao);
+    return outWeight / double(out->Count());
+}
+
+double nodeScore( oid_t node, MLGDao* dao )
+{
+    ObjectsPtr neighbors(dao->graph()->Neighbors(node, dao->superNodeType(), Any));
+    auto nodes = dao->getNode(neighbors);
+    if( !nodes.empty() ) {
+        LOG(logWARNING) << "XSelector::nodeScore: node has no neighbors (disconnected graph)";
+        return 1.0;
+    }
+    double total = 0.0;
+    for( auto& node: nodes ) {
+        total += node.weight();
+    }
+    // N = mean(node_w) / #node
+    size_t count = nodes.size();
+    return total / double(count * count);
+}
+
+} // end namespace anonymous
 
 XSelector::XSelector( Graph* g )
     : AbstractMultiSelector(g)
@@ -124,6 +237,9 @@ bool XSelector::flagNode( const SuperNode& root )
     // Flag node + neighbors
     m_flagged->Union(hop1.get());
     m_flagged->Add(root.id());
+
+    // TODO
+    // update 2hop scores maybe not needed
     return true;
 }
 
@@ -132,10 +248,13 @@ bool XSelector::isFlagged( oid_t snid )
     return m_flagged->Exists(snid);
 }
 
-float XSelector::calcScore( oid_t snid )
+double XSelector::calcScore( oid_t snid )
 {
-    // TODO
-    return 1.0;
+    double iWeight = inScore(snid, m_dao.get());
+    double oWeight = outScore(snid, m_dao.get());
+    double nWeight = nodeScore(snid, m_dao.get());
+    // TODO take into account root WEIGHT
+    return iWeight / (oWeight * nWeight);
 }
 
 bool XSelector::updateOrCreateHLink( oid_t root2HopCurrentNode,

@@ -46,7 +46,7 @@ public:
      * @param snid SuperNode oid
      * @return score
      */
-    virtual float calcScore( dex::gdb::oid_t snid );
+    virtual double calcScore( dex::gdb::oid_t snid );
 
     /**
      * @brief Update or create HLink between 2 top layer root nodes
@@ -80,7 +80,7 @@ protected:
     dex::gdb::oid_t m_lid;
     ObjectsPtr m_flagged;
     ObjectsPtr m_rootNodes;
-    mutable_priority_queue<float, dex::gdb::oid_t> m_scores;
+    mutable_priority_queue<double, dex::gdb::oid_t> m_scores;
 };
 
 } // end namespace mld
