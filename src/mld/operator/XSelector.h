@@ -37,9 +37,12 @@ public:
     virtual bool rankNodes( const Layer& layer ) override;
     virtual bool hasNext() override;
     virtual SuperNode next() override;
-    virtual ObjectsPtr neighbors( const SuperNode& node ) override;
+    virtual ObjectsPtr unflaggedNeighbors( const SuperNode& node ) override;
     virtual bool flagNode( const SuperNode& root ) override;
     virtual bool isFlagged( dex::gdb::oid_t snid ) override;
+
+    virtual ObjectsPtr flaggedNodes( const ObjectsPtr& input ) override;
+    virtual ObjectsPtr unflaggedNodes( const ObjectsPtr& input ) override;
 
     /**
      * @brief Score function
@@ -49,32 +52,19 @@ public:
     virtual double calcScore( dex::gdb::oid_t snid );
 
     /**
-     * @brief Update or create HLink between 2 top layer root nodes
-     * Merge 2 hlinks if link already exists
-     *
-     *                  HLink
-     *      rootTop ---------- root3HopTop
-     *     /                  /
-     *    /                  /
-     *   /                  / VLink
-     *  /          *       /
-     * /           |      /
-     * root - n* - n2 - *r2 (3hop root node)
-     *             |
-     *             *
-     *
-     * @param root2HopCurrentNode 2-hop current node (n2)
-     * @param root2HopCurrentNeighbors 2-hop current neighbors (*)
-     * @param rootNeighbors 1-hop root node neighbors (n)
-     * @param rootTop Corresponding top layer root node
-     * @param root3HopTop 3-hop root top layer node (r2)
+     * @brief Update node score from given input set
+     * @param input set
      * @return success
      */
-    virtual bool updateOrCreateHLink( dex::gdb::oid_t root2HopCurrentNode,
-                                      ObjectsPtr& root2HopCurrentNeighbors,
-                                      ObjectsPtr& rootNeighbors,
-                                      const SuperNode& rootTop,
-                                      const SuperNode& root3HopTop );
+    virtual bool updateScore( const ObjectsPtr& input );
+
+    dex::gdb::Objects* rootNodes() const { return m_rootNodes.get(); }
+
+    /**
+     * @brief Remove input from selection queue
+     * @param input
+     */
+    virtual void removeCandidates( const ObjectsPtr& input );
 
 protected:
     dex::gdb::oid_t m_lid;

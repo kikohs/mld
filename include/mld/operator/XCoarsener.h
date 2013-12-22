@@ -19,12 +19,15 @@
 #ifndef MLD_XCOARSENER_H
 #define MLD_XCOARSENER_H
 
+#include <dex/gdb/Objects.h>
+
 #include "mld/common.h"
 #include "mld/operator/AbstractCoarsener.h"
 
 namespace mld {
 
 class SuperNode;
+class XSelector;
 
 /**
  * @brief The XCoarsener class
@@ -45,11 +48,40 @@ private:
      * @brief Create HLINKS for newly created top root node
      * @param root root SuperNode vlinked to rootTop
      * @param rootTop Top root SuperNode vlinked to root
+     * @return success
      */
-    void createHLinksTopLayer( const SuperNode& root, const SuperNode& rootTop );
+    bool createHLinksTopLayer( const SuperNode& root, const SuperNode& rootTop );
+
+    /**
+     * @brief Update or create HLink between 2 top layer root nodes
+     * Merge 2 hlinks if link already exists
+     *
+     *                  HLink
+     *      rootTop ---------- currentRootTop
+     *     /                  /
+     *    /                  /
+     *   /                  / VLink
+     *  /          *       /
+     * /           |      /
+     * root - n* - n2 - *r2 (3hop root node)
+     *             |
+     *             *
+     *
+     * @param currentNode 1hop or 2-hop current node (n2)
+     * @param currentNeighbors 1 or 2-hop current neighbors (*)
+     * @param rootNeighbors 1-hop root node neighbors (n)
+     * @param rootTop Corresponding top layer root node
+     * @param currentRootTop 2 or 3-hop root top layer node (r2)
+     * @return success
+     */
+    virtual bool updateOrCreateHLink( dex::gdb::oid_t currentNode,
+                                      ObjectsPtr& currentNeighbors,
+                                      ObjectsPtr& rootNeighbors,
+                                      const SuperNode& rootTop,
+                                      const SuperNode& currentRootTop );
 
 protected:
-    std::unique_ptr<AbstractMultiSelector> m_sel;
+    std::unique_ptr<XSelector> m_sel;
     std::unique_ptr<AbstractMultiMerger> m_merger;
 };
 

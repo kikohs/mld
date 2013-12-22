@@ -16,9 +16,12 @@
 **
 ****************************************************************************/
 
+#include <dex/gdb/Objects.h>
+
 #include "mld/operator/MultiAdditiveMerger.h"
-#include "mld/model/SuperNode.h"
 #include "mld/operator/AbstractSelector.h"
+#include "mld/model/SuperNode.h"
+#include "mld/dao/MLGDao.h"
 
 using namespace mld;
 using namespace dex::gdb;
@@ -36,6 +39,19 @@ SuperNode MultiAdditiveMerger::merge( const SuperNode& source,
                                       const ObjectsPtr& neighbors
                                     )
 {
-    // TODO
-    return SuperNode();
+    SuperNode merged(source);
+    std::vector<SuperNode> nodes = m_dao->getNode(neighbors);
+    double total = merged.weight();
+    for( auto& node: nodes ) {
+        HLink l = m_dao->getHLink(source.id(), node.id());
+#ifdef MLD_SAFE
+        if( l.id() == Objects::InvalidOID ) {
+            LOG(logERROR) << "MultiAdditiveMerger::merge invalid hlink: " << source << " " << node;
+            return SuperNode();
+        }
+#endif
+        total += l.weight() * node.weight();
+    }
+    merged.setWeight(total);
+    return merged;
 }

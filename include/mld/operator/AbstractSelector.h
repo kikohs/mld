@@ -91,7 +91,7 @@ public:
      * @param node
      * @return SuperNode oids
      */
-    virtual ObjectsPtr neighbors( const SuperNode& node ) = 0;
+    virtual ObjectsPtr unflaggedNeighbors( const SuperNode& node ) = 0;
 
     /**
      * @brief Flag node as processed, update 2-hop neighbors score
@@ -105,6 +105,20 @@ public:
      * @return flagged
      */
     virtual bool isFlagged( dex::gdb::oid_t snid ) = 0;
+
+    /**
+     * @brief Filter input to return only flagged nodes
+     * @param input
+     * @return flagged nodes
+     */
+    virtual ObjectsPtr flaggedNodes( const ObjectsPtr& input ) = 0;
+
+    /**
+     * @brief Filter input to return only non flagged nodes
+     * @param input
+     * @return non flagged nodes
+     */
+    virtual ObjectsPtr unflaggedNodes( const ObjectsPtr& input ) = 0;
 };
 
 } // end namespace mld
