@@ -91,7 +91,7 @@ public:
      * @param node
      * @return SuperNode oids
      */
-    virtual ObjectsPtr unflaggedNeighbors( const SuperNode& node ) = 0;
+    virtual ObjectsPtr unflaggedNeighbors( dex::gdb::oid_t node ) = 0;
 
     /**
      * @brief Flag node as processed, update 2-hop neighbors score

@@ -96,7 +96,7 @@ bool XCoarsener::exec()
         }
 #endif
         // Select valid neighbors (not flagged)
-        ObjectsPtr neighbors = m_sel->unflaggedNeighbors(root);
+        ObjectsPtr neighbors = m_sel->unflaggedNeighbors(root.id());
         // Merge node and edges
         root = m_merger->merge(root, neighbors);
 #ifdef MLD_SAFE
@@ -190,14 +190,14 @@ bool XCoarsener::updateOrCreateHLink( oid_t currentNode,
                                      const SuperNode& currentRootTop )
 {
     // Retrieve edges between root neighbors and 2-hop current neighbors, at least 1 element
-    ObjectsPtr hop1Targets(Objects::CombineIntersection(currentNeighbors.get(), rootNeighbors.get()));
+    ObjectsPtr targets(Objects::CombineIntersection(currentNeighbors.get(), rootNeighbors.get()));
 #ifdef MLD_SAFE
-    if( hop1Targets->Count() == 0 ) {
+    if( targets->Count() == 0 ) {
         LOG(logERROR) << " XSelector::updateOrCreateHLink: cannot retrieve 1-hop node from 2hop neighbors";
         return false;
     }
 #endif
-    double totalWeight = totalEdgeWeight(currentNode, hop1Targets, m_dao.get());
+    double totalWeight = totalEdgeWeight(currentNode, targets, m_dao.get());
     // Create or update final HLink in top layer between 2 top root supernodes
     HLink topLink = m_dao->getHLink(rootTop.id(), currentRootTop.id());
     if( topLink.id() == Objects::InvalidOID ) { // Create HLink

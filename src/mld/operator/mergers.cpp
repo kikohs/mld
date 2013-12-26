@@ -132,10 +132,6 @@ bool BasicAdditiveMerger::merge( const HLink& hlink, const AbstractSingleSelecto
     // Remove contracted source node, it removes all associated relationships
     m_dao->removeNode(src.id());
 
-    // TODO
-    // Update selector cache
-    // update tgt node
-    // remove src node and associated hlinks
     MLD_UNUSED(selector);
     return true;
 }

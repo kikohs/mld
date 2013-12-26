@@ -37,7 +37,7 @@ public:
     virtual bool rankNodes( const Layer& layer ) override;
     virtual bool hasNext() override;
     virtual SuperNode next() override;
-    virtual ObjectsPtr unflaggedNeighbors( const SuperNode& node ) override;
+    virtual ObjectsPtr unflaggedNeighbors( dex::gdb::oid_t node ) override;
     virtual bool flagNode( const SuperNode& root ) override;
     virtual bool isFlagged( dex::gdb::oid_t snid ) override;
 
@@ -49,7 +49,7 @@ public:
      * @param snid SuperNode oid
      * @return score
      */
-    virtual double calcScore( dex::gdb::oid_t snid );
+    virtual double calcScore( dex::gdb::oid_t snid, bool withFlagged=false );
 
     /**
      * @brief Update node score from given input set
@@ -65,6 +65,25 @@ public:
      * @param input
      */
     virtual void removeCandidates( const ObjectsPtr& input );
+
+protected:
+    // Score related functions
+    double inScore( dex::gdb::oid_t node, bool withFlagged );
+    double outScore( dex::gdb::oid_t node, bool withFlagged );
+    double nodeScore( dex::gdb::oid_t node, bool withFlagged );
+    double getEdgeWeight( const ObjectsPtr& edgeOids );
+    ObjectsPtr outEdges( dex::gdb::oid_t root, bool withFlagged );
+    ObjectsPtr inEdges( dex::gdb::oid_t root, bool withFlagged );
+    /**
+     * @brief inOrOutEdges, retrieve all edges within 1hop radius or all out edges from 1 hop
+     * radius
+     * @param inEdges, if true get inedges, else out edges
+     * @param root node
+     * @param dao
+     * @return edge set
+     */
+    ObjectsPtr inOrOutEdges(bool inEdges, dex::gdb::oid_t root, bool withFlagged );
+    void edgeRetriever( ObjectsPtr& edgeSet, dex::gdb::oid_t source, const ObjectsPtr& targetSet );
 
 protected:
     dex::gdb::oid_t m_lid;
