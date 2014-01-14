@@ -107,6 +107,8 @@ bool XCoarsener::exec()
 #endif
         // Create top node
         SuperNode rootTop = m_dao->addNodeToLayer(top);
+        // Update rootTop weight with the merged root weight on previous layer
+        rootTop.setWeight(root.weight());
 #ifdef MLD_SAFE
         if( rootTop.id() == Objects::InvalidOID ) {
             LOG(logERROR) << "XCoarsener::exec: addNodeToLayer failed";

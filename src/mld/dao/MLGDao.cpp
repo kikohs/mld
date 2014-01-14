@@ -285,6 +285,8 @@ oid_t MLGDao::getLayerIdForSuperNode( oid_t nid )
 
 Layer MLGDao::mirrorLayerImpl( const Direction& dir )
 {
+    // TODO CHANGE implementation to O(E) instead of O(V+E)
+    // mirror only edges
     Layer previous = dir == TOP ? topLayer(): bottomLayer();
 #ifdef MLD_SAFE
     if( previous.id() == Objects::InvalidOID )
