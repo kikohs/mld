@@ -28,7 +28,6 @@ set( project_SRCS
 set( CUR_PUB_HDRS
     ${CMAKE_CURRENT_SOURCE_DIR}/common.h
     ${CMAKE_CURRENT_SOURCE_DIR}/config.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/log.h
     ${CMAKE_CURRENT_SOURCE_DIR}/DexManager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Session.h
     ${CMAKE_CURRENT_SOURCE_DIR}/MLGBuilder.h

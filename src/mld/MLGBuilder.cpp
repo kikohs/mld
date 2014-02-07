@@ -18,6 +18,7 @@
 
 #include "mld/MLGBuilder.h"
 #include "mld/operator/AbstractOperator.h"
+#include "mld/utils/Timer.h"
 
 using namespace mld;
 
@@ -38,6 +39,7 @@ bool MLGBuilder::run()
     // Run each step and remove it from the queue
     while( !m_steps.empty() ) {
         OperatorPtr& step = m_steps.front();
+        std::unique_ptr<Timer> t(new Timer("MLGBuilder::run step"));
         bool ok = step->run();
         if( !ok ) {
             LOG(logERROR) << "MLGBuilder::run: an operation failed, stop";

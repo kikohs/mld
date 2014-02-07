@@ -24,6 +24,10 @@ append_test(BAMergerTest operator/BasicAdditiveMergerTest.cpp)
 append_test(CoarsenerTest operator/CoarsenerTest.cpp)
 append_test(MLGBuilderTest operator/MLGBuilderTest.cpp)
 
+# TOP level test
+append_test(TimerTest TimerTest.cpp)
+
+#### Create executables
 list(LENGTH TESTS_SRCS len1)
 math(EXPR len2 "${len1} - 1")
 

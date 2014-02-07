@@ -25,6 +25,8 @@
 #include "mld/operator/mergers.h"
 #include "mld/dao/MLGDao.h"
 
+#include "mld/utils/Timer.h"
+
 using namespace mld;
 using namespace dex::gdb;
 
@@ -110,6 +112,9 @@ BasicAdditiveMerger::~BasicAdditiveMerger()
 
 bool BasicAdditiveMerger::merge( const HLink& hlink, const AbstractSingleSelector& selector )
 {
+#ifdef MLD_FINE_TIMER
+    std::unique_ptr<Timer> t(new Timer("BasicAdditiveMerger::merge"));
+#endif
     if( hlink.id() == Objects::InvalidOID ) {
         LOG(logERROR) << "BasicAdditiveMerger::merge: invalid HLink";
         return false;

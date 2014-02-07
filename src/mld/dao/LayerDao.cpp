@@ -23,7 +23,7 @@
 
 #include "mld/Graph_types.h"
 #include "mld/dao/LayerDao.h"
-#include "mld/log.h"
+#include "mld/utils/log.h"
 
 using namespace mld;
 using namespace dex::gdb;

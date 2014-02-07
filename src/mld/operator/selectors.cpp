@@ -22,6 +22,8 @@
 #include "mld/model/Link.h"
 #include "mld/dao/MLGDao.h"
 
+#include "mld/utils/Timer.h"
+
 using namespace mld;
 
 HeavyEdgeSelector::HeavyEdgeSelector( dex::gdb::Graph* g )
@@ -36,6 +38,9 @@ HeavyEdgeSelector::~HeavyEdgeSelector()
 
 HLink HeavyEdgeSelector::selectBestHLink( const Layer& layer )
 {
+#ifdef MLD_FINE_TIMER
+    std::unique_ptr<Timer> t(new Timer("HeavyEdgeSelector::selectBestHLink"));
+#endif
 #ifdef MLD_SAFE
     return m_dao->getHeaviestHLink(layer);
 #else

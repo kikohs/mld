@@ -21,6 +21,8 @@
 #include "mld/operator/selectors.h"
 #include "mld/dao/MLGDao.h"
 
+#include "mld/utils/Timer.h"
+
 using namespace mld;
 using namespace dex::gdb;
 
@@ -38,3 +40,16 @@ HeavyEdgeCoarsener::HeavyEdgeCoarsener( Graph* g )
 HeavyEdgeCoarsener::~HeavyEdgeCoarsener()
 {
 }
+
+bool HeavyEdgeCoarsener::preExec()
+{
+    std::unique_ptr<Timer> t(new Timer("HeavyEdgeCoar::preExec"));
+    return AbstractSingleCoarsener::preExec();
+}
+
+bool HeavyEdgeCoarsener::exec()
+{
+    std::unique_ptr<Timer> t(new Timer("HeavyEdgeCoar::exec"));
+    return AbstractSingleCoarsener::exec();
+}
+

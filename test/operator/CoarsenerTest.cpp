@@ -23,6 +23,7 @@
 
 #include <mld/operator/coarseners.h>
 #include <mld/dao/MLGDao.h>
+#include <mld/utils/Timer.h>
 
 using namespace mld;
 
@@ -109,4 +110,6 @@ TEST( CoarsenerTest, HeavyEdgeCoarsenerTest )
     coarsener.reset();
     dao.reset();
     sess.reset();
+
+    LOG(logINFO) << Timer::dumpTrials();
 }

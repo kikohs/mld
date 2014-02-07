@@ -24,6 +24,7 @@
 #include <mld/dao/MLGDao.h>
 #include <mld/MLGBuilder.h>
 #include <mld/operator/coarseners.h>
+#include <mld/utils/Timer.h>
 
 using namespace mld;
 using namespace dex::gdb;
@@ -68,6 +69,7 @@ TEST( MLGBuilderTest, runStepTest )
     dao->addHLink(n2, n3);
 
     {
+        std::unique_ptr<Timer> t(new Timer("Coarsening benchmark"));
         MLGBuilder builder;
         std::shared_ptr<HeavyEdgeCoarsener> coarsener(new HeavyEdgeCoarsener(g));
         // 4 steps of 1 node
@@ -87,8 +89,11 @@ TEST( MLGBuilderTest, runStepTest )
         EXPECT_EQ(success, false);
         // Still 5 layers, mirror should have failed
         EXPECT_EQ(dao->countLayers(), 5);
+
     }
 
     dao.reset();
     sess.reset();
+
+    LOG(logINFO) << Timer::dumpTrials();
 }

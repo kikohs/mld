@@ -281,67 +281,6 @@ oid_t MLGDao::getLayerIdForSuperNode( oid_t nid )
     return obj->Any();
 }
 
-//Layer MLGDao::mirrorLayerImpl( Direction dir )
-//{
-//    // TODO CHANGE implementation to O(E) instead of O(V+E)
-//    // mirror only edges
-//    Layer previous = dir == TOP ? topLayer(): bottomLayer();
-//#ifdef MLD_SAFE
-//    if( previous.id() == Objects::InvalidOID )
-//        return previous; // invalid
-//#endif
-//    // New top layer
-//    Layer newLayer = dir == TOP ? addLayerOnTop(): addLayerOnBottom();
-//    // Get all nodes from previous layer
-//    ObjectsPtr nodes(getAllNodeIds(previous));
-
-//    if( nodes->Count() == 0 ) {
-//        LOG(logWARNING) << "MLGDao::mirrorTopLayer: empty previous top layer";
-//        return newLayer;
-//    }
-
-//    // Id map from previous node ids to top layer nodes, needed to add
-//    // corresponding edges
-//    std::map<oid_t, SuperNode> nodeMap;
-
-//    ObjectsIt nodesIt(nodes->Iterator());
-//    // Duplicate nodes and VLink them
-//    while( nodesIt->HasNext() ) {
-//        // Get each node on the previous layer
-//        SuperNode prevNode = m_sn->getNode(nodesIt->Next());
-//        // Add node in top layer
-//        SuperNode newNode = addNodeToLayer(newLayer);
-
-//        // Link them
-//        if( dir == TOP )
-//            m_link->addVLink(prevNode.id(), newNode.id());
-//        else
-//            m_link->addVLink(newNode.id(), prevNode.id());
-
-//        // Update node weight if needed
-//        if( prevNode.weight() != kSUPERNODE_DEF_VALUE ) {
-//            newNode.setWeight(prevNode.weight());
-//            m_sn->updateNode(newNode);
-//        }
-//        // Add to map to retrieve edges
-//        nodeMap[prevNode.id()] = newNode;
-//    }
-
-//    // Duplicate edges
-//    ObjectsPtr edges(m_g->Explode(nodes.get(), m_link->hlinkType(), Outgoing));
-//    ObjectsIt edgesIt(edges->Iterator());
-//    while( edgesIt->HasNext() ) {
-//        // Get previous layer HLink
-//        HLink link = m_link->getHLink(edgesIt->Next());
-//        // Find equivalent in top layer
-//        SuperNode topSrc = nodeMap[link.source()];
-//        SuperNode topTgt = nodeMap[link.target()];
-//        // Add new HLink
-//        m_link->addHLink(topSrc.id(), topTgt.id(), link.weight());
-//    }
-//    return newLayer;
-//}
-
 Layer MLGDao::mirrorLayerImpl( Direction dir )
 {
     Layer previous = dir == TOP ? topLayer(): bottomLayer();

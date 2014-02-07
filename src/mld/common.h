@@ -40,7 +40,7 @@
 
 #define MLD_UNUSED(expr) do { (void)(expr); } while (0)
 
-#include <mld/log.h>
+#include "mld/utils/log.h"
 
 namespace dex {
 namespace gdb {
