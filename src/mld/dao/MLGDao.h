@@ -19,6 +19,8 @@
 #ifndef MLD_MLGDAO_H
 #define MLD_MLGDAO_H
 
+#include <map>
+
 #include "mld/common.h"
 #include "mld/dao/AbstractDao.h"
 #include "mld/model/SuperNode.h"
@@ -50,6 +52,8 @@ class MLD_API MLGDao: public AbstractDao
         TOP,
         BOTTOM
     };
+
+typedef std::map<dex::gdb::oid_t, SuperNode> NodeMap;
 
 public:
     MLGDao( dex::gdb::Graph* g );
@@ -305,7 +309,9 @@ public:
 
 private:
     dex::gdb::oid_t getLayerIdForSuperNode( dex::gdb::oid_t nid );
-    Layer mirrorLayerImpl( const Direction& dir );
+    Layer mirrorLayerImpl( Direction dir );
+    HLink mirrorEdge( const HLink& current, Direction dir, const Layer& newLayer, NodeMap& nodeMap );
+    SuperNode mirrorNode( const dex::gdb::oid_t current, Direction dir, const Layer& newLayer );
 
 private:
     std::unique_ptr<SNodeDao> m_sn;

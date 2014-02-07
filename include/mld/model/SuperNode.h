@@ -51,20 +51,23 @@ class MLD_API SuperNode: public Node
 public:
     SuperNode();
     SuperNode( dex::gdb::oid_t id );
-    SuperNode( dex::gdb::oid_t id, double weight );
+    SuperNode( dex::gdb::oid_t id, const std::wstring& label, double weight );
 
     virtual ~SuperNode() override;
 
-    bool operator== ( const SuperNode& rhs ) const
+    inline bool operator== ( const SuperNode& rhs ) const
     {
-        return ( (m_id == rhs.id()) && (m_weight == rhs.m_weight) ? true : false );
+        return ( (m_id == rhs.id()) && (m_weight == rhs.m_weight) && (m_label == rhs.m_label) ? true : false );
     }
 
     double weight() const { return m_weight; }
     void setWeight( double v ) { m_weight = v; }
+    std::wstring label() const { return m_label; }
+    void setLabel( const std::wstring& label ) { m_label = label; }
 
 private:
     double m_weight;
+    std::wstring m_label;
 };
 
 } // end namespace mld

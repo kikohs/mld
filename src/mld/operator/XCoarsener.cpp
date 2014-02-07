@@ -212,6 +212,7 @@ bool XCoarsener::updateOrCreateHLink( oid_t currentNode,
 #endif
     }
     else { // Update existing HLink
+        // TODO this should be defined by the merger
         topLink.setWeight(topLink.weight() + totalWeight);
         // Update weight
         bool ok = m_dao->updateHLink(topLink.id(), topLink.weight());

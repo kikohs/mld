@@ -67,8 +67,13 @@ void SNodeDao::updateNode( const SuperNode& n )
     if( n.id() == Objects::InvalidOID )
         return;
 #endif
+    // WEIGHT
     attr_t att = m_g->FindAttribute(m_snType, SNAttr::WEIGHT);
     m_v->SetDoubleVoid(n.weight());
+    m_g->SetAttribute(n.id(), att, *m_v);
+    // LABEL
+    att = m_g->FindAttribute(m_snType, SNAttr::LABEL);
+    m_v->SetStringVoid(n.label());
     m_g->SetAttribute(n.id(), att, *m_v);
 }
 
@@ -79,17 +84,24 @@ SuperNode SNodeDao::getNode( dex::gdb::oid_t id )
         return SuperNode();
 #endif
 
+    double w = 0.0;
+    std::wstring lab = L"";
 #ifdef MLD_SAFE
     try {
 #endif
+        // Weight
         m_g->GetAttribute(id, m_g->FindAttribute(m_snType, SNAttr::WEIGHT), *m_v);
+        w = m_v->GetDouble();
+        // Label
+        m_g->GetAttribute(id, m_g->FindAttribute(m_snType, SNAttr::LABEL), *m_v);
+        lab = m_v->GetString();
 #ifdef MLD_SAFE
     } catch( dex::gdb::Error& e ) {
         LOG(logERROR) << "SNodeDao::getNode: " << e.Message();
         return SuperNode();
     }
 #endif
-    return SuperNode(id, m_v->GetDouble());
+    return SuperNode(id, lab, w);
 }
 
 

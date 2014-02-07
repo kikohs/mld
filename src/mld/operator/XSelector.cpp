@@ -120,7 +120,7 @@ ObjectsPtr XSelector::unflaggedNodes( const ObjectsPtr& input )
     return ObjectsPtr(Objects::CombineDifference(input.get(), m_flagged.get()));
 }
 
-double XSelector::calcScore(oid_t snid , bool withFlagged )
+double XSelector::calcScore( oid_t snid , bool withFlagged )
 {
     double iWeight = inScore(snid, withFlagged);
     double oWeight = outScore(snid, withFlagged);

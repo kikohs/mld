@@ -42,18 +42,22 @@ Node::~Node()
 
 SuperNode::SuperNode()
     : Node()
+    , m_weight(0.0)
+    , m_label(L"")
 {
 }
 
 SuperNode::SuperNode( dex::gdb::oid_t id )
     : Node(id)
     , m_weight(kSUPERNODE_DEF_VALUE)
+    , m_label(L"")
 {
 }
 
-SuperNode::SuperNode( dex::gdb::oid_t id, double weight )
+SuperNode::SuperNode( dex::gdb::oid_t id, const std::wstring& label, double weight )
     : Node(id)
     , m_weight(weight)
+    , m_label(label)
 {
 }
 
@@ -64,6 +68,7 @@ SuperNode::~SuperNode()
 std::ostream& operator<<( std::ostream& out, const SuperNode& sn )
 {
     out << "id: " << sn.id() << " "
+        << "label: " << sn.label().c_str() << " "
         << "weight: " << sn.weight()
         ;
     return out;

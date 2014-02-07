@@ -76,6 +76,7 @@ struct MLD_API EdgeType
 struct MLD_API SNAttr
 {
     static const std::wstring WEIGHT;
+    static const std::wstring LABEL;
 };
 
 struct MLD_API LayerAttr {
