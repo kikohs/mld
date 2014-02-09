@@ -202,6 +202,14 @@ int64_t MLGDao::getNodeCount( const Layer& l )
     return nodes->Count();
 }
 
+int64_t MLGDao::getHLinkCount( const Layer& l )
+{
+    ObjectsPtr edges(getAllHLinkIds(l));
+    if( !edges )
+        return kINVALID_EDGE_COUNT;
+    return edges->Count();
+}
+
 HLink MLGDao::getHeaviestHLink( const Layer& l )
 {
     ObjectsPtr hlinkIds(getAllHLinkIds(l));

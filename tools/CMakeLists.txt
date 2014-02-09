@@ -10,7 +10,10 @@ endmacro(append_tool)
 
 # Append tool here
 append_tool(HelloDex hello_dex.cpp)
+append_tool(SnapParser snap_parser.cpp)
 
+
+# Create executable for each tool
 list(LENGTH TOOLS_SRCS len1)
 math(EXPR len2 "${len1} - 1")
 

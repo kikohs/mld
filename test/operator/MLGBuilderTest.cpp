@@ -31,7 +31,6 @@ using namespace dex::gdb;
 
 TEST( MLGBuilderTest, runStepTest )
 {
-
     mld::DexManager dexManager(mld::kRESOURCES_DIR + L"mydex.cfg");
     dexManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.dex", L"MLDTest");
 

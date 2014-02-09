@@ -1,7 +1,7 @@
 MACRO(COPY_FILE_IF_CHANGED in_file out_file target)
 #    IF( ${in_file} IS_NEWER_THAN ${out_file} )
         message("Copying file: ${in_file} to: ${out_file}")
-        ADD_CUSTOM_COMMAND (
+        ADD_CUSTOM_COMMAND(
             TARGET     ${target}
             POST_BUILD
             COMMAND    ${CMAKE_COMMAND}
@@ -20,7 +20,7 @@ ENDMACRO(COPY_FILE_INTO_DIRECTORY_IF_CHANGED)
 # sub-trees are ignored (files are stored in same out_dir)
 MACRO(COPY_FILES_INTO_DIRECTORY_IF_CHANGED in_file_list out_dir target)
     FOREACH( in_file ${in_file_list} )
-        message(${in_file})
+#        message(${in_file})
         COPY_FILE_INTO_DIRECTORY_IF_CHANGED(${in_file}
 ${out_dir} ${target})
     ENDFOREACH(in_file)

@@ -159,6 +159,13 @@ public:
     int64_t getNodeCount( const Layer& l );
 
     /**
+     * @brief Get number of HLinks for input layer
+     * @param l Input Layer
+     * @return count
+     */
+    int64_t getHLinkCount( const Layer& l );
+
+    /**
      * @brief Get heaviest edge between supernodes on layer
      * @param l Input Layer
      * @return heaviest HLink

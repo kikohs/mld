@@ -3,7 +3,7 @@
 #
 # Project Properties
 #
-cmake_minimum_required( VERSION 2.8.8 )
+cmake_minimum_required( VERSION 2.8.12 )
 
 project( mld )
 
@@ -138,12 +138,14 @@ endif()
 # Config file
 configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/src/config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/src/mld/config.h )
 
-
 # SOURCES
 add_subdirectory( src )
 
 # TOOLS
 if( BUILD_TOOLS )
+    #### TCLAP
+    set( TCLAP_INCLUDE_DIR ${3RDPARTY_DIR}/tclap-1.2.1/include )
+    include_directories( ${TCLAP_INCLUDE_DIR} )
     add_subdirectory( tools )
 endif( BUILD_TOOLS )
 
