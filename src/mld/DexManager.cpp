@@ -87,6 +87,9 @@ void DexManager::createNodeTypes( Graph* g )
         // LABEL
         attr = g->NewAttribute(nType, SNAttr::LABEL, String, Indexed);
         g->SetAttributeDefaultValue(attr, val.SetString(L""));
+        // IS_ROOT
+        attr = g->NewAttribute(nType, SNAttr::IS_ROOT, Boolean, Indexed);
+        g->SetAttributeDefaultValue(attr, val.SetBoolean(false));
     }
 
     // Create Layer type

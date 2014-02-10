@@ -77,6 +77,7 @@ struct MLD_API SNAttr
 {
     static const std::wstring WEIGHT;
     static const std::wstring LABEL;
+    static const std::wstring IS_ROOT;
 };
 
 struct MLD_API LayerAttr {

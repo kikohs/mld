@@ -32,8 +32,11 @@ const std::wstring EdgeType::OWNS(L"MLD_OWNS");
 const std::wstring EdgeType::CHILD_OF(L"MLD_CHILD_OF");
 
 // Node Attributes
+// SuperNode
 const std::wstring SNAttr::WEIGHT(L"MLD_SN_WEIGHT");
 const std::wstring SNAttr::LABEL(L"MLD_SN_LABEL");
+const std::wstring SNAttr::IS_ROOT(L"MLD_SN_IS_ROOT");
+// Layer
 const std::wstring LayerAttr::IS_BASE(L"MLD_LAYER_IS_BASE");
 const std::wstring LayerAttr::DESCRIPTION(L"MLD_LAYER_DESCRIPTION");
 

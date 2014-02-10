@@ -44,6 +44,7 @@ SuperNode::SuperNode()
     : Node()
     , m_weight(0.0)
     , m_label(L"")
+    , m_isRoot(false)
 {
 }
 
@@ -51,13 +52,15 @@ SuperNode::SuperNode( dex::gdb::oid_t id )
     : Node(id)
     , m_weight(kSUPERNODE_DEF_VALUE)
     , m_label(L"")
+    , m_isRoot(false)
 {
 }
 
-SuperNode::SuperNode( dex::gdb::oid_t id, const std::wstring& label, double weight )
+SuperNode::SuperNode( dex::gdb::oid_t id, const std::wstring& label, double weight , bool isRoot )
     : Node(id)
     , m_weight(weight)
     , m_label(label)
+    , m_isRoot(isRoot)
 {
 }
 
@@ -70,6 +73,7 @@ std::ostream& operator<<( std::ostream& out, const SuperNode& sn )
     out << "id: " << sn.id() << " "
         << "label: " << sn.label().c_str() << " "
         << "weight: " << sn.weight()
+        << "root: " << sn.isRoot()
         ;
     return out;
 }

@@ -23,6 +23,7 @@
 
 #include "mld/common.h"
 #include "mld/operator/AbstractCoarsener.h"
+#include "mld/model/Layer.h"
 
 namespace mld {
 
@@ -33,7 +34,7 @@ class XSelector;
  * @brief The XCoarsener class
  *  Special multi-coarsener with auto adjust layering
  */
-class MLD_API XCoarsener: public AbstractOperator
+class MLD_API XCoarsener: public AbstractCoarsener
 {
     XCoarsener( dex::gdb::Graph* g );
     virtual ~XCoarsener() override;
@@ -44,6 +45,23 @@ protected:
     virtual bool postExec() override;
 
 private:
+
+    /**
+     * @brief First pass for the coarsening. Add SuperNodes on top layer
+     * @param top
+     * @param mergeCount
+     * @return success
+     */
+    bool firstPass( const Layer& prev, const Layer& top, int64_t& mergeCount );
+
+    /**
+     * @brief Second which coarsens the toplayer until merge count condition is reached
+     * @param top
+     * @param mergeCount
+     * @return success
+     */
+    bool secondPass( const Layer& top, int64_t& mergeCount );
+
     /**
      * @brief Create HLINKS for newly created top root node
      * @param root root SuperNode vlinked to rootTop

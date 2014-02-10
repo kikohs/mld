@@ -34,6 +34,8 @@ namespace {
 
 XSelector::XSelector( Graph* g )
     : AbstractMultiSelector(g)
+    , m_flagged( m_dao->newObjectsPtr() )
+    , m_rootNodes( m_dao->newObjectsPtr() )
 {
 }
 
@@ -43,12 +45,13 @@ XSelector::~XSelector()
 
 bool XSelector::rankNodes( const Layer& layer )
 {
+    // Reset variables
     m_scores.clear();
     m_lid = layer.id();
+    m_flagged = m_dao->newObjectsPtr();
+    m_rootNodes = m_dao->newObjectsPtr();
+
     ObjectsPtr nodes(m_dao->getAllNodeIds(layer));
-    // Create an empty but valid ObjectPtr
-    m_rootNodes.reset(nodes->Copy());
-    m_rootNodes->Clear();
     // Iterate through each node and calculate score
     ObjectsIt it(nodes->Iterator());
     while( it->HasNext() ) {
@@ -79,7 +82,7 @@ SuperNode XSelector::next()
     }
 }
 
-ObjectsPtr XSelector::unflaggedNeighbors( oid_t node )
+ObjectsPtr XSelector::getUnflaggedNeighbors( oid_t node )
 {
     ObjectsPtr neighbors(m_dao->graph()->Neighbors(node, m_dao->superNodeType(), Any));
     // Return only neighbors not flagged
@@ -88,10 +91,10 @@ ObjectsPtr XSelector::unflaggedNeighbors( oid_t node )
 }
 
 bool XSelector::flagNode( const SuperNode& root )
-{
+{   
     m_flagged->Add(root.id());
 
-    ObjectsPtr unflagged(unflaggedNeighbors(root.id()));
+    ObjectsPtr unflagged(getUnflaggedNeighbors(root.id()));
     if( unflagged->Count() == 0 )
         return true;
 
@@ -101,7 +104,7 @@ bool XSelector::flagNode( const SuperNode& root )
 
     // Keep only unflagged neighbor nodes
     ObjectsPtr neighbors(m_dao->graph()->Neighbors(unflagged.get(), m_dao->superNodeType(), Any));
-    neighbors = unflaggedNodes(neighbors);
+    neighbors = getUnflaggedNodesFrom(neighbors);
     return updateScore(neighbors);
 }
 
@@ -110,12 +113,12 @@ bool XSelector::isFlagged( oid_t snid )
     return m_flagged->Exists(snid);
 }
 
-ObjectsPtr XSelector::flaggedNodes( const ObjectsPtr& input )
+ObjectsPtr XSelector::getFlaggedNodesFrom( const ObjectsPtr& input )
 {
     return ObjectsPtr(Objects::CombineIntersection(input.get(), m_flagged.get()));
 }
 
-ObjectsPtr XSelector::unflaggedNodes( const ObjectsPtr& input )
+ObjectsPtr XSelector::getUnflaggedNodesFrom( const ObjectsPtr& input )
 {
     return ObjectsPtr(Objects::CombineDifference(input.get(), m_flagged.get()));
 }
@@ -149,6 +152,15 @@ void XSelector::removeCandidates( const ObjectsPtr& input )
     while( it->HasNext() ) {
         m_scores.erase(it->Next());
     }
+}
+
+ObjectsPtr XSelector::remainingNodes()
+{
+    ObjectsPtr res = m_dao->newObjectsPtr();
+    for( auto it = m_scores.begin(); it != m_scores.end(); it++ ) {
+        res->Add(it->second);
+    }
+    return res;
 }
 
 ObjectsPtr XSelector::inEdges( oid_t root, bool withFlagged )
@@ -185,7 +197,7 @@ double XSelector::inScore( oid_t node, bool withFlagged )
         traverseEdges.reset(m_dao->graph()->Explode(node, m_dao->superNodeType(), Any));
     }
     else { // Remove flagged nodes
-        ObjectsPtr targetSet(unflaggedNeighbors(node));
+        ObjectsPtr targetSet(getUnflaggedNeighbors(node));
         traverseEdges.reset(targetSet->Copy());
         traverseEdges->Clear();
         edgeRetriever(traverseEdges, node, targetSet);
@@ -209,7 +221,7 @@ double XSelector::nodeScore( oid_t node, bool withFlagged )
     if( !withFlagged )
         neighbors.reset(m_dao->graph()->Neighbors(node, m_dao->superNodeType(), Any));
     else
-        neighbors = unflaggedNeighbors(node);
+        neighbors = getUnflaggedNeighbors(node);
     auto nodes = m_dao->getNode(neighbors);
     if( !nodes.empty() ) {
         LOG(logWARNING) << "XSelector::nodeScore: node has no neighbors (disconnected graph)";
@@ -231,7 +243,7 @@ ObjectsPtr XSelector::inOrOutEdges( bool inEdges, oid_t root, bool withFlagged )
     if( !withFlagged )
         neighbors.reset(m_dao->graph()->Neighbors(root, m_dao->superNodeType(), Any));
     else
-        neighbors = unflaggedNeighbors(root);
+        neighbors = getUnflaggedNeighbors(root);
     // Create empty edge set
     ObjectsPtr edgeSet(neighbors->Copy());
     edgeSet->Clear();
@@ -244,7 +256,7 @@ ObjectsPtr XSelector::inOrOutEdges( bool inEdges, oid_t root, bool withFlagged )
             hop2.reset(m_dao->graph()->Neighbors(source, m_dao->superNodeType(), Any));
         }
         else {
-            hop2 = unflaggedNeighbors(source);
+            hop2 = getUnflaggedNeighbors(source);
         }
 
         if( inEdges ) {

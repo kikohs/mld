@@ -30,11 +30,13 @@ class AbstractSingleMerger;
 class AbstractMultiSelector;
 class AbstractMultiMerger;
 
-class MLD_API AbstractSingleCoarsener : public AbstractOperator
+
+
+class MLD_API AbstractCoarsener : public AbstractOperator
 {
 public:
-    AbstractSingleCoarsener( dex::gdb::Graph* g );
-    virtual ~AbstractSingleCoarsener() = 0;
+    AbstractCoarsener( dex::gdb::Graph* g );
+    virtual ~AbstractCoarsener() = 0;
 
     /**
      * @brief Scale Factor, for coarsener
@@ -45,6 +47,16 @@ public:
     void setReductionFactor( float fac );
     float reductionFactor() const { return m_reductionFac; }
     uint64_t computeMergeCount( int64_t numVertices );
+
+protected:
+    float m_reductionFac;
+};
+
+class MLD_API AbstractSingleCoarsener : public AbstractCoarsener
+{
+public:
+    AbstractSingleCoarsener( dex::gdb::Graph* g );
+    virtual ~AbstractSingleCoarsener() = 0;
 
 protected:
     virtual bool preExec() override;

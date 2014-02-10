@@ -47,6 +47,15 @@ MLGDao::~MLGDao()
 {
 }
 
+ObjectsPtr MLGDao::newObjectsPtr() const
+{
+    // Create a dummy request to obtain an Objects object
+    auto type = m_g->FindType(NodeType::LAYER);
+    ObjectsPtr ptr(m_g->Select(type));
+    ptr->Clear();
+    return ptr;
+}
+
 SuperNode MLGDao::addNodeToLayer( const Layer& l )
 {
 #ifdef MLD_SAFE

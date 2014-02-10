@@ -23,6 +23,10 @@
 #include "mld/model/SuperNode.h"
 #include "mld/dao/MLGDao.h"
 
+#ifdef MLD_FINE_TIMER
+    #include "mld/utils/Timer.h"
+#endif
+
 using namespace mld;
 using namespace dex::gdb;
 
@@ -35,23 +39,30 @@ MultiAdditiveMerger::~MultiAdditiveMerger()
 {
 }
 
-SuperNode MultiAdditiveMerger::merge( const SuperNode& source,
+double MultiAdditiveMerger::computeWeight( const SuperNode& target,
                                       const ObjectsPtr& neighbors
                                     )
 {
-    SuperNode merged(source);
+    SuperNode merged(target);
     std::vector<SuperNode> nodes = m_dao->getNode(neighbors);
     double total = merged.weight();
     for( auto& node: nodes ) {
-        HLink l = m_dao->getHLink(source.id(), node.id());
+        HLink l = m_dao->getHLink(target.id(), node.id());
 #ifdef MLD_SAFE
         if( l.id() == Objects::InvalidOID ) {
-            LOG(logERROR) << "MultiAdditiveMerger::merge invalid hlink: " << source << " " << node;
-            return SuperNode();
+            LOG(logERROR) << "MultiAdditiveMerger::computeWeight invalid HLink: " << target << " " << node;
         }
 #endif
         total += l.weight() * node.weight();
     }
-    merged.setWeight(total);
-    return merged;
+    return total;
+}
+
+bool MultiAdditiveMerger::merge( const SuperNode& source, const ObjectsPtr& neighbors )
+{
+#ifdef MLD_FINE_TIMER
+    std::unique_ptr<Timer> t(new Timer("MultiAdditiveMerger::merge"));
+#endif
+    // TODO
+    return false;
 }

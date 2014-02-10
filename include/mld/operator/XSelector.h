@@ -66,6 +66,12 @@ public:
      */
     virtual void removeCandidates( const ObjectsPtr& input );
 
+    /**
+     * @brief Remaining SuperNode ids in the selection queue
+     * @return nodes id
+     */
+    ObjectsPtr remainingNodes();
+
 protected:
     // Score related functions
     double inScore( dex::gdb::oid_t node, bool withFlagged );

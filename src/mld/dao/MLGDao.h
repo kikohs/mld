@@ -66,6 +66,12 @@ public:
     dex::gdb::Graph* graph() const { return m_g; }
 
     /**
+     * @brief Return new empty ObjectsPtr
+     * @return
+     */
+    ObjectsPtr newObjectsPtr() const;
+
+    /**
      * @brief Add a node to a specified Layer
      * @param if MLD_SAFE flag is set, it checks for the existence of the layer
      * @return

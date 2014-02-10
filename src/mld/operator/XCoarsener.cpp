@@ -24,6 +24,7 @@
 #include "mld/operator/XCoarsener.h"
 #include "mld/operator/XSelector.h"
 #include "mld/operator/MultiAdditiveMerger.h"
+#include "mld/utils/Timer.h"
 
 using namespace mld;
 using namespace dex::gdb;
@@ -52,7 +53,7 @@ double totalEdgeWeight( oid_t source, const ObjectsPtr& targets, MLGDao* dao )
 } // end namespace anonymous
 
 XCoarsener::XCoarsener( Graph* g )
-    : AbstractOperator(g)
+    : AbstractCoarsener(g)
     , m_sel( new XSelector(g) )
     , m_merger( new MultiAdditiveMerger(g) )
 {
@@ -70,10 +71,6 @@ bool XCoarsener::preExec()
         LOG(logERROR) << "XCoarsener::pre_exec: current layer contains less than 2 nodes";
         return false;
     }
-    if( !m_sel->rankNodes(current) ) {
-        LOG(logERROR) << "XCoarsener::pre_exec: selector rank node failed";
-        return false;
-    }
     Layer top = m_dao->addLayerOnTop();
     if( top.id() == Objects::InvalidOID ) {
         LOG(logERROR) << "XCoarsener::pre_exec: cannot add layer on top";
@@ -84,55 +81,34 @@ bool XCoarsener::preExec()
 
 bool XCoarsener::exec()
 {
+    std::unique_ptr<Timer> t(new Timer("XCoarsener::exec"));
     Layer top = m_dao->topLayer();
+    Layer prev = m_dao->child(top);
 
-    while( m_sel->hasNext() ) {
-        // Get best node to coarsen
-        SuperNode root = m_sel->next();
-#ifdef MLD_SAFE
-        if( root.id() == Objects::InvalidOID ) {
-            LOG(logERROR) << "XCoarsener::exec: selectBestNode failed";
+    auto numVertices = m_dao->getNodeCount(prev);
+    int64_t mergeCount = computeMergeCount(numVertices);
+
+    // Coarsen prev layer and create top root nodes until mergeCount
+    // is reached or selector has flagged every node in the layer
+    if( !firstPass(prev, top, mergeCount) ) {
+        LOG(logERROR) << "XCoarsener::exec: first pass failed";
+        return false;
+    }
+
+    auto nodes = m_sel->remainingNodes();
+    if( nodes->Count() != 0 ) {  // If coarsening stopped before all nodes have been coarsened
+        if( !mirrorRemainingNodes(top, nodes) ) {
+            LOG(logERROR) << "XCoarsener::exec: mirroring failed";
             return false;
         }
-#endif
-        // Select valid neighbors (not flagged)
-        ObjectsPtr neighbors = m_sel->unflaggedNeighbors(root.id());
-        // Merge node and edges
-        root = m_merger->merge(root, neighbors);
-#ifdef MLD_SAFE
-        if( root.id() == Objects::InvalidOID ) {
-            LOG(logERROR) << "XCoarsener::exec: merge failed";
-            return false;
+    }
+    else {  // Selector has flagged all nodes
+        if( mergeCount > 0 ) {  // Top layer has still too many nodes
+            if( !secondPass(top, mergeCount) ) {  // coarsen top layer
+                LOG(logERROR) << "XCoarsener::exec: second pass failed";
+                return false;
+            }
         }
-#endif
-        // Create top node
-        SuperNode rootTop = m_dao->addNodeToLayer(top);
-        // Update rootTop weight with the merged root weight on previous layer
-        rootTop.setWeight(root.weight());
-#ifdef MLD_SAFE
-        if( rootTop.id() == Objects::InvalidOID ) {
-            LOG(logERROR) << "XCoarsener::exec: addNodeToLayer failed";
-            return false;
-        }
-#endif
-        // Link 2 root nodes
-        VLink l = m_dao->addVLink(root, rootTop);
-#ifdef MLD_SAFE
-        if( l.id() == Objects::InvalidOID ) {
-            LOG(logERROR) << "XCoarsener::exec: addVLink failed";
-            return false;
-        }
-#endif
-        // Create hlinks on top layer between root node and other top root nodes
-        createHLinksTopLayer(root, rootTop);
-        // Flag node as unavailable, update unflagged neighbors score
-        bool ok = m_sel->flagNode(root);
-#ifdef MLD_SAFE
-        if( !ok ) {
-            LOG(logERROR) << "XCoarsener::exec: flagNode failed";
-            return false;
-        }
-#endif
     }
     return true;
 }
@@ -142,15 +118,147 @@ bool XCoarsener::postExec()
     return true;
 }
 
+bool XCoarsener::firstPass( const Layer& prev, const Layer& top, int64_t& mergeCount )
+{
+    std::unique_ptr<Timer> t(new Timer("XCoarsener::firstPass"));
+    if( !m_sel->rankNodes(prev) ) { // Rank nodes
+        LOG(logERROR) << "XCoarsener::firstPass: selector rank node failed";
+        return false;
+    }
+
+    // While there are nodes to collapse and all nodes are not flagged
+    while( m_sel->hasNext() && mergeCount > 0 ) {
+        // Get best node to coarsen
+        SuperNode root = m_sel->next();
+        // Set as root node for this layer
+        root.setRoot(true);
+        m_dao->updateNode(root);
+
+        // Select valid neighbors (not flagged)
+        ObjectsPtr neighbors = m_sel->unflaggedNeighbors(root.id());
+
+        // Create top node
+        SuperNode rootTop = m_dao->addNodeToLayer(top);
+#ifdef MLD_SAFE
+        if( rootTop.id() == Objects::InvalidOID ) {
+            LOG(logERROR) << "XCoarsener::firstPass: addNodeToLayer failed";
+            return false;
+        }
+#endif
+        // Update rootTop weight with the merged root weight on previous layer
+        rootTop.setWeight(m_merger->computeWeight(root, neighbors));
+        m_dao->updateNode(rootTop);
+
+        // Link 2 root nodes
+        VLink l = m_dao->addVLink(root, rootTop);
+#ifdef MLD_SAFE
+        if( l.id() == Objects::InvalidOID ) {
+            LOG(logERROR) << "XCoarsener::firstPass: addVLink failed";
+            return false;
+        }
+#endif
+        // Create hlinks on top layer between root node and other top root nodes
+        createHLinksTopLayer(root, rootTop);
+        // Flag node as unavailable, update unflagged neighbors score
+        bool ok = m_sel->flagNode(root);
+#ifdef MLD_SAFE
+        if( !ok ) {
+            LOG(logERROR) << "XCoarsener::firstPass: flagNode failed";
+            return false;
+        }
+#endif
+        // Decrease mergeCount number
+        mergeCount -= neighbors->Count();
+    }
+    return true;
+}
+
+bool XCoarsener::secondPass( const Layer& top, int64_t& mergeCount )
+{
+    std::unique_ptr<Timer> t(new Timer("XCoarsener::secondPass"));
+
+    if( !m_sel->rankNodes(top) ) { // Rank nodes
+        LOG(logERROR) << "XCoarsener::secondPass: selector rank node failed";
+        return false;
+    }
+
+    // While there are node to collapse
+    while( mergeCount > 0 ) {
+        // Get best node to coarsen
+        SuperNode root = m_sel->next();
+#ifdef MLD_SAFE
+        if( root.id() == Objects::InvalidOID ) {
+            LOG(logERROR) << "XCoarsener::secondPass: selectBestNode failed";
+            return false;
+        }
+#endif
+        // Select valid neighbors (not flagged)
+        ObjectsPtr neighbors = m_sel->unflaggedNeighbors(root.id());
+        // Merge node and edges, re-route VLinks
+        bool success = m_merger->merge(root, neighbors);
+        if( !success ) {
+            LOG(logERROR) << "XCoarsener::secondPass: Merger failed to collapse root and neighbors " << root;
+            return false;
+        }
+        // Decrease mergeCount number
+        mergeCount -= neighbors->Count();
+    }
+    return true;
+}
+
+bool XCoarsener::mirrorRemainingNodes( const Layer& top, const ObjectsPtr& nodes )
+{
+    std::unique_ptr<Timer> t(new Timer("XCoarsener::mirrorRemainingNodes"));
+    // No all node have been coarsened, we need to duplicate them on the top layer
+    if( nodes->Count() == 0 ) {
+        LOG(logWARNING) << "XCoarsener::mirrorRemainingNodes: empty node set";
+        return true;
+    }
+
+    // Create VLINKS
+    ObjectsIt it(nodes->Iterator());
+    // For each node
+    while( it->HasNext() ) {
+        SuperNode root = it->Next();
+        // Set as root node for this layer
+        root.setRoot(true);
+        m_dao->updateNode(root);
+        // Create top node
+        SuperNode rootTop = m_dao->addNodeToLayer(top);
+    #ifdef MLD_SAFE
+        if( rootTop.id() == Objects::InvalidOID ) {
+            LOG(logERROR) << "XCoarsener::firstPass: addNodeToLayer failed";
+            return false;
+        }
+    #endif
+
+        // Update rootTop weight
+        rootTop.setWeight(root.weight());
+        m_dao->updateNode(rootTop);
+        // Link 2 root nodes
+        VLink l = m_dao->addVLink(root, rootTop);
+    #ifdef MLD_SAFE
+        if( l.id() == Objects::InvalidOID ) {
+            LOG(logERROR) << "XCoarsener::firstPass: addVLink failed";
+            return false;
+        }
+    #endif
+        // Flag as roots nodes in selector
+        // Create HLINKS top layer
+        // TODO
+    }
+    return false;
+}
+
 bool XCoarsener::createHLinksTopLayer( const SuperNode& root, const SuperNode& rootTop )
 {
     ObjectsPtr hop1(m_dao->graph()->Neighbors(root.id(), m_dao->superNodeType(), Any));
-    ObjectsPtr hop1Unflagged(m_sel->unflaggedNodes(hop1));
-    ObjectsPtr hop1flagged(m_sel->flaggedNodes(hop1));
+    ObjectsPtr hop1Unflagged(m_sel->getUnflaggedNodesFrom(hop1));
+    ObjectsPtr hop1flagged(m_sel->getFlaggedNodesFrom(hop1));
     ObjectsPtr nodeSet(m_dao->graph()->Neighbors(hop1Unflagged.get(), m_dao->superNodeType(), Any));
 
     // Keep only unflagged 2-hop's flagged nodes and 1hop flagged nodes
-    nodeSet = m_sel->flaggedNodes(nodeSet);
+    nodeSet = m_sel->getFlaggedNodesFrom(nodeSet);
     nodeSet->Union(hop1flagged.get());
 
     // Add root node to the set of unflag node to retrieve the edge between

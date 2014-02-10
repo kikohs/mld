@@ -26,17 +26,18 @@
 using namespace mld;
 using namespace dex::gdb;
 
-AbstractSingleCoarsener::AbstractSingleCoarsener( dex::gdb::Graph* g )
+
+AbstractCoarsener::AbstractCoarsener( dex::gdb::Graph* g )
     : AbstractOperator(g)
-    , m_reductionFac(0)
+    , m_reductionFac(0.0)
 {
 }
 
-AbstractSingleCoarsener::~AbstractSingleCoarsener()
+AbstractCoarsener::~AbstractCoarsener()
 {
 }
 
-void AbstractSingleCoarsener::setReductionFactor( float fac )
+void AbstractCoarsener::setReductionFactor( float fac )
 {
     if( fac < 0 )
         m_reductionFac = 0;
@@ -46,7 +47,7 @@ void AbstractSingleCoarsener::setReductionFactor( float fac )
         m_reductionFac = fac;
 }
 
-uint64_t AbstractSingleCoarsener::computeMergeCount( int64_t numVertices )
+uint64_t AbstractCoarsener::computeMergeCount( int64_t numVertices )
 {
     if( numVertices < 2 ) {
         LOG(logWARNING) << "AbstractSingleCoarsener::computeMergeCount: need at least 2 nodes";
@@ -67,6 +68,16 @@ uint64_t AbstractSingleCoarsener::computeMergeCount( int64_t numVertices )
         mergeCount = m_reductionFac * numVertices + 1;
     }
     return mergeCount;
+}
+
+
+AbstractSingleCoarsener::AbstractSingleCoarsener( dex::gdb::Graph* g )
+    : AbstractCoarsener(g)
+{
+}
+
+AbstractSingleCoarsener::~AbstractSingleCoarsener()
+{
 }
 
 bool AbstractSingleCoarsener::preExec()

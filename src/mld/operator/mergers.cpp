@@ -25,7 +25,9 @@
 #include "mld/operator/mergers.h"
 #include "mld/dao/MLGDao.h"
 
-#include "mld/utils/Timer.h"
+#ifdef MLD_FINE_TIMER
+    #include "mld/utils/Timer.h"
+#endif
 
 using namespace mld;
 using namespace dex::gdb;
@@ -110,6 +112,11 @@ BasicAdditiveMerger::~BasicAdditiveMerger()
 {
 }
 
+double BasicAdditiveMerger::computeWeight( const SuperNode& target, const HLink& hlink )
+{
+    return target.weight() * hlink.weight();
+}
+
 bool BasicAdditiveMerger::merge( const HLink& hlink, const AbstractSingleSelector& selector )
 {
 #ifdef MLD_FINE_TIMER
@@ -131,7 +138,7 @@ bool BasicAdditiveMerger::merge( const HLink& hlink, const AbstractSingleSelecto
     createHLinkFromSrc(tgt, src, m_dao.get());
 
     // Update target weight
-    tgt.setWeight(tgt.weight() + hlink.weight());
+    tgt.setWeight(computeWeight(tgt, hlink));
     m_dao->updateNode(tgt);
 
     // Remove contracted source node, it removes all associated relationships

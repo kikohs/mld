@@ -66,6 +66,14 @@ public:
      * @return success
      */
     virtual bool merge( const HLink& hlink, const AbstractSingleSelector& selector ) = 0;
+
+    /**
+     * @brief Compute weight for the future merged node
+     * @param target Node to update
+     * @param hlink Hlink
+     * @return new weight
+     */
+    virtual double computeWeight( const SuperNode& target, const HLink& hlink ) = 0;
 };
 
 // Multi Merger
@@ -80,9 +88,17 @@ public:
      * Update graph and selector
      * @param source node
      * @param neighbors Available neighbors to collapse
-     * @return updated source SuperNode
+     * @return success
      */
-    virtual SuperNode merge( const SuperNode& source, const ObjectsPtr& neighbors ) = 0;
+    virtual bool merge( const SuperNode& source, const ObjectsPtr& neighbors ) = 0;
+
+    /**
+     * @brief Compute weight for the future merged node
+     * @param target Node to update
+     * @param neighbors Neighbors of root node
+     * @return new weight
+     */
+    virtual double computeWeight( const SuperNode& target, const ObjectsPtr& neighbors ) = 0;
 };
 
 
