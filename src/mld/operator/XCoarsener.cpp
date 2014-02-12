@@ -40,7 +40,7 @@ double totalEdgeWeight( oid_t source, const ObjectsPtr& targets, MLGDao* dao )
         HLink l = dao->getHLink(it->Next(), source);
 #ifdef MLD_SAFE
         if( l.id() == Objects::InvalidOID ) {
-            LOG(logERROR) << " XSelector::totalEdgeWeight: Invalid retrieved HLink";
+            LOG(logERROR) << " XCoarsener::totalEdgeWeight: Invalid retrieved HLink";
             return 0.0;
         }
 #endif
@@ -121,11 +121,13 @@ bool XCoarsener::postExec()
 bool XCoarsener::firstPass( const Layer& prev, const Layer& top, int64_t& mergeCount )
 {
     std::unique_ptr<Timer> t(new Timer("XCoarsener::firstPass"));
+//    LOG(logDEBUG) << "First pass rank start";
     if( !m_sel->rankNodes(prev) ) { // Rank nodes
         LOG(logERROR) << "XCoarsener::firstPass: selector rank node failed";
         return false;
     }
 
+//    LOG(logDEBUG) << "First pass rank ok";
     // While there are nodes to collapse and all nodes are not flagged
     while( m_sel->hasNext() && mergeCount > 0 ) {
         // Get best node to coarsen
@@ -135,7 +137,7 @@ bool XCoarsener::firstPass( const Layer& prev, const Layer& top, int64_t& mergeC
         m_dao->updateNode(root);
 
         // Select valid neighbors (not flagged)
-        ObjectsPtr neighbors = m_sel->unflaggedNeighbors(root.id());
+        ObjectsPtr neighbors = m_sel->getUnflaggedNeighbors(root.id());
 
         // Create top node
         SuperNode rootTop = m_dao->addNodeToLayer(top);
@@ -158,9 +160,9 @@ bool XCoarsener::firstPass( const Layer& prev, const Layer& top, int64_t& mergeC
         }
 #endif
         // Create hlinks on top layer between root node and other top root nodes
-        createHLinksTopLayer(root, rootTop);
+        createTopHLinks2Hops(root, rootTop);
         // Flag node as unavailable, update unflagged neighbors score
-        bool ok = m_sel->flagNode(root);
+        bool ok = m_sel->flagAndUpdateScore(root);
 #ifdef MLD_SAFE
         if( !ok ) {
             LOG(logERROR) << "XCoarsener::firstPass: flagNode failed";
@@ -193,7 +195,7 @@ bool XCoarsener::secondPass( const Layer& top, int64_t& mergeCount )
         }
 #endif
         // Select valid neighbors (not flagged)
-        ObjectsPtr neighbors = m_sel->unflaggedNeighbors(root.id());
+        ObjectsPtr neighbors = m_sel->getUnflaggedNeighbors(root.id());
         // Merge node and edges, re-route VLinks
         bool success = m_merger->merge(root, neighbors);
         if( !success ) {
@@ -225,37 +227,83 @@ bool XCoarsener::mirrorRemainingNodes( const Layer& top, const ObjectsPtr& nodes
         m_dao->updateNode(root);
         // Create top node
         SuperNode rootTop = m_dao->addNodeToLayer(top);
-    #ifdef MLD_SAFE
+#ifdef MLD_SAFE
         if( rootTop.id() == Objects::InvalidOID ) {
             LOG(logERROR) << "XCoarsener::firstPass: addNodeToLayer failed";
             return false;
         }
-    #endif
+#endif
 
         // Update rootTop weight
         rootTop.setWeight(root.weight());
         m_dao->updateNode(rootTop);
         // Link 2 root nodes
         VLink l = m_dao->addVLink(root, rootTop);
-    #ifdef MLD_SAFE
+#ifdef MLD_SAFE
         if( l.id() == Objects::InvalidOID ) {
             LOG(logERROR) << "XCoarsener::firstPass: addVLink failed";
             return false;
         }
-    #endif
-        // Flag as roots nodes in selector
-        // Create HLINKS top layer
-        // TODO
+#endif
+        if( !createTopHLinks1Hop(root, rootTop) ) {
+            LOG(logERROR) << "XCoarsener::mirrorRemainingNodes: failed to create top HLink";
+            return false;
+        }
+
+        // Add node in flagged set
+        m_sel->rootNodes()->Add(root.id());
+        m_sel->flaggedNodes()->Add(root.id());
     }
     return false;
 }
 
-bool XCoarsener::createHLinksTopLayer( const SuperNode& root, const SuperNode& rootTop )
+bool XCoarsener::createTopHLinks1Hop( const SuperNode& root, const SuperNode& rootTop )
 {
-    ObjectsPtr hop1(m_dao->graph()->Neighbors(root.id(), m_dao->superNodeType(), Any));
+    ObjectsPtr hop1(m_dao->graph()->Neighbors(root.id(), m_dao->hlinkType(), Any));
+    ObjectsPtr hop1flagged(m_sel->getFlaggedNodesFrom(hop1));
+
+    ObjectsIt it(hop1flagged->Iterator());
+    while( it->HasNext() ) {
+        auto current = it->Next();
+        ObjectsPtr currentNeighbors(m_dao->graph()->Neighbors(current, m_dao->hlinkType(), Any));
+        // Get root node for current node
+        ObjectsPtr rootSet(Objects::CombineIntersection(currentNeighbors.get(), m_sel->rootNodes()));
+
+        auto curRoot = rootSet->Any();
+        auto parents = m_dao->getParentNodes(curRoot);
+        if( parents.empty() ) {
+            LOG(logERROR) << "XCoarsener::flagNode: current node's root has no parents";
+            return false;
+        }
+        // Only 1 parent
+        SuperNode currentRootTop = parents.at(0);
+
+        // Retrieve existing HLink between root and 1hop direct neighbor
+        HLink l = m_dao->getHLink(current, root.id());
+#ifdef MLD_SAFE
+        if( l.id() == Objects::InvalidOID ) {
+            LOG(logERROR) << " XCoarsener::createTopHLinks1Hop: Invalid retrieved HLink";
+            return false;
+        }
+#endif
+        // Create HLink from rootTop and and 1hop neighbors's top root node
+        l = m_dao->addHLink(rootTop, currentRootTop, l.weight());
+#ifdef MLD_SAFE
+        if( l.id() == Objects::InvalidOID ) {
+            LOG(logERROR) << " XCoarsener::createTopHLinks1Hop: Create HLink failed";
+            return false;
+        }
+#endif
+    }
+    return true;
+}
+
+bool XCoarsener::createTopHLinks2Hops( const SuperNode& root, const SuperNode& rootTop )
+{
+    ObjectsPtr hop1(m_dao->graph()->Neighbors(root.id(), m_dao->hlinkType(), Any));
     ObjectsPtr hop1Unflagged(m_sel->getUnflaggedNodesFrom(hop1));
     ObjectsPtr hop1flagged(m_sel->getFlaggedNodesFrom(hop1));
-    ObjectsPtr nodeSet(m_dao->graph()->Neighbors(hop1Unflagged.get(), m_dao->superNodeType(), Any));
+    ObjectsPtr nodeSet(m_dao->graph()->Neighbors(hop1Unflagged.get(), m_dao->hlinkType(), Any));
 
     // Keep only unflagged 2-hop's flagged nodes and 1hop flagged nodes
     nodeSet = m_sel->getFlaggedNodesFrom(nodeSet);
@@ -270,23 +318,24 @@ bool XCoarsener::createHLinksTopLayer( const SuperNode& root, const SuperNode& r
     ObjectsIt it(nodeSet->Iterator());
     while( it->HasNext() ) {
         auto current = it->Next();
-        ObjectsPtr currentNeighbors(m_dao->graph()->Neighbors(current, m_dao->superNodeType(), Any));
+        ObjectsPtr currentNeighbors(m_dao->graph()->Neighbors(current, m_dao->hlinkType(), Any));
         // Get root node for current node
         ObjectsPtr rootSet(Objects::CombineIntersection(currentNeighbors.get(), m_sel->rootNodes()));
         // Remove root id from the root set, we seek the 2 or 3 hop root nodes
         rootSet->Remove(root.id());
 
-        if( rootSet->Count() != 1 ) {
-            LOG(logERROR) << " XCoarsener::createHLinksTopLayer: current node as " << rootSet->Count() << " nodes.";
-            return false;
-        }
+//        if( rootSet->Count() != 1 ) {
+//            LOG(logERROR) << " XCoarsener::createHLinksTopLayer: current node as " << rootSet->Count() << " nodes.";
+//            return false;
+//        }
         // Get any root node
         auto curRoot = rootSet->Any();
         auto parents = m_dao->getParentNodes(curRoot);
         if( parents.empty() ) {
-            LOG(logERROR) << "XSelector::flagNode: current node's root has no parents";
+            LOG(logERROR) << "XCoarsener::flagNode: current node's root has no parents";
             return false;
         }
+        // Only 1 parent
         SuperNode currentRootTop = parents.at(0);
         updateOrCreateHLink(current, currentNeighbors, hop1Unflagged, rootTop, currentRootTop);
     }
@@ -303,7 +352,7 @@ bool XCoarsener::updateOrCreateHLink( oid_t currentNode,
     ObjectsPtr targets(Objects::CombineIntersection(currentNeighbors.get(), rootNeighbors.get()));
 #ifdef MLD_SAFE
     if( targets->Count() == 0 ) {
-        LOG(logERROR) << " XSelector::updateOrCreateHLink: cannot retrieve 1-hop node from 2hop neighbors";
+        LOG(logERROR) << " XCoarsener::updateOrCreateHLink: cannot retrieve 1-hop node from 2hop neighbors";
         return false;
     }
 #endif
@@ -314,7 +363,7 @@ bool XCoarsener::updateOrCreateHLink( oid_t currentNode,
         HLink res = m_dao->addHLink(rootTop.id(), currentRootTop.id(), totalWeight);
 #ifdef MLD_SAFE
         if( res.id() == Objects::InvalidOID ) {
-            LOG(logERROR) << " XSelector::updateOrCreateHLink: Failed to HLink top root nodes";
+            LOG(logERROR) << " XCoarsener::updateOrCreateHLink: Failed to HLink top root nodes";
             return false;
         }
 #endif
@@ -326,7 +375,7 @@ bool XCoarsener::updateOrCreateHLink( oid_t currentNode,
         bool ok = m_dao->updateHLink(topLink.id(), topLink.weight());
 #ifdef MLD_SAFE
         if( !ok ) {
-            LOG(logERROR) << " XSelector::updateOrCreateHLink: Failed to update top root nodes HLINK";
+            LOG(logERROR) << " XCoarsener::updateOrCreateHLink: Failed to update top root nodes HLINK";
             return false;
         }
 #endif

@@ -91,14 +91,14 @@ public:
      * @param node
      * @return SuperNode oids
      */
-    virtual ObjectsPtr unflaggedNeighbors( dex::gdb::oid_t node ) = 0;
+    virtual ObjectsPtr getUnflaggedNeighbors( dex::gdb::oid_t node ) = 0;
 
     /**
      * @brief Flag node as processed, update 2-hop neighbors score
      * @param node Input node
      * @return success
      */
-    virtual bool flagNode( const SuperNode& root ) = 0;
+    virtual bool flagAndUpdateScore( const SuperNode& root ) = 0;
     /**
      * @brief Check if some input node oid is already in the flagged set
      * @param snid input
@@ -111,14 +111,14 @@ public:
      * @param input
      * @return flagged nodes
      */
-    virtual ObjectsPtr flaggedNodes( const ObjectsPtr& input ) = 0;
+    virtual ObjectsPtr getFlaggedNodesFrom( const ObjectsPtr& input ) = 0;
 
     /**
      * @brief Filter input to return only non flagged nodes
      * @param input
      * @return non flagged nodes
      */
-    virtual ObjectsPtr unflaggedNodes( const ObjectsPtr& input ) = 0;
+    virtual ObjectsPtr getUnflaggedNodesFrom( const ObjectsPtr& input ) = 0;
 };
 
 } // end namespace mld

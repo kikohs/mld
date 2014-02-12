@@ -69,11 +69,11 @@ public:
 
     /**
      * @brief Compute weight for the future merged node
-     * @param target Node to update
+     * @param source Node that will be collpased
      * @param hlink Hlink
      * @return new weight
      */
-    virtual double computeWeight( const SuperNode& target, const HLink& hlink ) = 0;
+    virtual double computeWeight( const SuperNode& source, const HLink& hlink ) = 0;
 };
 
 // Multi Merger

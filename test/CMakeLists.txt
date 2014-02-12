@@ -23,6 +23,7 @@ append_test(MLGDaoTest dao/MLGDaoTest.cpp)
 append_test(BAMergerTest operator/BasicAdditiveMergerTest.cpp)
 append_test(CoarsenerTest operator/CoarsenerTest.cpp)
 append_test(MLGBuilderTest operator/MLGBuilderTest.cpp)
+append_test(XSelectorTest operator/XSelectorTest.cpp)
 
 # TOP level test
 append_test(TimerTest TimerTest.cpp)

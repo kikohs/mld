@@ -1,9 +1,4 @@
 # Framework
-## XCoarsener
-
-- Change xselector algorithm
-- Flag root nodes node.setAsRoot()
-- Reduction factor for minimum number of nodes per layer
 
 ## Diffusion
 - Create diffuser

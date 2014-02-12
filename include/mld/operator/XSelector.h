@@ -37,12 +37,12 @@ public:
     virtual bool rankNodes( const Layer& layer ) override;
     virtual bool hasNext() override;
     virtual SuperNode next() override;
-    virtual ObjectsPtr unflaggedNeighbors( dex::gdb::oid_t node ) override;
-    virtual bool flagNode( const SuperNode& root ) override;
+    virtual ObjectsPtr getUnflaggedNeighbors( dex::gdb::oid_t node ) override;
+    virtual bool flagAndUpdateScore( const SuperNode& root ) override;
     virtual bool isFlagged( dex::gdb::oid_t snid ) override;
 
-    virtual ObjectsPtr flaggedNodes( const ObjectsPtr& input ) override;
-    virtual ObjectsPtr unflaggedNodes( const ObjectsPtr& input ) override;
+    virtual ObjectsPtr getFlaggedNodesFrom( const ObjectsPtr& input ) override;
+    virtual ObjectsPtr getUnflaggedNodesFrom( const ObjectsPtr& input ) override;
 
     /**
      * @brief Score function
@@ -59,6 +59,7 @@ public:
     virtual bool updateScore( const ObjectsPtr& input );
 
     dex::gdb::Objects* rootNodes() const { return m_rootNodes.get(); }
+    dex::gdb::Objects* flaggedNodes() const { return m_flagged.get(); }
 
     /**
      * @brief Remove input from selection queue
@@ -72,11 +73,10 @@ public:
      */
     ObjectsPtr remainingNodes();
 
-protected:
-    // Score related functions
-    double inScore( dex::gdb::oid_t node, bool withFlagged );
-    double outScore( dex::gdb::oid_t node, bool withFlagged );
-    double nodeScore( dex::gdb::oid_t node, bool withFlagged );
+    // Score related functions, pure functions
+    double rootCentralityScore( dex::gdb::oid_t node, bool withFlagged );
+    double twoHopHubAffinityScore( dex::gdb::oid_t node, bool withFlagged );
+    double gravityScore( dex::gdb::oid_t node, bool withFlagged );
     double getEdgeWeight( const ObjectsPtr& edgeOids );
     ObjectsPtr outEdges( dex::gdb::oid_t root, bool withFlagged );
     ObjectsPtr inEdges( dex::gdb::oid_t root, bool withFlagged );
@@ -88,7 +88,7 @@ protected:
      * @param dao
      * @return edge set
      */
-    ObjectsPtr inOrOutEdges(bool inEdges, dex::gdb::oid_t root, bool withFlagged );
+    ObjectsPtr inOrOutEdges( bool inEdges, dex::gdb::oid_t root, bool withFlagged );
     void edgeRetriever( ObjectsPtr& edgeSet, dex::gdb::oid_t source, const ObjectsPtr& targetSet );
 
 protected:

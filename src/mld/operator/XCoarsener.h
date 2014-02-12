@@ -36,6 +36,7 @@ class XSelector;
  */
 class MLD_API XCoarsener: public AbstractCoarsener
 {
+public:
     XCoarsener( dex::gdb::Graph* g );
     virtual ~XCoarsener() override;
 
@@ -72,11 +73,22 @@ private:
 
     /**
      * @brief Create HLINKS for newly created top root node
+     * The search radius is 1 hop for the current root node
      * @param root root SuperNode vlinked to rootTop
      * @param rootTop Top root SuperNode vlinked to root
      * @return success
      */
-    bool createHLinksTopLayer( const SuperNode& root, const SuperNode& rootTop );
+    bool createTopHLinks1Hop( const SuperNode& root, const SuperNode& rootTop );
+
+    /**
+     * @brief Create HLINKS for newly created top root node
+     * The search radius is 2 hop, 1 hop for the current root node
+     * and 1 hop for each the root's neighbors
+     * @param root root SuperNode vlinked to rootTop
+     * @param rootTop Top root SuperNode vlinked to root
+     * @return success
+     */
+    bool createTopHLinks2Hops( const SuperNode& root, const SuperNode& rootTop );
 
     /**
      * @brief Update or create HLink between 2 top layer root nodes
@@ -100,11 +112,11 @@ private:
      * @param currentRootTop 2 or 3-hop root top layer node (r2)
      * @return success
      */
-    virtual bool updateOrCreateHLink( dex::gdb::oid_t currentNode,
-                                      ObjectsPtr& currentNeighbors,
-                                      ObjectsPtr& rootNeighbors,
-                                      const SuperNode& rootTop,
-                                      const SuperNode& currentRootTop );
+     bool updateOrCreateHLink( dex::gdb::oid_t currentNode,
+                               ObjectsPtr& currentNeighbors,
+                               ObjectsPtr& rootNeighbors,
+                               const SuperNode& rootTop,
+                               const SuperNode& currentRootTop );
 
 protected:
     std::unique_ptr<XSelector> m_sel;
