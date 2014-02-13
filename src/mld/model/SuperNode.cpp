@@ -16,6 +16,10 @@
 **
 ****************************************************************************/
 
+#include <locale>
+#include <codecvt>
+#include <string>
+
 #include <dex/gdb/Objects.h>
 #include "mld/model/SuperNode.h"
 
@@ -70,10 +74,11 @@ SuperNode::~SuperNode()
 
 std::ostream& operator<<( std::ostream& out, const SuperNode& sn )
 {
-    out << "id: " << sn.id() << " "
-        << "label: " << sn.label().c_str() << " "
-        << "weight: " << sn.weight()
-        << "root: " << sn.isRoot()
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    out << "id:" << sn.id() << " "
+        << "label:" << converter.to_bytes(sn.label()) << " "
+        << "weight:" << sn.weight() << " "
+        << "root:" << sn.isRoot()
         ;
     return out;
 }

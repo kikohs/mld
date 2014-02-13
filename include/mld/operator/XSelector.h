@@ -38,7 +38,7 @@ public:
     virtual bool hasNext() override;
     virtual SuperNode next() override;
     virtual ObjectsPtr getUnflaggedNeighbors( dex::gdb::oid_t node ) override;
-    virtual bool flagAndUpdateScore( const SuperNode& root ) override;
+    virtual bool flagAndUpdateScore( const SuperNode& root, bool withFlagged=false ) override;
     virtual bool isFlagged( dex::gdb::oid_t snid ) override;
 
     virtual ObjectsPtr getFlaggedNodesFrom( const ObjectsPtr& input ) override;
@@ -49,14 +49,14 @@ public:
      * @param snid SuperNode oid
      * @return score
      */
-    virtual double calcScore( dex::gdb::oid_t snid, bool withFlagged=false );
+    virtual double calcScore( dex::gdb::oid_t snid, bool withFlagged );
 
     /**
      * @brief Update node score from given input set
      * @param input set
      * @return success
      */
-    virtual bool updateScore( const ObjectsPtr& input );
+    virtual bool updateScore( const ObjectsPtr& input, bool withFlagged );
 
     dex::gdb::Objects* rootNodes() const { return m_rootNodes.get(); }
     dex::gdb::Objects* flaggedNodes() const { return m_flagged.get(); }

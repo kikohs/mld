@@ -56,8 +56,8 @@ bool XSelector::rankNodes( const Layer& layer )
     ObjectsIt it(nodes->Iterator());
     while( it->HasNext() ) {
         auto nid = it->Next();
-        // Add values in the mutable priority queue
-        m_scores.push(nid, calcScore(nid));
+        // Add values in the mutable priority queue, no nodes are flagged
+        m_scores.push(nid, calcScore(nid, true));
     }
     return true;
 }
@@ -70,7 +70,8 @@ bool XSelector::hasNext()
 SuperNode XSelector::next()
 {
     if( hasNext() ) {
-        SuperNode n = m_dao->getNode(m_scores.front_value());
+        auto nid = m_scores.front_value();
+        SuperNode n = m_dao->getNode(nid);
         // Remove item
         m_scores.pop();
         return n;
@@ -88,7 +89,7 @@ ObjectsPtr XSelector::getUnflaggedNeighbors( oid_t node )
     return neighbors;
 }
 
-bool XSelector::flagAndUpdateScore( const SuperNode& root )
+bool XSelector::flagAndUpdateScore( const SuperNode& root, bool withFlagged )
 {   
     // Add to root node set
     m_rootNodes->Add(root.id());
@@ -98,6 +99,10 @@ bool XSelector::flagAndUpdateScore( const SuperNode& root )
     if( unflagged->Count() == 0 )
         return true;
 
+    // Add current root, to be removed from queue
+    // is selector is used normally with the next() method
+    // root node is already removed from queue
+    unflagged->Add(root.id());
     m_flagged->Union(unflagged.get());
     // Remove from selection queue
     removeCandidates(unflagged);
@@ -105,7 +110,7 @@ bool XSelector::flagAndUpdateScore( const SuperNode& root )
     // Keep only unflagged neighbor nodes
     ObjectsPtr neighbors(m_dao->graph()->Neighbors(unflagged.get(), m_dao->hlinkType(), Any));
     neighbors = getUnflaggedNodesFrom(neighbors);
-    return updateScore(neighbors);
+    return updateScore(neighbors, withFlagged);
 }
 
 bool XSelector::isFlagged( oid_t snid )
@@ -125,23 +130,18 @@ ObjectsPtr XSelector::getUnflaggedNodesFrom( const ObjectsPtr& input )
 
 double XSelector::calcScore( oid_t snid , bool withFlagged )
 {
-    LOG(logDEBUG) << "XSelector::calcScore";
     double r = rootCentralityScore(snid, withFlagged);
-    LOG(logDEBUG) << "XSelector::calcScore root centrality: " << r;
     double h = twoHopHubAffinityScore(snid, withFlagged);
-    LOG(logDEBUG) << "XSelector::calcScore 2hop affinity: " << h;
     double g = gravityScore(snid, withFlagged);
-    LOG(logDEBUG) << "XSelector::calcScore gravity: " << g;
     return r / (g * h);
 }
 
-bool XSelector::updateScore( const ObjectsPtr& input )
+bool XSelector::updateScore( const ObjectsPtr& input , bool withFlagged )
 {
     ObjectsIt it(input->Iterator());
     while( it->HasNext() ) {
        auto current = it->Next();
-       // Take into acocunt flagged nodes
-       m_scores.update(current, calcScore(current, true));
+       m_scores.update(current, calcScore(current, withFlagged));
     }
     return true;
 }
@@ -236,10 +236,6 @@ double XSelector::gravityScore( oid_t root, bool withFlagged )
 
     nodeSet->Add(root);
     auto nodes = m_dao->getNode(nodeSet);
-    if( !nodes.empty() ) {
-        LOG(logWARNING) << "XSelector::nodeScore: node has no neighbors";
-        return 1.0;
-    }
     double total = 0.0;
     for( auto& node: nodes ) {
         total += node.weight();

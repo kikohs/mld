@@ -227,3 +227,149 @@ TEST( XSelectorTest, rootCentralityScore )
     dao.reset();
     sess.reset();
 }
+
+TEST( XSelectorTest, twoHubAffinityScore )
+{
+    mld::DexManager dexManager(mld::kRESOURCES_DIR + L"mydex.cfg");
+    dexManager.openDatabase(mld::kRESOURCES_DIR + L"MLDTest.dex", L"MLDTest");
+    SessionPtr sess = dexManager.newSession();
+    dex::gdb::Graph* g = sess->GetGraph();
+    std::unique_ptr<MLGDao> dao( new MLGDao(g) );
+    std::unique_ptr<XSelector> sel( new XSelector(g) );
+
+    // Flag n0
+    sel->flaggedNodes()->Add(nMap[0]);
+
+    double res = -1.0;
+    // No out edges
+    res = sel->twoHopHubAffinityScore(nMap[3], false);
+    EXPECT_DOUBLE_EQ(1.0, res);
+
+    // Count flagged n0
+    res = sel->twoHopHubAffinityScore(nMap[3], true);
+    EXPECT_DOUBLE_EQ(2.0, res);
+
+    res = sel->twoHopHubAffinityScore(nMap[0], false);
+    EXPECT_DOUBLE_EQ(1.0, res);
+    res = sel->twoHopHubAffinityScore(nMap[0], true);
+    EXPECT_DOUBLE_EQ(1.0, res);
+
+    sel.reset();
+    dao.reset();
+    sess.reset();
+}
+
+TEST( XSelectorTest, gravityScore )
+{
+    mld::DexManager dexManager(mld::kRESOURCES_DIR + L"mydex.cfg");
+    dexManager.openDatabase(mld::kRESOURCES_DIR + L"MLDTest.dex", L"MLDTest");
+    SessionPtr sess = dexManager.newSession();
+    dex::gdb::Graph* g = sess->GetGraph();
+    std::unique_ptr<MLGDao> dao( new MLGDao(g) );
+    std::unique_ptr<XSelector> sel( new XSelector(g) );
+
+    // Flag n0
+    sel->flaggedNodes()->Add(nMap[0]);
+
+    double res = -1.0;
+    // No out edges
+    res = sel->gravityScore(nMap[3], false);
+    EXPECT_DOUBLE_EQ(1.0, res);
+
+    // Count flagged n0
+    res = sel->gravityScore(nMap[3], true);
+    EXPECT_DOUBLE_EQ(2.0, res);
+
+    res = sel->gravityScore(nMap[0], false);
+    EXPECT_DOUBLE_EQ(103.0, res);
+    res = sel->gravityScore(nMap[0], true);
+    EXPECT_DOUBLE_EQ(103.0, res);
+
+    sel.reset();
+    dao.reset();
+    sess.reset();
+}
+
+TEST( XSelectorTest, calcScore )
+{
+    mld::DexManager dexManager(mld::kRESOURCES_DIR + L"mydex.cfg");
+    dexManager.openDatabase(mld::kRESOURCES_DIR + L"MLDTest.dex", L"MLDTest");
+    SessionPtr sess = dexManager.newSession();
+    dex::gdb::Graph* g = sess->GetGraph();
+    std::unique_ptr<MLGDao> dao( new MLGDao(g) );
+    std::unique_ptr<XSelector> sel( new XSelector(g) );
+
+    // Flag n0
+    sel->flaggedNodes()->Add(nMap[0]);
+
+    double res = -1.0;
+    // Root centrality is 0
+    res = sel->calcScore(nMap[3], false);
+    EXPECT_DOUBLE_EQ(0.0, res);
+
+    // 1 / (2 * 2)
+    res = sel->calcScore(nMap[3], true);
+    EXPECT_DOUBLE_EQ(0.25, res);
+
+    // 1 / (1 * 102)
+    res = sel->calcScore(nMap[1], false);
+    EXPECT_DOUBLE_EQ(double(1/102.0), res);
+
+    // 0.5 / (1 * 103)
+    res = sel->calcScore(nMap[1], true);
+    EXPECT_DOUBLE_EQ(double(1/206.0), res);
+
+    sel.reset();
+    dao.reset();
+    sess.reset();
+}
+
+TEST( XSelectorTest, rankNodes )
+{
+    mld::DexManager dexManager(mld::kRESOURCES_DIR + L"mydex.cfg");
+    dexManager.openDatabase(mld::kRESOURCES_DIR + L"MLDTest.dex", L"MLDTest");
+    SessionPtr sess = dexManager.newSession();
+    dex::gdb::Graph* g = sess->GetGraph();
+    std::unique_ptr<MLGDao> dao( new MLGDao(g) );
+    std::unique_ptr<XSelector> sel( new XSelector(g) );
+
+    Layer base = dao->baseLayer();
+    EXPECT_TRUE(sel->rankNodes(base));
+
+    // Only 5 node in graph
+    for( int i = 0; i < 5; i++ ) {
+        SuperNode n = sel->next();
+        EXPECT_NE(dex::gdb::Objects::InvalidOID, n.id());
+    }
+    // Invalid node
+    SuperNode n = sel->next();
+    EXPECT_EQ(dex::gdb::Objects::InvalidOID, n.id());
+
+    EXPECT_TRUE(sel->rankNodes(base));
+    // Flag n0
+    sel->flaggedNodes()->Add(nMap[0]);
+
+    // Simulate a flag and update score
+    {
+        ObjectsPtr nodeSet = dao->newObjectsPtr();
+        nodeSet->Add(nMap[3]);
+        EXPECT_TRUE(sel->updateScore(nodeSet, false));
+        for( int i = 0; i < 5; i++ ) {
+            SuperNode n = sel->next();
+            EXPECT_NE(dex::gdb::Objects::InvalidOID, n.id());
+        }
+    }
+
+    EXPECT_TRUE(sel->rankNodes(base));
+    // Simulate coarsening on n0
+    EXPECT_TRUE(sel->flagAndUpdateScore(nMap[0]));
+    // Only n4 left
+    EXPECT_EQ(nMap[4], sel->next().id());
+    // Invalid
+    EXPECT_EQ(dex::gdb::Objects::InvalidOID, sel->next().id());
+
+    sel.reset();
+    dao.reset();
+    sess.reset();
+}
+
