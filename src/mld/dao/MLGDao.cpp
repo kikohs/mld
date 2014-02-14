@@ -59,8 +59,7 @@ ObjectsPtr MLGDao::newObjectsPtr() const
 SuperNode MLGDao::addNodeToLayer( const Layer& l )
 {
 #ifdef MLD_SAFE
-    bool exists = m_layer->exists(l);
-    if( !exists ) {
+    if( !m_layer->exists(l) ) {
         LOG(logERROR) << "MLGDao::addNodeToLayer: Layer doesn't exist!";
         return SuperNode();
     }
@@ -268,13 +267,22 @@ HLink MLGDao::getUnsafeHeaviestHLink()
     return m_link->getHLink(hid);
 }
 
+bool MLGDao::copyAndMergeVLinks( const SuperNode& source, const SuperNode& target, bool safe, const WeightMergerFunc& f )
+{
+    return copyAndMergeLinks(vlinkType(), source, target, safe, f);
+}
+
+bool MLGDao::copyAndMergeHLinks( const SuperNode& source, const SuperNode& target, bool safe, const WeightMergerFunc& f )
+{
+    return copyAndMergeLinks(hlinkType(), source, target, safe, f);
+}
 
 // ****** PRIVATE METHODS ****** //
 
 
 oid_t MLGDao::getLayerIdForSuperNode( oid_t nid )
 {
-    std::unique_ptr<Objects> obj;
+    ObjectsPtr obj;
 #ifdef MLD_SAFE
     try {
 #endif
@@ -378,6 +386,100 @@ SuperNode MLGDao::mirrorNode( oid_t current, Direction dir, const Layer& newLaye
     return newNode;
 }
 
+bool MLGDao::copyAndMergeLinks(type_t linkType, const SuperNode& source,
+                                const SuperNode& target, bool safe, const WeightMergerFunc& f )
+{
+    if( safe ) {
+        auto srcLayer = getLayerIdForSuperNode(source.id());
+        auto tgtLayer = getLayerIdForSuperNode(target.id());
+        if( srcLayer != tgtLayer ) {
+            LOG(logERROR) << "MLGDao::copyAndMergeLinks: Nodes are not on the same layer";
+            return false;
+        }
+    }
+    // Get target's neighbors
+    ObjectsPtr tgtNeighbors(m_g->Neighbors(target.id(), linkType, Any));
+    // Get source's neighbors
+    ObjectsPtr srcNeighbors(m_g->Neighbors(source.id(), linkType, Any));
+
+    // Get common neighbors
+    ObjectsPtr commonNeighbors( Objects::CombineIntersection(tgtNeighbors.get(), srcNeighbors.get()) );
+    // If any merge edge weight on target node
+    if( commonNeighbors->Count() != 0 ) {
+        ObjectsIt it(commonNeighbors->Iterator());
+        while( it->HasNext() ) {
+            oid_t common = it->Next();
+
+            if( linkType == hlinkType() ) {  // HLINK
+                HLink tLink = getHLink(target.id(), common);
+                HLink sLink = getHLink(source.id(), common);
+                // Add weight and update HLink according to merger function
+                tLink.setWeight(f(tLink.weight(), sLink.weight()));
+                if( !updateHLink(tLink) ) {
+                    LOG(logERROR) << "MLGDao:copyAndMergeHLinks update common HLink failed: " << tLink;
+                    return false;
+                }
+            }
+            else {  // VLINK
+                VLink tLink = getVLink(common, target.id());
+                VLink sLink;
+                if( tLink.id() != Objects::InvalidOID ) {  // VLink to lower layer
+                    sLink = getVLink(common, source.id());
+                }
+                else {  // VLink to upper layer
+                    tLink = getVLink(target.id(), common);
+                    sLink = getVLink(source.id(), common);
+                }
+                // Add weight and update HLink according to merger function
+                tLink.setWeight(f(tLink.weight(), sLink.weight()));
+                if( !updateVLink(tLink) ) {
+                    LOG(logERROR) << "MLGDao:copyAndMergeHLinks update common VLink failed: " << tLink;
+                    return false;
+                }
+            }
+        }
+    }
+
+    // Add the rest of source's HLinks or VLinks (remove common neighbors)
+    // Remove target id
+    srcNeighbors->Remove(target.id());
+    ObjectsPtr onlySrcNeighbors( Objects::CombineDifference(srcNeighbors.get(), commonNeighbors.get()) );
+    if( onlySrcNeighbors->Count() != 0 ) {
+        ObjectsIt it(onlySrcNeighbors->Iterator());
+
+        // No self-loops allowed
+        if( linkType == hlinkType() ) {
+            while( it->HasNext() ) {
+                oid_t n = it->Next();
+                HLink sLink = getHLink(source.id(), n);
+                // Create new hlink
+                addHLink(target, SuperNode(n), sLink.weight());
+            }
+        }
+        else {  // VLink
+            while( it->HasNext() ) {
+                oid_t n = it->Next();
+                VLink sLink = getVLink(n, source.id());
+                if( sLink.id() != Objects::InvalidOID ) { // VLink to lower layer
+                    addVLink(SuperNode(n), target, sLink.weight());
+                }
+                else { // VLink to upper layer
+                    sLink = getVLink(source.id(), n);
+                    if( sLink.id() != Objects::InvalidOID ) {
+                        addVLink(target, SuperNode(n), sLink.weight());
+                    }
+                    else {
+                        LOG(logERROR) << "MLGDao::copyAndMergeLinks VLink from " << source << " to "
+                                         << n << " is neither an upper or lower VLink";
+                        return false;
+                    }
+                }
+            }
+        }
+    }
+    return true;
+}
+
 // ****** FORWARD METHOD OF SN DAO ****** //
 
 void MLGDao::removeNode( oid_t id )
@@ -402,7 +504,7 @@ std::vector<SuperNode> MLGDao::getNode( const ObjectsPtr& objs )
 
 // ****** FORWARD METHOD OF LINK DAO ****** //
 
-HLink MLGDao::getHLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt )
+HLink MLGDao::getHLink( oid_t src, oid_t tgt )
 {
     return m_link->getHLink(src, tgt);
 }
@@ -412,14 +514,14 @@ HLink MLGDao::getHLink( oid_t hid )
     return m_link->getHLink(hid);
 }
 
-bool MLGDao::updateHLink( dex::gdb::oid_t hid, double weight )
+bool MLGDao::updateHLink( const HLink& link )
 {
-    return m_link->updateHLink(hid, weight);
+    return m_link->updateHLink(link.id(), link.weight());
 }
 
-VLink MLGDao::getVLink( const SuperNode& src, const SuperNode& tgt )
+VLink MLGDao::getVLink( oid_t src, oid_t tgt )
 {
-    return m_link->getVLink(src.id(), tgt.id());
+    return m_link->getVLink(src, tgt);
 }
 
 VLink MLGDao::getVLink( oid_t vid )
@@ -430,6 +532,11 @@ VLink MLGDao::getVLink( oid_t vid )
 std::vector<HLink> MLGDao::getHLink( const ObjectsPtr& objs )
 {
     return m_link->getHLink(objs);
+}
+
+bool MLGDao::updateVLink( const VLink& link )
+{
+    return m_link->updateVLink(link.source(), link.target(), link.weight());
 }
 
 // ****** FORWARD METHOD OF LAYER DAO ****** //

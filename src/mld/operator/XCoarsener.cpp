@@ -197,8 +197,7 @@ bool XCoarsener::secondPass( const Layer& top, int64_t& mergeCount )
         // Select valid neighbors (not flagged)
         ObjectsPtr neighbors = m_sel->getUnflaggedNeighbors(root.id());
         // Merge node and edges, re-route VLinks
-        bool success = m_merger->merge(root, neighbors);
-        if( !success ) {
+        if( !m_merger->merge(root, neighbors) ) {
             LOG(logERROR) << "XCoarsener::secondPass: Merger failed to collapse root and neighbors " << root;
             return false;
         }
@@ -372,7 +371,7 @@ bool XCoarsener::updateOrCreateHLink( oid_t currentNode,
         // TODO this should be defined by the merger
         topLink.setWeight(topLink.weight() + totalWeight);
         // Update weight
-        bool ok = m_dao->updateHLink(topLink.id(), topLink.weight());
+        bool ok = m_dao->updateHLink(topLink);
 #ifdef MLD_SAFE
         if( !ok ) {
             LOG(logERROR) << " XCoarsener::updateOrCreateHLink: Failed to update top root nodes HLINK";

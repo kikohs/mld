@@ -21,6 +21,7 @@
 
 #include "mld/common.h"
 #include "mld/operator/AbstractMerger.h"
+#include "mld/operator/MultiAdditiveMerger.h"
 
 namespace mld {
 

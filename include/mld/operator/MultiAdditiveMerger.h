@@ -31,7 +31,7 @@ public:
     virtual ~MultiAdditiveMerger() override;
 
     virtual double computeWeight( const SuperNode& target, const ObjectsPtr& neighbors ) override;
-    virtual bool merge( const SuperNode& source, const ObjectsPtr& neighbors ) override;
+    virtual bool merge( SuperNode& target, const ObjectsPtr& neighbors ) override;
 };
 
 } // end namespace mld

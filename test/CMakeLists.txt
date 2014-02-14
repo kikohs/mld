@@ -20,7 +20,7 @@ append_test(LinkDaoTest dao/LinkDaoTest.cpp)
 append_test(MLGDaoTest dao/MLGDaoTest.cpp)
 
 # OPERATOR
-append_test(BAMergerTest operator/BasicAdditiveMergerTest.cpp)
+append_test(MergerTest operator/MergerTest.cpp)
 append_test(CoarsenerTest operator/CoarsenerTest.cpp)
 append_test(MLGBuilderTest operator/MLGBuilderTest.cpp)
 append_test(XSelectorTest operator/XSelectorTest.cpp)

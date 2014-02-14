@@ -81,7 +81,7 @@ TEST( BasicAdditiveMergerTest, Check1 )
     // Do merge
     HLink best = selector->selectBestHLink(current);
     bool success = merger->merge(best, *selector);
-    EXPECT_EQ(success, true);
+    EXPECT_TRUE(success);
     // Check that a node has actually been merge
     EXPECT_EQ(dao->getNodeCount(base), 5);
     EXPECT_EQ(dao->getNodeCount(current), 4);
@@ -121,6 +121,100 @@ TEST( BasicAdditiveMergerTest, Check1 )
 
     merger.reset();
     selector.reset();
+    dao.reset();
+    sess.reset();
+}
+
+TEST( MultiAdditiveMergerTest, Check )
+{
+    mld::DexManager dexManager(mld::kRESOURCES_DIR + L"mydex.cfg");
+    dexManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.dex", L"MLDTest");
+
+    SessionPtr sess = dexManager.newSession();
+    Graph* g = sess->GetGraph();
+    // Create Db scheme
+    dexManager.createScheme(g);
+
+    std::unique_ptr<MLGDao> dao( new MLGDao(g) );
+    Layer base = dao->addBaseLayer();
+
+    // Add nodes
+    SuperNode n1 = dao->addNodeToLayer(base);
+    n1.setWeight(10);
+    dao->updateNode(n1);
+    SuperNode n2 = dao->addNodeToLayer(base);
+    SuperNode n3 = dao->addNodeToLayer(base);
+    SuperNode n4 = dao->addNodeToLayer(base);
+    n3.setWeight(20);
+    dao->updateNode(n3);
+
+    // Add HLinks
+    dao->addHLink(n2, n1, 40);
+    dao->addHLink(n2, n3, 2);
+    dao->addHLink(n1, n3, 100);
+    dao->addHLink(n3, n4, 50);
+
+    // Mirror by hand
+    Layer current = dao->addLayerOnTop();
+    SuperNode n1c = dao->addNodeToLayer(current);
+    SuperNode n2c = dao->addNodeToLayer(current);
+    SuperNode n3c = dao->addNodeToLayer(current);
+    dao->addVLink(n1, n1c);
+    dao->addVLink(n2, n2c);
+    dao->addVLink(n2, n1c);
+    dao->addVLink(n3, n3c);
+    dao->addVLink(n3, n2c);
+
+    dao->addHLink(n2c, n1c, 40);
+    dao->addHLink(n2c, n3c, 2);
+
+    // Final M_G
+
+    //  n1c ------- n2c ------- n3c
+    //   | \        |  \        |
+    //   |  \       |   \       |
+    //   |   \      |    \      |
+    //   |    \     |     \     |
+    //   |     \    |      \    |
+    //   |      \   |       \   |
+    //   |       \  |        \  |
+    //   |        \ |         \ |
+    //  n1 -------- n2 -------- n3 ---- n4
+    //   \______________________/
+
+    std::unique_ptr<MultiAdditiveMerger> merger( new MultiAdditiveMerger(g) );
+
+    ObjectsPtr neighbors(dao->graph()->Neighbors(n2.id(), dao->hlinkType(), Any));
+    // n1 * [n1-n2]  +  n3 * [n2-n3] + n2
+    // 10*40 + 20*2 + 1 = 441
+    double res = merger->computeWeight(n2, neighbors);
+    EXPECT_DOUBLE_EQ(441, res);
+
+    neighbors.reset(dao->graph()->Neighbors(n3.id(), dao->hlinkType(), Any));
+    // n3 = n3 + n4 * [n3-n4] + n2 * [n3-n2] +  n1 * [n3-n1]
+    // n3 = 20 + (1*50) + (1*2) + (10*100) = 1072
+    res = merger->computeWeight(n3, neighbors);
+    EXPECT_DOUBLE_EQ(1072, res);
+
+    // Merge on n3
+    bool ok = merger->merge(n3, neighbors);
+    EXPECT_TRUE(ok);
+
+    // n3 = n3 + n4 * [n3-n4] + n1 * ([n3-n1] + [n1-n2]) + n2 * [n3-n2]
+    // n3 = 20 + (1*50) + (10*(100+40)) + (1*2)
+    EXPECT_DOUBLE_EQ(1472, n3.weight());
+    SuperNode newN3 = dao->getNode(n3.id());
+    EXPECT_EQ(n3, newN3);
+
+    // Only one node left
+    auto count = dao->getNodeCount(base);
+    EXPECT_EQ(1, count);
+    // Check number of VLinks
+    neighbors.reset(dao->graph()->Neighbors(n3.id(), dao->vlinkType(), Any));
+    EXPECT_EQ(3, neighbors->Count());
+
+    neighbors.reset();
+    merger.reset();
     dao.reset();
     sess.reset();
 }

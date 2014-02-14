@@ -86,11 +86,11 @@ public:
     /**
      * @brief Collapse all available HLinks and node around a node depending on the underlying algorithm
      * Update graph and selector
-     * @param source node
+     * @param target node
      * @param neighbors Available neighbors to collapse
      * @return success
      */
-    virtual bool merge( const SuperNode& source, const ObjectsPtr& neighbors ) = 0;
+    virtual bool merge( SuperNode& target, const ObjectsPtr& neighbors ) = 0;
 
     /**
      * @brief Compute weight for the future merged node

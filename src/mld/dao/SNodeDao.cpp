@@ -28,7 +28,7 @@
 using namespace mld;
 using namespace dex::gdb;
 
-SNodeDao::SNodeDao( dex::gdb::Graph* g )
+SNodeDao::SNodeDao( Graph* g )
     : AbstractDao(g)
     , m_snType(m_g->FindType(NodeType::SUPERNODE))
 {
@@ -44,7 +44,7 @@ SuperNode SNodeDao::addNode()
     return SuperNode( m_g->NewNode(m_snType) );
 }
 
-void SNodeDao::removeNode( dex::gdb::oid_t id )
+void SNodeDao::removeNode( oid_t id )
 {
 #ifdef MLD_SAFE
     if( id == Objects::InvalidOID )
@@ -55,7 +55,7 @@ void SNodeDao::removeNode( dex::gdb::oid_t id )
 #endif
         m_g->Drop(id);
 #ifdef MLD_SAFE
-    } catch( dex::gdb::Error& e ) {
+    } catch( Error& e ) {
         LOG(logERROR) << "SNodeDao::removeNode " << e.Message();
     }
 #endif
@@ -81,7 +81,7 @@ void SNodeDao::updateNode( const SuperNode& n )
     m_g->SetAttribute(n.id(), att, *m_v);
 }
 
-SuperNode SNodeDao::getNode( dex::gdb::oid_t id )
+SuperNode SNodeDao::getNode( oid_t id )
 {
 #ifdef MLD_SAFE
     if( id == Objects::InvalidOID )
@@ -104,7 +104,7 @@ SuperNode SNodeDao::getNode( dex::gdb::oid_t id )
         m_g->GetAttribute(id, m_g->FindAttribute(m_snType, SNAttr::IS_ROOT), *m_v);
         isRoot = m_v->GetBoolean();
 #ifdef MLD_SAFE
-    } catch( dex::gdb::Error& e ) {
+    } catch( Error& e ) {
         LOG(logERROR) << "SNodeDao::getNode: " << e.Message();
         return SuperNode();
     }
@@ -122,7 +122,7 @@ std::vector<SuperNode> SNodeDao::getNode( const ObjectsPtr& objs )
         SuperNode n = getNode(it->Next());
 #ifdef MLD_SAFE
         // Watch for the if, no { }
-        if( n.id() != dex::gdb::Objects::InvalidOID )
+        if( n.id() != Objects::InvalidOID )
 #endif
             res.push_back(n);
     }

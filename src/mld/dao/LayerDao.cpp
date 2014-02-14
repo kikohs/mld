@@ -28,7 +28,7 @@
 using namespace mld;
 using namespace dex::gdb;
 
-LayerDao::LayerDao( dex::gdb::Graph* g )
+LayerDao::LayerDao( Graph* g )
     : AbstractDao(g)
     , m_lType(m_g->FindType(NodeType::LAYER))
 {
@@ -83,7 +83,7 @@ bool LayerDao::updateLayer( const Layer& layer )
 #endif
         m_g->SetAttribute(layer.id(), attrDes, m_v->SetString(layer.description()));
 #ifdef MLD_SAFE
-    } catch( dex::gdb::Error& e ) {
+    } catch( Error& e ) {
         LOG(logERROR) << "LayerDao::updateLayer: " << e.Message();
         return false;
     }
@@ -91,7 +91,7 @@ bool LayerDao::updateLayer( const Layer& layer )
     return true;
 }
 
-Layer LayerDao::getLayer( dex::gdb::oid_t id )
+Layer LayerDao::getLayer( oid_t id )
 {
     if( id == Objects::InvalidOID ) {
         LOG(logERROR) << "LayerDao::getLayer: Get on invalid Layer oid";
@@ -253,7 +253,7 @@ bool LayerDao::removeLayer( oid_t lid )
     return true;
 }
 
-bool LayerDao::attachOnTop( dex::gdb::oid_t newId )
+bool LayerDao::attachOnTop( oid_t newId )
 {
     auto top = topLayerImpl();
     if( top == Objects::InvalidOID )
@@ -264,7 +264,7 @@ bool LayerDao::attachOnTop( dex::gdb::oid_t newId )
     return true;
 }
 
-bool LayerDao::attachOnBottom( dex::gdb::oid_t newId )
+bool LayerDao::attachOnBottom( oid_t newId )
 {
     auto bottom = bottomLayerImpl();
     if( bottom == Objects::InvalidOID )
@@ -373,9 +373,9 @@ bool LayerDao::exists( const Layer& layer )
 {
     try {
         auto type = m_g->GetObjectType(layer.id());
-        if( type == dex::gdb::Type::InvalidType )
+        if( type == Type::InvalidType )
             return false;
-    } catch( dex::gdb::Error& ) {
+    } catch( Error& ) {
         return false;
     }
     return true;

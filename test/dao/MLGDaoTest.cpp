@@ -253,10 +253,133 @@ TEST( MLGDaoTest, GetHeaviestHLink )
     EXPECT_EQ(maxHlink4.id(), maxHlink.id());
     EXPECT_FLOAT_EQ(maxHlink4.weight(), maxHlink.weight());
 
-
-
     dao.reset();
     sess.reset();
 }
 
+TEST( MLGDaoTest, copyAndMergeLinks )
+{
+    mld::DexManager dexManager(mld::kRESOURCES_DIR + L"mydex.cfg");
+    dexManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.dex", L"MLDTest");
 
+    SessionPtr sess = dexManager.newSession();
+    Graph* g = sess->GetGraph();
+    // Create Db scheme
+    dexManager.createScheme(g);
+
+    std::unique_ptr<MLGDao> dao( new MLGDao(g) );
+    Layer base = dao->addBaseLayer();
+
+    // Add nodes
+    SuperNode n1 = dao->addNodeToLayer(base);
+    n1.setWeight(10);
+    dao->updateNode(n1);
+    SuperNode n2 = dao->addNodeToLayer(base);
+    SuperNode n3 = dao->addNodeToLayer(base);
+    SuperNode n4 = dao->addNodeToLayer(base);
+    n3.setWeight(20);
+    dao->updateNode(n3);
+
+    // Add HLinks
+    dao->addHLink(n2, n1, 40);
+    dao->addHLink(n2, n3, 2);
+    dao->addHLink(n1, n3, 100);
+    dao->addHLink(n3, n4, 50);
+
+    // Mirror by hand
+    Layer current = dao->addLayerOnTop();
+    SuperNode n1c = dao->addNodeToLayer(current);
+    SuperNode n2c = dao->addNodeToLayer(current);
+    SuperNode n3c = dao->addNodeToLayer(current);
+    dao->addVLink(n1, n1c);
+    dao->addVLink(n2, n2c);
+    dao->addVLink(n2, n1c);
+    dao->addVLink(n3, n3c);
+    dao->addVLink(n3, n2c);
+
+    dao->addHLink(n2c, n1c, 40);
+    dao->addHLink(n2c, n3c, 2);
+
+    // Mirror again, we have 3 layers
+    Layer top = dao->addLayerOnTop();
+    SuperNode n1t = dao->addNodeToLayer(top);
+    SuperNode n2t = dao->addNodeToLayer(top);
+    SuperNode n3t = dao->addNodeToLayer(top);
+    dao->addVLink(n1c, n1t);
+    dao->addVLink(n2c, n2t);
+    dao->addVLink(n3c, n3t);
+    dao->addVLink(n2c, n1t);
+
+    dao->addHLink(n2t, n1t, 40);
+    dao->addHLink(n2t, n3t, 2);
+
+    // Final M_G
+
+    //  n1t ------- n2t ------- n3t
+    //   |  \       |           |
+    //   |   \      |           |
+    //   |    \     |           |
+    //   |     \    |           |
+    //   |      \   |           |
+    //   |       \  |           |
+    //   |        \ |           |
+    //  n1c ------- n2c ------- n3c
+    //   | \        |  \        |
+    //   |  \       |   \       |
+    //   |   \      |    \      |
+    //   |    \     |     \     |
+    //   |     \    |      \    |
+    //   |      \   |       \   |
+    //   |       \  |        \  |
+    //   |        \ |         \ |
+    //  n1 -------- n2 -------- n3 ---- n4
+    //   \______________________/
+
+    // Test HLinks, n3 - n1 should be added to n1 - n2 and
+    // n2 - n4 should have been created
+
+    bool ok = dao->copyAndMergeHLinks(n3, n2);
+    EXPECT_TRUE(ok);
+    HLink h12 = dao->getHLink(n1.id(), n2.id());
+    EXPECT_DOUBLE_EQ(140, h12.weight());
+    HLink h24 = dao->getHLink(n2.id(), n4.id());
+    EXPECT_NE(Objects::InvalidOID, h24.id());
+
+    // Test VLINKs
+
+    // n3 - n2c should be added to n2 - n2c
+    // n2 - n3c should be created
+    ok = dao->copyAndMergeVLinks(n3, n2);
+    EXPECT_TRUE(ok);
+    VLink v2_2c = dao->getVLink(n2.id(), n2c.id());
+    EXPECT_DOUBLE_EQ(2, v2_2c.weight());
+    VLink v2_3c = dao->getVLink(n2.id(), n3c.id());
+    EXPECT_NE(Objects::InvalidOID, v2_3c.id());
+
+    // n1c - n1t should be added to n2c - n1t
+    // n2 - n1c should be added n2 - n2c
+    // n1 - n2c should be created
+    ok = dao->copyAndMergeVLinks(n1c, n2c);
+    EXPECT_TRUE(ok);
+    VLink v2c_1t = dao->getVLink(n2c.id(), n1t.id());
+    EXPECT_DOUBLE_EQ(2, v2c_1t.weight());
+    v2_2c = dao->getVLink(n2.id(), n2c.id());
+    EXPECT_DOUBLE_EQ(3, v2_2c.weight()); // 1 from previous merge
+    VLink v1_2c = dao->getVLink(n1.id(), n2c.id());
+    EXPECT_NE(Objects::InvalidOID, v1_2c.id());
+
+    // n1c - n3t and n2c - n3t should be created
+    ok = dao->copyAndMergeVLinks(n1t, n3t);
+    EXPECT_TRUE(ok);
+    VLink v1c_3t = dao->getVLink(n1c.id(), n3t.id());
+    EXPECT_NE(Objects::InvalidOID, v1c_3t.id());
+    VLink v2c_3t = dao->getVLink(n1.id(), n2c.id());
+    EXPECT_NE(Objects::InvalidOID, v2c_3t.id());
+
+    // Test merge nodes not on same layer
+    ok = dao->copyAndMergeVLinks(n1, n1c);
+    EXPECT_FALSE(ok);
+
+    dao.reset();
+    sess.reset();
+}

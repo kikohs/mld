@@ -20,6 +20,7 @@
 #define MLD_MLGDAO_H
 
 #include <map>
+#include <functional>
 
 #include "mld/common.h"
 #include "mld/dao/AbstractDao.h"
@@ -41,6 +42,9 @@ namespace mld {
 }
 
 namespace mld {
+
+
+typedef std::function<double (double, double)>  WeightMergerFunc;
 
 /**
  * @brief The MultiLayerGraph (MLG) dao
@@ -186,6 +190,37 @@ public:
      */
     HLink getUnsafeHeaviestHLink();
 
+    /**
+     * @brief Copy all Vlinks from source to target, applying merge function f
+     * for common VLinks. Nodes have to be on the same layer.
+     * @param source
+     * @param target
+     * @param safe Check if nodes are on the same layer before merging
+     * @param f Merge function for common links
+     * @return success
+     */
+    bool copyAndMergeVLinks( const SuperNode& source,
+                             const SuperNode& target,
+                             bool safe=true,
+                             const WeightMergerFunc& f=[](double a, double b) {return a + b;}
+                            );
+
+    /**
+     * @brief Copy all HLinks form source node to target, applying merge function f
+     * for common HLinks. Nodes have to be on the same layer.
+     * If the target
+     * @param source
+     * @param target
+     * @param safe Check if nodes are on the same layer before merging
+     * @param f Merge function for common links
+     * @return success
+     */
+    bool copyAndMergeHLinks( const SuperNode& source,
+                             const SuperNode& target,
+                             bool safe=true,
+                             const WeightMergerFunc& f=[](double a, double b) {return a + b;}
+                            );
+
     // Forward to SNDao
     void removeNode( dex::gdb::oid_t id );
     void updateNode( const SuperNode& n );
@@ -195,11 +230,12 @@ public:
     // Forward to LinkDao
     HLink getHLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt );
     HLink getHLink( dex::gdb::oid_t hid );
-    bool updateHLink( dex::gdb::oid_t hid, double weight );
+    bool updateHLink( const HLink& link );
 
-    VLink getVLink( const SuperNode& src, const SuperNode& tgt );
+    VLink getVLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt );
     VLink getVLink( dex::gdb::oid_t vid );
     std::vector<HLink> getHLink( const ObjectsPtr& objs );
+    bool updateVLink( const VLink& link );
 
     // Forward to LayerDAO
     /**
@@ -325,6 +361,8 @@ private:
     Layer mirrorLayerImpl( Direction dir );
     HLink mirrorEdge( const HLink& current, Direction dir, const Layer& newLayer, NodeMap& nodeMap );
     SuperNode mirrorNode( const dex::gdb::oid_t current, Direction dir, const Layer& newLayer );
+    bool copyAndMergeLinks( dex::gdb::type_t linkType, const SuperNode& source,
+                            const SuperNode& target, bool safe, const WeightMergerFunc& f );
 
 private:
     std::unique_ptr<SNodeDao> m_sn;

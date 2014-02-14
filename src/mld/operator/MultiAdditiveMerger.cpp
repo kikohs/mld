@@ -17,6 +17,7 @@
 ****************************************************************************/
 
 #include <dex/gdb/Objects.h>
+#include <dex/gdb/ObjectsIterator.h>
 
 #include "mld/operator/MultiAdditiveMerger.h"
 #include "mld/operator/AbstractSelector.h"
@@ -43,26 +44,56 @@ double MultiAdditiveMerger::computeWeight( const SuperNode& target,
                                       const ObjectsPtr& neighbors
                                     )
 {
-    SuperNode merged(target);
     std::vector<SuperNode> nodes = m_dao->getNode(neighbors);
-    double total = merged.weight();
-    for( auto& node: nodes ) {
-        HLink l = m_dao->getHLink(target.id(), node.id());
+    double total = target.weight();
+    for( auto& source: nodes ) {
+        HLink l = m_dao->getHLink(target.id(), source.id());
 #ifdef MLD_SAFE
         if( l.id() == Objects::InvalidOID ) {
-            LOG(logERROR) << "MultiAdditiveMerger::computeWeight invalid HLink: " << target << " " << node;
+            LOG(logERROR) << "MultiAdditiveMerger::computeWeight invalid HLink: " << target << " " << source;
         }
 #endif
-        total += l.weight() * node.weight();
+        total += source.weight() * l.weight();
     }
     return total;
 }
 
-bool MultiAdditiveMerger::merge( const SuperNode& source, const ObjectsPtr& neighbors )
+bool MultiAdditiveMerger::merge( SuperNode& target, const ObjectsPtr& neighbors )
 {
 #ifdef MLD_FINE_TIMER
     std::unique_ptr<Timer> t(new Timer("MultiAdditiveMerger::merge"));
 #endif
-    // TODO
-    return false;
+
+#ifdef MLD_SAFE
+    if( !neighbors ) {
+        LOG(logERROR) << "MultiAdditiveMerger::merge null Object";
+    }
+#endif
+    ObjectsIt it(neighbors->Iterator());
+    while( it->HasNext() ) {
+        auto srcId = it->Next();
+        auto src = m_dao->getNode(srcId);
+        // Create new VLINKS to children and parents of source
+        if( !m_dao->copyAndMergeVLinks(src, target, false) ) {
+            LOG(logERROR) << "MultiAdditiveMerger::merge failed to copy and merge vlinks";
+            return false;
+        }
+
+        // Create new HLINKS to source's neighbors, add weight for common edges
+        if( !m_dao->copyAndMergeHLinks(src, target, false) ) {
+            LOG(logERROR) << "MultiAdditiveMerger::merge failed to copy and merge hlinks";
+            return false;
+        }
+    }
+
+    target.setWeight( computeWeight(target, neighbors) );
+    // Finally update in db
+    m_dao->updateNode(target);
+
+    // Remove contracted source node, it removes all associated relationships
+    it.reset(neighbors->Iterator());
+    while( it->HasNext() ) {
+        m_dao->removeNode(it->Next());
+    }
+    return true;
 }
