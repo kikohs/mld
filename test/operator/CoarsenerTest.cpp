@@ -101,7 +101,7 @@ TEST( CoarsenerTest, HeavyEdgeCoarsenerTest )
     EXPECT_EQ(nodes.size(), size_t(1));
     if( !nodes.empty() ) {
         auto node = nodes.at(0);
-        EXPECT_EQ(114, node.weight()); // 100 + 5 + 4 + 3 + 1 + 1
+        EXPECT_EQ(104, node.weight()); // 100 + 1 + 1 + 1 + 1
         auto children = dao->getChildNodes(node.id());
         // Should have 4 children from the previous coarsening pass
         EXPECT_EQ(size_t(4), children.size());
@@ -124,7 +124,6 @@ TEST( CoarsenerTest, XCoarsenerTest )
     // Create Db scheme
     dexManager.createScheme(g);
     std::unique_ptr<MLGDao> dao( new MLGDao(g) );
-
     std::unique_ptr<XCoarsener> coarsener( new XCoarsener(g) );
     // Fails
 //    coarsener->run();
@@ -149,20 +148,44 @@ TEST( CoarsenerTest, XCoarsenerTest )
     //       |  /
     //       | /
     //       n3
-    // Heaviest hlink to collapse
-    HLink hl12 = dao->addHLink(n1, n2, 5);
+
+    dao->addHLink(n1, n2, 5);
     dao->addHLink(n1, n4, 4);
     dao->addHLink(n2, n5, 3);
-    HLink hl13 = dao->addHLink(n1, n3);
-    HLink hl23 = dao->addHLink(n2, n3);
+    dao->addHLink(n1, n3);
+    dao->addHLink(n2, n3);
 
     // 10% reduction over 5 nodes is 0.5, so only 1 node should be merged
+    // n4 is selected as the best node
     coarsener->setReductionFactor(0.1);
     coarsener->run();
 
-    // Check coarsening result
+    // 3 nodes should be mirrored
     Layer top = dao->topLayer();
-    EXPECT_EQ(dao->getNodeCount(top), 4);
+    EXPECT_EQ(4, dao->getNodeCount(top));
+    auto n4_new = dao->getNode(n4.id());
+    EXPECT_TRUE(n4_new.isRoot());
+
+    auto n4Tops = dao->getParentNodes(n4.id());
+    auto n4t = n4Tops.at(0);
+    EXPECT_DOUBLE_EQ(2, n4t.weight());
+
+    // Get n2 top
+    auto n2Tops = dao->getParentNodes(n2.id());
+    auto n2t = n2Tops.at(0);
+    // Get n3 top
+    auto n3Tops = dao->getParentNodes(n3.id());
+    auto n3t = n3Tops.at(0);
+
+    // n4 top should be linked to the other tops
+    HLink n43t = dao->getHLink(n4t.id(), n3t.id());
+    EXPECT_NE(dex::gdb::Objects::InvalidOID, n43t.id());
+    HLink n42t = dao->getHLink(n4t.id(), n2t.id());
+    EXPECT_NE(dex::gdb::Objects::InvalidOID, n42t.id());
+
+    // Hlink should exists between n3t and n2t
+    HLink n32t = dao->getHLink(n3t.id(), n2t.id());
+    EXPECT_NE(dex::gdb::Objects::InvalidOID, n32t.id());
 
 //    // Redo coarsening
 //    coarsener->setReductionFactor(1);
@@ -184,6 +207,6 @@ TEST( CoarsenerTest, XCoarsenerTest )
     dao.reset();
     sess.reset();
 
-    LOG(logINFO) << Timer::dumpTrials();
+//    LOG(logINFO) << Timer::dumpTrials();
 }
 

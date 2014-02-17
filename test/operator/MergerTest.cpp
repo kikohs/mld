@@ -96,7 +96,7 @@ TEST( BasicAdditiveMergerTest, Check1 )
     auto n2Parents = dao->getParentNodes(n2.id());
     EXPECT_EQ(n2Parents.size(), size_t(1));
     SuperNode N2 = n2Parents[0];
-    EXPECT_EQ(N2.weight(), n2.weight() + hl12.weight());
+    EXPECT_EQ(N2.weight(), n2.weight() + n1.weight());
     // Check N2 hlinks, should be 3
     ObjectsPtr N2links(g->Explode(N2.id(), dao->hlinkType(), Outgoing));
     EXPECT_EQ(N2links->Count(), 3);
@@ -185,24 +185,23 @@ TEST( MultiAdditiveMergerTest, Check )
     std::unique_ptr<MultiAdditiveMerger> merger( new MultiAdditiveMerger(g) );
 
     ObjectsPtr neighbors(dao->graph()->Neighbors(n2.id(), dao->hlinkType(), Any));
-    // n1 * [n1-n2]  +  n3 * [n2-n3] + n2
-    // 10*40 + 20*2 + 1 = 441
+    // n2 = n2 + n1 + n3
+    // n2 = 20 + 10 + 1 = 31
     double res = merger->computeWeight(n2, neighbors);
-    EXPECT_DOUBLE_EQ(441, res);
+    EXPECT_DOUBLE_EQ(31, res);
 
     neighbors.reset(dao->graph()->Neighbors(n3.id(), dao->hlinkType(), Any));
-    // n3 = n3 + n4 * [n3-n4] + n2 * [n3-n2] +  n1 * [n3-n1]
-    // n3 = 20 + (1*50) + (1*2) + (10*100) = 1072
+    // n3 = n3 + n4 + n2 + n1
+    // n3 = 20 + 1 + 1 + 10
     res = merger->computeWeight(n3, neighbors);
-    EXPECT_DOUBLE_EQ(1072, res);
+    EXPECT_DOUBLE_EQ(32, res);
 
     // Merge on n3
+    neighbors.reset(dao->graph()->Neighbors(n3.id(), dao->hlinkType(), Any));
     bool ok = merger->merge(n3, neighbors);
     EXPECT_TRUE(ok);
 
-    // n3 = n3 + n4 * [n3-n4] + n1 * ([n3-n1] + [n1-n2]) + n2 * [n3-n2]
-    // n3 = 20 + (1*50) + (10*(100+40)) + (1*2)
-    EXPECT_DOUBLE_EQ(1472, n3.weight());
+    EXPECT_DOUBLE_EQ(32, n3.weight());
     SuperNode newN3 = dao->getNode(n3.id());
     EXPECT_EQ(n3, newN3);
 

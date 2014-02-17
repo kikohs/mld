@@ -31,7 +31,7 @@ public:
     BasicAdditiveMerger( dex::gdb::Graph* g );
     virtual ~BasicAdditiveMerger() override;
 
-    virtual double computeWeight( const SuperNode& source, const HLink& hlink ) override;
+    double computeWeight( const SuperNode& target, const SuperNode& source );
     virtual bool merge( const HLink& hlink, const AbstractSingleSelector& selector ) override;
 };
 

@@ -60,9 +60,9 @@ BasicAdditiveMerger::~BasicAdditiveMerger()
 {
 }
 
-double BasicAdditiveMerger::computeWeight( const SuperNode& source, const HLink& hlink )
+double BasicAdditiveMerger::computeWeight( const SuperNode& target, const SuperNode& source )
 {
-    return hlink.weight() * source.weight();
+    return target.weight() + source.weight();
 }
 
 bool BasicAdditiveMerger::merge( const HLink& hlink, const AbstractSingleSelector& selector )
@@ -86,7 +86,7 @@ bool BasicAdditiveMerger::merge( const HLink& hlink, const AbstractSingleSelecto
     m_dao->copyAndMergeHLinks(src, tgt, false);
 
     // Update target weight
-    tgt.setWeight( tgt.weight() + computeWeight(src, hlink) );
+    tgt.setWeight( computeWeight(tgt, src) );
     m_dao->updateNode(tgt);
 
     // Remove contracted source node, it removes all associated relationships

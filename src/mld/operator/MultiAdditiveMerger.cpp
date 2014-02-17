@@ -47,13 +47,7 @@ double MultiAdditiveMerger::computeWeight( const SuperNode& target,
     std::vector<SuperNode> nodes = m_dao->getNode(neighbors);
     double total = target.weight();
     for( auto& source: nodes ) {
-        HLink l = m_dao->getHLink(target.id(), source.id());
-#ifdef MLD_SAFE
-        if( l.id() == Objects::InvalidOID ) {
-            LOG(logERROR) << "MultiAdditiveMerger::computeWeight invalid HLink: " << target << " " << source;
-        }
-#endif
-        total += source.weight() * l.weight();
+        total += source.weight();
     }
     return total;
 }
@@ -69,10 +63,10 @@ bool MultiAdditiveMerger::merge( SuperNode& target, const ObjectsPtr& neighbors 
         LOG(logERROR) << "MultiAdditiveMerger::merge null Object";
     }
 #endif
+    double total = target.weight();
     ObjectsIt it(neighbors->Iterator());
     while( it->HasNext() ) {
-        auto srcId = it->Next();
-        auto src = m_dao->getNode(srcId);
+        SuperNode src = m_dao->getNode(it->Next());
         // Create new VLINKS to children and parents of source
         if( !m_dao->copyAndMergeVLinks(src, target, false) ) {
             LOG(logERROR) << "MultiAdditiveMerger::merge failed to copy and merge vlinks";
@@ -84,16 +78,14 @@ bool MultiAdditiveMerger::merge( SuperNode& target, const ObjectsPtr& neighbors 
             LOG(logERROR) << "MultiAdditiveMerger::merge failed to copy and merge hlinks";
             return false;
         }
+
+        total += src.weight();
+        // Remove contracted source node, it removes all associated relationships
+        m_dao->removeNode(src.id());
     }
 
-    target.setWeight( computeWeight(target, neighbors) );
+    target.setWeight(total);
     // Finally update in db
     m_dao->updateNode(target);
-
-    // Remove contracted source node, it removes all associated relationships
-    it.reset(neighbors->Iterator());
-    while( it->HasNext() ) {
-        m_dao->removeNode(it->Next());
-    }
     return true;
 }

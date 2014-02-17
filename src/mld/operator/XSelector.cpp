@@ -100,7 +100,7 @@ bool XSelector::flagAndUpdateScore( const SuperNode& root, bool withFlagged )
         return true;
 
     // Add current root, to be removed from queue
-    // is selector is used normally with the next() method
+    // if selector is used normally with the next() method
     // root node is already removed from queue
     unflagged->Add(root.id());
     m_flagged->Union(unflagged.get());
