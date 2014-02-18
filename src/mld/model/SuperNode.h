@@ -55,7 +55,7 @@ public:
 
     virtual ~SuperNode() override;
 
-    inline bool operator== ( const SuperNode& rhs ) const
+    inline bool operator==( const SuperNode& rhs ) const
     {
         return ( (m_id == rhs.id())
                  && (m_weight == rhs.m_weight)

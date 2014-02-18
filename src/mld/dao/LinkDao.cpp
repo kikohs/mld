@@ -148,12 +148,11 @@ HLink LinkDao::getHLink( oid_t src, oid_t tgt )
         LOG(logERROR) << "LinkDao::getHLink: " << e.Message();
         return HLink();
     }
-
+#endif
     if( hid == Objects::InvalidOID ) {
-        LOG(logWARNING) << "LinkDao::getHLink: edge doesn't exist: " << src << " " << tgt;
         return HLink();
     }
-#endif
+
     HLink hlink(src, tgt);
     hlink.setId(hid);
     hlink.setWeight(getWeight(m_hType, hlink.id()));
@@ -205,6 +204,15 @@ std::vector<HLink> LinkDao::getHLink( const ObjectsPtr& objs )
     return res;
 }
 
+HLink LinkDao::getOrCreateHLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt, double weight )
+{
+    HLink l(getHLink(src, tgt));
+    if( l.id() == Objects::InvalidOID ) {
+        l = addHLink(src, tgt, weight);
+    }
+    return l;
+}
+
 VLink LinkDao::getVLink( oid_t src, oid_t tgt )
 {
     oid_t vid = Objects::InvalidOID;
@@ -217,11 +225,10 @@ VLink LinkDao::getVLink( oid_t src, oid_t tgt )
         LOG(logERROR) << "LinkDao::getVLink: " << e.Message();
         return VLink();
     }
-
+#endif
     if( vid == Objects::InvalidOID ) {
         return VLink();
     }
-#endif
     VLink vlink(src, tgt);
     vlink.setId(vid);
     vlink.setWeight(getWeight(m_vType, vlink.id()));

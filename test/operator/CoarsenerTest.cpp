@@ -81,7 +81,7 @@ TEST( CoarsenerTest, HeavyEdgeCoarsenerTest )
     // Maximum coarsening
     coarsener->setReductionFactor(1.0);
     r = coarsener->computeMergeCount(1000);
-    EXPECT_EQ(uint64_t(999), r);
+    EXPECT_EQ(uint64_t(1000), r);
 
     // 10% reduction over 5 nodes is 0.5, so only 1 node should be merged
     coarsener->setReductionFactor(0.1);
@@ -114,7 +114,7 @@ TEST( CoarsenerTest, HeavyEdgeCoarsenerTest )
     LOG(logINFO) << Timer::dumpTrials();
 }
 
-TEST( CoarsenerTest, XCoarsenerTest )
+TEST( CoarsenerTest, XCoarsenerFirstPassAndMirror )
 {
     mld::DexManager dexManager(mld::kRESOURCES_DIR + L"mydex.cfg");
     dexManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.dex", L"MLDTest");
@@ -126,7 +126,7 @@ TEST( CoarsenerTest, XCoarsenerTest )
     std::unique_ptr<MLGDao> dao( new MLGDao(g) );
     std::unique_ptr<XCoarsener> coarsener( new XCoarsener(g) );
     // Fails
-//    coarsener->run();
+    coarsener->run();
 
     Layer base = dao->addBaseLayer();
 
@@ -153,7 +153,7 @@ TEST( CoarsenerTest, XCoarsenerTest )
     dao->addHLink(n1, n4, 4);
     dao->addHLink(n2, n5, 3);
     dao->addHLink(n1, n3);
-    dao->addHLink(n2, n3);
+    dao->addHLink(n2, n3, 7);
 
     // 10% reduction over 5 nodes is 0.5, so only 1 node should be merged
     // n4 is selected as the best node
@@ -169,6 +169,11 @@ TEST( CoarsenerTest, XCoarsenerTest )
     auto n4Tops = dao->getParentNodes(n4.id());
     auto n4t = n4Tops.at(0);
     EXPECT_DOUBLE_EQ(2, n4t.weight());
+    auto n1Tops = dao->getParentNodes(n1.id());
+    auto n1t = n1Tops.at(0);
+
+    // n1 and n4 top nodes are the same
+    EXPECT_EQ(n1t, n4t);
 
     // Get n2 top
     auto n2Tops = dao->getParentNodes(n2.id());
@@ -186,6 +191,7 @@ TEST( CoarsenerTest, XCoarsenerTest )
     // Hlink should exists between n3t and n2t
     HLink n32t = dao->getHLink(n3t.id(), n2t.id());
     EXPECT_NE(dex::gdb::Objects::InvalidOID, n32t.id());
+    EXPECT_DOUBLE_EQ(7, n32t.weight());
 
 //    // Redo coarsening
 //    coarsener->setReductionFactor(1);
@@ -207,6 +213,67 @@ TEST( CoarsenerTest, XCoarsenerTest )
     dao.reset();
     sess.reset();
 
-//    LOG(logINFO) << Timer::dumpTrials();
+    LOG(logINFO) << Timer::dumpTrials();
 }
 
+TEST( CoarsenerTest, XCoarsenerSecondPass )
+{
+    mld::DexManager dexManager(mld::kRESOURCES_DIR + L"mydex.cfg");
+    dexManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.dex", L"MLDTest");
+
+    SessionPtr sess = dexManager.newSession();
+    dex::gdb::Graph* g = sess->GetGraph();
+    // Create Db scheme
+    dexManager.createScheme(g);
+    std::unique_ptr<MLGDao> dao( new MLGDao(g) );
+    std::unique_ptr<XCoarsener> coarsener( new XCoarsener(g) );
+    Layer base = dao->addBaseLayer();
+
+    // Create nodes
+    SuperNode n1 = dao->addNodeToLayer(base);
+    SuperNode n2 = dao->addNodeToLayer(base);
+    SuperNode n3 = dao->addNodeToLayer(base);
+    SuperNode n4 = dao->addNodeToLayer(base);
+    SuperNode n5 = dao->addNodeToLayer(base);
+    // Node 2 is the heaviest
+    n2.setWeight(100);
+    dao->updateNode(n2);
+
+    // Create hlinks
+
+    // n4 -- n1 - n2 --- n5
+    //       |    /
+    //       |   /
+    //       |  /
+    //       | /
+    //       n3
+
+    dao->addHLink(n1, n2, 5);
+    dao->addHLink(n1, n4, 4);
+    dao->addHLink(n2, n5, 3);
+    dao->addHLink(n1, n3);
+    dao->addHLink(n2, n3, 7);
+
+    // Full reduction order will be n4, n3 and n5
+    coarsener->setReductionFactor(1);
+    coarsener->run();
+
+    // Check supernode
+    Layer top = dao->topLayer();
+    auto nodes = dao->getAllSuperNode(top);
+
+    EXPECT_EQ(size_t(1), nodes.size());
+    if( !nodes.empty() ) {
+        auto node = nodes.at(0);
+        EXPECT_DOUBLE_EQ(104, node.weight()); // 100 + 1 + 1 + 1 + 1
+        auto children = dao->getChildNodes(node.id());
+        // Should have 5 children from the previous coarsening pass
+        EXPECT_EQ(size_t(5), children.size());
+    }
+
+    coarsener.reset();
+    dao.reset();
+    sess.reset();
+
+//    LOG(logINFO) << Timer::dumpTrials();
+}

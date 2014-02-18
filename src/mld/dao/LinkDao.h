@@ -52,6 +52,7 @@ public:
     HLink getHLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt );
     HLink getHLink( dex::gdb::oid_t hid );
     std::vector<HLink> getHLink( const ObjectsPtr& objs );
+    HLink getOrCreateHLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt, double weight );
 
     VLink getVLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt );
     VLink getVLink( dex::gdb::oid_t vid );

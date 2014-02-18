@@ -95,13 +95,12 @@ public:
     /**
      * @brief Add VLink
      * If MLG_SAFE flag is on, checks that the 2 nodes are in adajacent layers
-     * @param src Supernode source
-     * @param tgt Supernode tgt
+     * @param src source
+     * @param tgt tgt
      * @param weight
      * @return New created VLink
      */
     VLink addVLink( const SuperNode& child, const SuperNode& parent, double weight = kVLINK_DEF_VALUE );
-
 
     /**
      * @brief Get all nodes ids belonging to input layer
@@ -230,11 +229,12 @@ public:
     // Forward to LinkDao
     HLink getHLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt );
     HLink getHLink( dex::gdb::oid_t hid );
+    HLink getOrCreateHLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt, double weight );
     bool updateHLink( const HLink& link );
+    std::vector<HLink> getHLink( const ObjectsPtr& objs );
 
     VLink getVLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt );
     VLink getVLink( dex::gdb::oid_t vid );
-    std::vector<HLink> getHLink( const ObjectsPtr& objs );
     bool updateVLink( const VLink& link );
 
     // Forward to LayerDAO

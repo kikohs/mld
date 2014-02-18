@@ -519,6 +519,11 @@ bool MLGDao::updateHLink( const HLink& link )
     return m_link->updateHLink(link.id(), link.weight());
 }
 
+HLink MLGDao::getOrCreateHLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt, double weight )
+{
+    return m_link->getOrCreateHLink(src, tgt, weight);
+}
+
 VLink MLGDao::getVLink( oid_t src, oid_t tgt )
 {
     return m_link->getVLink(src, tgt);

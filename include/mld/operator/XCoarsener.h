@@ -84,17 +84,7 @@ private:
      * @brief Create HLINKS for newly created top root node
      * The search radius is 2 hop, 1 hop for the current root node
      * and 1 hop for each the root's neighbors
-     * @param root root SuperNode vlinked to rootTop
-     * @param rootTop Top root SuperNode vlinked to root
-     * @return success
-     */
-    bool createTopHLinks2Hops( const SuperNode& root, const SuperNode& rootTop );
-
-    /**
-     * @brief Update or create HLink between 2 top layer root nodes
-     * Merge 2 hlinks if link already exists
-     *
-     *                  HLink
+     *                HLink
      *      rootTop ---------- currentRootTop
      *     /                  /
      *    /                  /
@@ -105,18 +95,13 @@ private:
      *             |
      *             *
      *
-     * @param currentNode 1hop or 2-hop current node (n2)
-     * @param currentNeighbors 1 or 2-hop current neighbors (*)
-     * @param rootNeighbors 1-hop root node neighbors (n)
-     * @param rootTop Corresponding top layer root node
-     * @param currentRootTop 2 or 3-hop root top layer node (r2)
+     * @param root root SuperNode vlinked to rootTop
+     * @param rootTop Top root SuperNode vlinked to root
      * @return success
      */
-     bool updateOrCreateHLink( dex::gdb::oid_t currentNode,
-                               ObjectsPtr& currentNeighbors,
-                               ObjectsPtr& rootNeighbors,
-                               const SuperNode& rootTop,
-                               const SuperNode& currentRootTop );
+    bool createTopHLinks1N2Hops( const SuperNode& root, const SuperNode& rootTop );
+
+    bool createTopHLinks( const SuperNode& root, const SuperNode& rootTop, const ObjectsPtr& nodeSet );
 
 protected:
     std::unique_ptr<XSelector> m_sel;

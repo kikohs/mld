@@ -58,7 +58,7 @@ uint64_t AbstractCoarsener::computeMergeCount( int64_t numVertices )
     // Check scale factor
     if( m_reductionFac == 1.0 ) { // 100% reduction
         LOG(logWARNING) << "AbstractCoarsener::computeMergeCount: reduction factor is 100%, collapsing graph into 1 node";
-        mergeCount = numVertices - 1;
+        mergeCount = numVertices;
     }
     else if( m_reductionFac == 0.0 ) { // No reduction only 1 node
         LOG(logWARNING) << "AbstractCoarsener::computeMergeCount: reduction factor is 0%, coarsening only 1 node";
