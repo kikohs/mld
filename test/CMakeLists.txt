@@ -46,11 +46,11 @@ get_property( CONFIG_LOCATION TARGET ${test_name} PROPERTY LOCATION )
 add_test( NAME ${test_name} COMMAND ${test_name} )
 
 
-# POST BUILD relinking for Dex library. Otherwise you need to copy libdex to the /bin directory
+# POST BUILD relinking for Sparksee library. Otherwise you need to copy libsparksee to the /bin directory
 if( APPLE )
     add_custom_command(TARGET ${test_name}
         POST_BUILD
-        COMMAND /usr/bin/install_name_tool -change @loader_path/libdex.dylib ${LIBRARY_OUTPUT_PATH}/libdex.dylib ${CONFIG_LOCATION}
+        COMMAND /usr/bin/install_name_tool -change @loader_path/libsparksee.dylib ${LIBRARY_OUTPUT_PATH}/libsparksee.dylib ${CONFIG_LOCATION}
         WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
         DEPENDS ${test_name}
     )

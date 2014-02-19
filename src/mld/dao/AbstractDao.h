@@ -21,7 +21,7 @@
 
 #include "mld/common.h"
 
-namespace dex {
+namespace sparksee {
 namespace gdb {
     class Graph;
     class Value;
@@ -39,11 +39,11 @@ public:
     AbstractDao& operator=( const AbstractDao& ) = delete;
 
 protected:
-    AbstractDao( dex::gdb::Graph* g );
+    AbstractDao( sparksee::gdb::Graph* g );
 
 protected:
-    dex::gdb::Graph* m_g;
-    std::unique_ptr<dex::gdb::Value> m_v;
+    sparksee::gdb::Graph* m_g;
+    std::unique_ptr<sparksee::gdb::Value> m_v;
 };
 
 } // end namespace mld

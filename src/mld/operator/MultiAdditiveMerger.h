@@ -27,7 +27,7 @@ namespace mld {
 class MLD_API MultiAdditiveMerger : public AbstractMultiMerger
 {
 public:
-    MultiAdditiveMerger( dex::gdb::Graph* g );
+    MultiAdditiveMerger( sparksee::gdb::Graph* g );
     virtual ~MultiAdditiveMerger() override;
 
     virtual double computeWeight( const SuperNode& target, const ObjectsPtr& neighbors ) override;

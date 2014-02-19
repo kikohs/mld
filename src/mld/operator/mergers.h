@@ -28,7 +28,7 @@ namespace mld {
 class MLD_API BasicAdditiveMerger: public AbstractSingleMerger
 {
 public:
-    BasicAdditiveMerger( dex::gdb::Graph* g );
+    BasicAdditiveMerger( sparksee::gdb::Graph* g );
     virtual ~BasicAdditiveMerger() override;
 
     double computeWeight( const SuperNode& target, const SuperNode& source );

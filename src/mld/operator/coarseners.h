@@ -34,7 +34,7 @@ namespace mld {
 class MLD_API HeavyEdgeCoarsener: public AbstractSingleCoarsener
 {
 public:
-    HeavyEdgeCoarsener( dex::gdb::Graph* g );
+    HeavyEdgeCoarsener( sparksee::gdb::Graph* g );
     virtual ~HeavyEdgeCoarsener() override;
     virtual bool preExec() override;
     virtual bool exec() override;

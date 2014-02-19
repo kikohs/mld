@@ -16,7 +16,7 @@
 **
 ****************************************************************************/
 
-#include <dex/gdb/Objects.h>
+#include <sparksee/gdb/Objects.h>
 
 #include "mld/model/Link.h"
 
@@ -25,14 +25,14 @@ using namespace mld;
 // ****** LINK ****** //
 
 Link::Link()
-    : m_id(dex::gdb::Objects::InvalidOID)
-    , m_src(dex::gdb::Objects::InvalidOID)
-    , m_tgt(dex::gdb::Objects::InvalidOID)
+    : m_id(sparksee::gdb::Objects::InvalidOID)
+    , m_src(sparksee::gdb::Objects::InvalidOID)
+    , m_tgt(sparksee::gdb::Objects::InvalidOID)
 {
 }
 
-Link::Link( dex::gdb::oid_t src, dex::gdb::oid_t tgt )
-    : m_id(dex::gdb::Objects::InvalidOID)
+Link::Link( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt )
+    : m_id(sparksee::gdb::Objects::InvalidOID)
     , m_src(src)
     , m_tgt(tgt)
 {
@@ -51,13 +51,13 @@ HLink::HLink()
 {
 }
 
-HLink::HLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt )
+HLink::HLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt )
     : Link(src, tgt)
     , m_weight(kHLINK_DEF_VALUE)
 {
 }
 
-HLink::HLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt, double weight )
+HLink::HLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt, double weight )
     : Link(src, tgt)
     , m_weight(weight)
 {
@@ -75,13 +75,13 @@ VLink::VLink()
 {
 }
 
-VLink::VLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt )
+VLink::VLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt )
     : Link(src, tgt)
     , m_weight(kVLINK_DEF_VALUE)
 {
 }
 
-VLink::VLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt, double weight )
+VLink::VLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt, double weight )
     : Link(src, tgt)
     , m_weight(weight)
 {

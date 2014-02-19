@@ -24,7 +24,7 @@
 #include "mld/utils/Timer.h"
 
 using namespace mld;
-using namespace dex::gdb;
+using namespace sparksee::gdb;
 
 namespace {
 

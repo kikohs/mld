@@ -60,44 +60,44 @@ find_package( Boost REQUIRED )
 # find_package( Boost COMPONENTS thread filesystem system graph serialization REQUIRED )
 include_directories( ${Boost_INCLUDE_DIRS} )
 
-## Dex
-if( NOT DEX_ROOT_DIR )
-    if( EXISTS ${3RDPARTY_DIR}/dex/ )
-        set( DEX_ROOT_DIR ${3RDPARTY_DIR}/dex CACHE PATH "Location of Dex root folder" )
+## SPARKSEE
+if( NOT SPARKSEE_ROOT_DIR )
+    if( EXISTS ${3RDPARTY_DIR}/sparkseecpp-5.0.0/ )
+        set( SPARKSEE_ROOT_DIR ${3RDPARTY_DIR}/sparkseecpp-5.0.0 CACHE PATH "Location of SPARKSEE root folder" )
     else()
-        message( FATAL " Unable to find Dex root directory" )
+        message( FATAL " Unable to find SPARKSEE root directory" )
     endif()
 endif()
 
 add_definitions( -D_FILE_OFFSET_BITS=64 )
-set( DEX_INCLUDE ${DEX_ROOT_DIR}/includes/ )
-set( DEX_INCLUDE_DIR ${DEX_INCLUDE} )
-# Dex includes are not prefixed by dex/, we need to include /dex ourself ...
-include_directories( ${DEX_INCLUDE_DIR} ${DEX_INCLUDE_DIR}/dex )
+set( SPARKSEE_INCLUDE ${SPARKSEE_ROOT_DIR}/includes/ )
+set( SPARKSEE_INCLUDE_DIR ${SPARKSEE_INCLUDE} )
+# SPARKSEE includes are not prefixed by sparksee/, we need to include /sparksee ourself ...
+include_directories( ${SPARKSEE_INCLUDE_DIR} ${SPARKSEE_INCLUDE_DIR}/sparksee )
 
 if( APPLE )
-    set( DEX_PLATEFORM macos64 )
+    set( SPARKSEE_PLATEFORM macos64 )
 elseif( WIN32 )
   if( CMAKE_SIZEOF_VOID_P EQUAL 8 )
-    set( DEX_PLATEFORM windows64 )
+    set( SPARKSEE_PLATEFORM windows64_VS2012 )
   else()
-    set( DEX_PLATEFORM windows32 )
+    set( SPARKSEE_PLATEFORM windows32_VS2012 )
   endif()
 elseif( UNIX )
-    set( DEX_PLATEFORM linux64 )
+    set( SPARKSEE_PLATEFORM linux64 )
 else()
-    message( FATAL "DEX doesn't support this architecture" )
+    message( FATAL "SPARKSEE doesn't support this architecture" )
 endif()
-set( DEX_LIB_DIR ${DEX_ROOT_DIR}/lib/${DEX_PLATEFORM} )
-# message( STATUS "DEX LIB DIR " ${DEX_LIB_DIR} )
-link_directories( ${DEX_LIB_DIR} )
-set( DEX_LIBRARIES -ldex )
+set( SPARKSEE_LIB_DIR ${SPARKSEE_ROOT_DIR}/lib/${SPARKSEE_PLATEFORM} )
+# message( STATUS "SPARKSEE LIB DIR " ${SPARKSEE_LIB_DIR} )
+link_directories( ${SPARKSEE_LIB_DIR} )
+set( SPARKSEE_LIBRARIES -lsparksee )
 
 # Grab libraries to copy them for export
-set( DEX_LIB_FILES )
-file( GLOB DEX_LIB_FILES ${DEX_LIB_DIR}/*.* )
-# Copy dex libs to /lib because install name id is @loader_path
-file( COPY ${DEX_LIB_FILES} DESTINATION ${LIBRARY_OUTPUT_PATH} )
+set( SPARKSEE_LIB_FILES )
+file( GLOB SPARKSEE_LIB_FILES ${SPARKSEE_LIB_DIR}/*.* )
+# Copy SPARKSEE libs to /lib because install name id is @loader_path
+file( COPY ${SPARKSEE_LIB_FILES} DESTINATION ${LIBRARY_OUTPUT_PATH} )
 
 #
 # OPTIONS

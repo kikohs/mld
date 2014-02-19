@@ -19,9 +19,9 @@
 #ifndef MLD_SESSION_H
 #define MLD_SESSION_H
 
-#include <dex/gdb/Session.h>
+#include <sparksee/gdb/Session.h>
 
 namespace mld {
-    typedef std::shared_ptr<dex::gdb::Session> SessionPtr;
+    typedef std::shared_ptr<sparksee::gdb::Session> SessionPtr;
 }
 #endif // MLD_SESSION_H

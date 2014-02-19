@@ -1,0 +1,11 @@
+<area shape="rect" href="$classError.html" title="Error class." alt="" coords="479,84,529,111">
+<area shape="rect" href="$classIOException.html" title="IO exception class." alt="" coords="583,84,679,111">
+<area shape="rect" href="$classNoSuchElementException.html" title="No such element exception class." alt="" coords="703,84,889,111">
+<area shape="rect" href="$classSQLException.html" title="SQL exception class." alt="" coords="913,84,1023,111">
+<area shape="rect" href="$classAppError.html" title="Application error class." alt="" coords="243,161,320,188">
+<area shape="rect" href="$classSystemError.html" title="System error class." alt="" coords="453,161,555,188">
+<area shape="rect" href="$classLicenseError.html" title="License error class." alt="" coords="5,239,104,265">
+<area shape="rect" href="$classUnsupportedOperationError.html" title="Unsupported operation error class." alt="" coords="128,239,325,265">
+<area shape="rect" href="$classWrongArgumentError.html" title="Wrong argument error class." alt="" coords="349,239,504,265">
+<area shape="rect" href="$classIOError.html" title="IO error class." alt="" coords="528,239,592,265">
+<area shape="rect" href="$classFileNotFoundException.html" title="File not found exception class." alt="" coords="579,161,744,188">

@@ -1,0 +1,67 @@
+**********************************************************************
+*
+* SPARKSEE: a library for out-of-core graph-based data storage and query 
+* processing.
+*
+* See the file LICENSE.txt for redistribution information.
+*
+* Copyright (c) 2005-2010 Sparsity Technologies, Barcelona (Spain)
+*
+**********************************************************************
+
+
+
+
+This distribution contains:
+
+READ.ME             - This file
+includes            - Sparksee include directories.
+LICENSE.txt         - License details.
+ReleaseNotes.txt    - Current version changes.
+lib                 - Dynamic libraries.
+                      There is an specific per-platform directory.
+doc                 - Sparksee documentation.
+test                - Basic Sparksee program as well as an script to check out
+                      the distributed version works correctly.
+
+
+
+USE INSTRUCTIONS
+================
+
+* Compile
+
+  When compiling, Sparksee include header files directories must be 
+  set: 
+  - Sparksee includes directory: <SPARKSEECPP_DIST_DIR>/includes/sparksee
+  
+  Moreover, _FILE_OFFSET_BITS=64 macro must be defined.
+  
+* Link
+
+  It must be set the dynamic library to be used for the linker:
+  - sparksee: which corresponds to the Sparksee dynamic library.
+  
+  Moreover, dynamic libraries directory must be set. There is an specific
+  directory per-platform: <SPARKSEECPP_DIST_DIR>/lib/<platform> where platform
+  can be 'windows32', 'windows64', 'linux32', 'linux64' or 'macos64'.
+
+  Also, on linux platforms it is required to add 'pthread' library when
+  linking.
+  
+* Execute
+
+  When running, dynamic libraries must be in the working directory or
+  in a specific system directory. 
+  
+  Some systems allow to define an environment variable to set an additional 
+  directory to look for dynamic libraries at runtime:
+  - DYLD_LIBRARY_PATH for MacoOSX systems.
+  - LD_LIBRARY_PATH for Linux systems.
+
+
+<SPARKSEECPP_DIST_DIR>/test directory has a very basic Sparksee program to check out 
+the distributed version works correctly. It also contains a bash script
+which compiles, links and executes that program following the previous
+instructions. You are free to adapt that script to your requirements as well
+as to write a windows version.

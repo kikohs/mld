@@ -19,7 +19,7 @@
 #ifndef MLD_SUPERNODE_H
 #define MLD_SUPERNODE_H
 
-#include <dex/gdb/common.h>
+#include <sparksee/gdb/common.h>
 #include "mld/common.h"
 
 namespace mld {
@@ -32,15 +32,15 @@ class MLD_API Node
 public:
     virtual ~Node() = 0;
 
-    void setId( dex::gdb::oid_t id ) { m_id = id; }
-    dex::gdb::oid_t id() const { return m_id; }
+    void setId( sparksee::gdb::oid_t id ) { m_id = id; }
+    sparksee::gdb::oid_t id() const { return m_id; }
 
 protected:
     Node();
-    Node( dex::gdb::oid_t id );
+    Node( sparksee::gdb::oid_t id );
 
 protected:
-    dex::gdb::oid_t m_id;
+    sparksee::gdb::oid_t m_id;
 };
 
 /**
@@ -50,8 +50,8 @@ class MLD_API SuperNode: public Node
 {
 public:
     SuperNode();
-    SuperNode( dex::gdb::oid_t id );
-    SuperNode( dex::gdb::oid_t id, const std::wstring& label, double weight, bool isRoot=false );
+    SuperNode( sparksee::gdb::oid_t id );
+    SuperNode( sparksee::gdb::oid_t id, const std::wstring& label, double weight, bool isRoot=false );
 
     virtual ~SuperNode() override;
 

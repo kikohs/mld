@@ -21,7 +21,7 @@
 
 #include "mld/common.h"
 
-namespace dex {
+namespace sparksee {
 namespace gdb {
     class Graph;
     class Value;
@@ -39,7 +39,7 @@ class MLGDao;
 class MLD_API AbstractOperator
 {
 public:
-    AbstractOperator( dex::gdb::Graph* g );
+    AbstractOperator( sparksee::gdb::Graph* g );
     virtual ~AbstractOperator() = 0;
 
     // Disable copy and assignement ctor

@@ -16,17 +16,17 @@
 **
 ****************************************************************************/
 
-#include <dex/gdb/Graph.h>
-#include <dex/gdb/Objects.h>
-#include <dex/gdb/ObjectsIterator.h>
-#include <dex/gdb/Graph_data.h>
-#include <dex/gdb/Value.h>
+#include <sparksee/gdb/Graph.h>
+#include <sparksee/gdb/Objects.h>
+#include <sparksee/gdb/ObjectsIterator.h>
+#include <sparksee/gdb/Graph_data.h>
+#include <sparksee/gdb/Value.h>
 
 #include "mld/Graph_types.h"
 #include "mld/dao/LinkDao.h"
 
 using namespace mld;
-using namespace dex::gdb;
+using namespace sparksee::gdb;
 
 LinkDao::LinkDao( Graph* g )
     : AbstractDao(g)
@@ -204,7 +204,7 @@ std::vector<HLink> LinkDao::getHLink( const ObjectsPtr& objs )
     return res;
 }
 
-HLink LinkDao::getOrCreateHLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt, double weight )
+HLink LinkDao::getOrCreateHLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt, double weight )
 {
     HLink l(getHLink(src, tgt));
     if( l.id() == Objects::InvalidOID ) {

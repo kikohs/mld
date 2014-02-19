@@ -16,13 +16,13 @@
 **
 ****************************************************************************/
 
-#include <dex/gdb/Graph.h>
-#include <dex/gdb/Objects.h>
-#include <dex/gdb/ObjectsIterator.h>
-#include <dex/gdb/Graph_data.h>
-#include <dex/gdb/Value.h>
-#include <dex/gdb/Values.h>
-#include <dex/gdb/ValuesIterator.h>
+#include <sparksee/gdb/Graph.h>
+#include <sparksee/gdb/Objects.h>
+#include <sparksee/gdb/ObjectsIterator.h>
+#include <sparksee/gdb/Graph_data.h>
+#include <sparksee/gdb/Value.h>
+#include <sparksee/gdb/Values.h>
+#include <sparksee/gdb/ValuesIterator.h>
 
 #include "mld/Graph_types.h"
 
@@ -32,7 +32,7 @@
 #include "mld/dao/LinkDao.h"
 
 using namespace mld;
-using namespace dex::gdb;
+using namespace sparksee::gdb;
 
 MLGDao::MLGDao( Graph* g )
     : AbstractDao(g)
@@ -519,7 +519,7 @@ bool MLGDao::updateHLink( const HLink& link )
     return m_link->updateHLink(link.id(), link.weight());
 }
 
-HLink MLGDao::getOrCreateHLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt, double weight )
+HLink MLGDao::getOrCreateHLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt, double weight )
 {
     return m_link->getOrCreateHLink(src, tgt, weight);
 }

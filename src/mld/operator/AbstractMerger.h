@@ -21,7 +21,7 @@
 
 #include "mld/common.h"
 
-namespace dex {
+namespace sparksee {
 namespace gdb {
     class Graph;
 }}
@@ -41,7 +41,7 @@ class AbstractMultiSelector;
 class MLD_API AbstractMerger
 {
 public:
-    AbstractMerger( dex::gdb::Graph* g );
+    AbstractMerger( sparksee::gdb::Graph* g );
     virtual ~AbstractMerger() = 0;
 
     // Disable copy and assignement ctor
@@ -55,7 +55,7 @@ protected:
 class MLD_API AbstractSingleMerger: public AbstractMerger
 {
 public:
-    AbstractSingleMerger( dex::gdb::Graph* g );
+    AbstractSingleMerger( sparksee::gdb::Graph* g );
     virtual ~AbstractSingleMerger() = 0;
 
     /**
@@ -72,7 +72,7 @@ public:
 class MLD_API AbstractMultiMerger: public AbstractMerger
 {
 public:
-    AbstractMultiMerger( dex::gdb::Graph* g );
+    AbstractMultiMerger( sparksee::gdb::Graph* g );
     virtual ~AbstractMultiMerger() = 0;
 
     /**

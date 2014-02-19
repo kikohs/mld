@@ -16,7 +16,7 @@
 **
 ****************************************************************************/
 
-#include <dex/gdb/Objects.h>
+#include <sparksee/gdb/Objects.h>
 
 #include "mld/operator/AbstractCoarsener.h"
 #include "mld/operator/AbstractSelector.h"
@@ -24,10 +24,10 @@
 #include "mld/dao/MLGDao.h"
 
 using namespace mld;
-using namespace dex::gdb;
+using namespace sparksee::gdb;
 
 
-AbstractCoarsener::AbstractCoarsener( dex::gdb::Graph* g )
+AbstractCoarsener::AbstractCoarsener( sparksee::gdb::Graph* g )
     : AbstractOperator(g)
     , m_reductionFac(0.0)
 {
@@ -71,7 +71,7 @@ uint64_t AbstractCoarsener::computeMergeCount( int64_t numVertices )
 }
 
 
-AbstractSingleCoarsener::AbstractSingleCoarsener( dex::gdb::Graph* g )
+AbstractSingleCoarsener::AbstractSingleCoarsener( sparksee::gdb::Graph* g )
     : AbstractCoarsener(g)
 {
 }

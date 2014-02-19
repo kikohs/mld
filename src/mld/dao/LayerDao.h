@@ -23,7 +23,7 @@
 #include "mld/dao/AbstractDao.h"
 #include "mld/model/Layer.h"
 
-namespace dex {
+namespace sparksee {
 namespace gdb {
     class Graph;
     class Value;
@@ -42,7 +42,7 @@ namespace mld {
 class MLD_API LayerDao : public AbstractDao
 {
 public:
-    LayerDao( dex::gdb::Graph* g );
+    LayerDao( sparksee::gdb::Graph* g );
     virtual ~LayerDao() override;
 
     Layer addBaseLayer();
@@ -65,7 +65,7 @@ public:
 
     int64_t countLayers();
     bool updateLayer( const Layer& layer );
-    Layer getLayer( dex::gdb::oid_t id );
+    Layer getLayer( sparksee::gdb::oid_t id );
     bool exists( const Layer& layer );
 
     /**
@@ -74,26 +74,26 @@ public:
      * @param layer2
      * @return TRue is one of the layer is child of the other
      */
-    bool affiliated( dex::gdb::oid_t src, dex::gdb::oid_t tgt );
+    bool affiliated( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
 
 private:
-    dex::gdb::oid_t addLayer();
-    bool removeLayer( dex::gdb::oid_t lid );
+    sparksee::gdb::oid_t addLayer();
+    bool removeLayer( sparksee::gdb::oid_t lid );
 
-    bool attachOnTop( dex::gdb::oid_t newId );
-    bool attachOnBottom( dex::gdb::oid_t newId );
+    bool attachOnTop( sparksee::gdb::oid_t newId );
+    bool attachOnBottom( sparksee::gdb::oid_t newId );
 
-    dex::gdb::oid_t baseLayerImpl();
-    void setAsBaseLayerImpl( dex::gdb::oid_t newId );
+    sparksee::gdb::oid_t baseLayerImpl();
+    void setAsBaseLayerImpl( sparksee::gdb::oid_t newId );
 
-    dex::gdb::oid_t topLayerImpl();
-    dex::gdb::oid_t bottomLayerImpl();
+    sparksee::gdb::oid_t topLayerImpl();
+    sparksee::gdb::oid_t bottomLayerImpl();
 
-    dex::gdb::oid_t parentImpl( dex::gdb::oid_t lid );
-    dex::gdb::oid_t childImpl( dex::gdb::oid_t lid );
+    sparksee::gdb::oid_t parentImpl( sparksee::gdb::oid_t lid );
+    sparksee::gdb::oid_t childImpl( sparksee::gdb::oid_t lid );
 
 private:
-    dex::gdb::type_t m_lType;
+    sparksee::gdb::type_t m_lType;
 };
 
 } // end namespace mld

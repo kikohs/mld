@@ -18,28 +18,28 @@
 
 #include <gtest/gtest.h>
 
-#include <dex/gdb/Graph.h>
-#include <dex/gdb/Objects.h>
-#include <dex/gdb/ObjectsIterator.h>
+#include <sparksee/gdb/Graph.h>
+#include <sparksee/gdb/Objects.h>
+#include <sparksee/gdb/ObjectsIterator.h>
 
 #include <mld/common.h>
 #include <mld/config.h>
-#include <mld/DexManager.h>
+#include <mld/SparkseeManager.h>
 
 #include <mld/dao/SNodeDao.h>
 
 using namespace mld;
-using namespace dex::gdb;
+using namespace sparksee::gdb;
 
 TEST( SNodeDaoTest, CRUD )
 {
-    mld::DexManager dexManager(mld::kRESOURCES_DIR + L"mydex.cfg");
-    dexManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.dex", L"MLDTest");
+    mld::SparkseeManager sparkseeManager(mld::kRESOURCES_DIR + L"mysparksee.cfg");
+    sparkseeManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.sparksee", L"MLDTest");
 
-    SessionPtr sess = dexManager.newSession();
+    SessionPtr sess = sparkseeManager.newSession();
     Graph* g = sess->GetGraph();
     // Create Db scheme
-    dexManager.createScheme(g);
+    sparkseeManager.createScheme(g);
 
     std::unique_ptr<SNodeDao> dao( new SNodeDao(g) );
 

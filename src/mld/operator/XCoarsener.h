@@ -19,7 +19,7 @@
 #ifndef MLD_XCOARSENER_H
 #define MLD_XCOARSENER_H
 
-#include <dex/gdb/Objects.h>
+#include <sparksee/gdb/Objects.h>
 
 #include "mld/common.h"
 #include "mld/operator/AbstractCoarsener.h"
@@ -37,7 +37,7 @@ class XSelector;
 class MLD_API XCoarsener: public AbstractCoarsener
 {
 public:
-    XCoarsener( dex::gdb::Graph* g );
+    XCoarsener( sparksee::gdb::Graph* g );
     virtual ~XCoarsener() override;
 
 protected:

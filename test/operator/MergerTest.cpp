@@ -18,30 +18,30 @@
 
 #include <gtest/gtest.h>
 
-#include <dex/gdb/Graph.h>
-#include <dex/gdb/Objects.h>
-#include <dex/gdb/ObjectsIterator.h>
+#include <sparksee/gdb/Graph.h>
+#include <sparksee/gdb/Objects.h>
+#include <sparksee/gdb/ObjectsIterator.h>
 
 #include <mld/common.h>
 #include <mld/config.h>
-#include <mld/DexManager.h>
+#include <mld/SparkseeManager.h>
 
 #include <mld/operator/mergers.h>
 #include <mld/operator/selectors.h>
 #include <mld/dao/MLGDao.h>
 
 using namespace mld;
-using namespace dex::gdb;
+using namespace sparksee::gdb;
 
 TEST( BasicAdditiveMergerTest, Check1 )
 {
-    mld::DexManager dexManager(mld::kRESOURCES_DIR + L"mydex.cfg");
-    dexManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.dex", L"MLDTest");
+    mld::SparkseeManager sparkseeManager(mld::kRESOURCES_DIR + L"mysparksee.cfg");
+    sparkseeManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.sparksee", L"MLDTest");
 
-    SessionPtr sess = dexManager.newSession();
+    SessionPtr sess = sparkseeManager.newSession();
     Graph* g = sess->GetGraph();
     // Create Db scheme
-    dexManager.createScheme(g);
+    sparkseeManager.createScheme(g);
     std::unique_ptr<MLGDao> dao( new MLGDao(g) );
 
     Layer base = dao->addBaseLayer();
@@ -112,7 +112,7 @@ TEST( BasicAdditiveMergerTest, Check1 )
     auto n3Parents = dao->getParentNodes(n3.id());
     EXPECT_EQ(n3Parents.size(), size_t(1));
     HLink HL23 = dao->getHLink(N2.id(), n3Parents[0].id());
-    EXPECT_NE(HL23.id(), dex::gdb::Objects::InvalidOID);
+    EXPECT_NE(HL23.id(), sparksee::gdb::Objects::InvalidOID);
     EXPECT_EQ(HL23.weight(), hl13.weight() + hl23.weight());
 
     // Check N2 parents, should be 2 (1 n1, 1 n2)
@@ -127,13 +127,13 @@ TEST( BasicAdditiveMergerTest, Check1 )
 
 TEST( MultiAdditiveMergerTest, Check )
 {
-    mld::DexManager dexManager(mld::kRESOURCES_DIR + L"mydex.cfg");
-    dexManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.dex", L"MLDTest");
+    mld::SparkseeManager sparkseeManager(mld::kRESOURCES_DIR + L"mysparksee.cfg");
+    sparkseeManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.sparksee", L"MLDTest");
 
-    SessionPtr sess = dexManager.newSession();
+    SessionPtr sess = sparkseeManager.newSession();
     Graph* g = sess->GetGraph();
     // Create Db scheme
-    dexManager.createScheme(g);
+    sparkseeManager.createScheme(g);
 
     std::unique_ptr<MLGDao> dao( new MLGDao(g) );
     Layer base = dao->addBaseLayer();

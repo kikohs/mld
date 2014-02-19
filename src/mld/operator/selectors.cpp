@@ -26,7 +26,7 @@
 
 using namespace mld;
 
-HeavyEdgeSelector::HeavyEdgeSelector( dex::gdb::Graph* g )
+HeavyEdgeSelector::HeavyEdgeSelector( sparksee::gdb::Graph* g )
     : AbstractSingleSelector(g)
 {
 }

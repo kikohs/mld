@@ -19,7 +19,7 @@
 #ifndef MLD_LINK_H
 #define MLD_LINK_H
 
-#include <dex/gdb/common.h>
+#include <sparksee/gdb/common.h>
 #include "mld/common.h"
 
 namespace mld {
@@ -32,22 +32,22 @@ class MLD_API Link
 public:
     virtual ~Link() = 0;
 
-    dex::gdb::oid_t id() const { return m_id; }
-    dex::gdb::oid_t source() const { return m_src; }
-    dex::gdb::oid_t target() const { return m_tgt; }
+    sparksee::gdb::oid_t id() const { return m_id; }
+    sparksee::gdb::oid_t source() const { return m_src; }
+    sparksee::gdb::oid_t target() const { return m_tgt; }
 
 protected:
     Link();
-    Link( dex::gdb::oid_t src, dex::gdb::oid_t tgt );
+    Link( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
 
-    void setId( dex::gdb::oid_t id ) { m_id = id; }
-    void setSource( dex::gdb::oid_t src ) { m_src = src; }
-    void setTarget( dex::gdb::oid_t tgt ) { m_tgt = tgt; }
+    void setId( sparksee::gdb::oid_t id ) { m_id = id; }
+    void setSource( sparksee::gdb::oid_t src ) { m_src = src; }
+    void setTarget( sparksee::gdb::oid_t tgt ) { m_tgt = tgt; }
 
 protected:
-    dex::gdb::oid_t m_id;
-    dex::gdb::oid_t m_src;
-    dex::gdb::oid_t m_tgt;
+    sparksee::gdb::oid_t m_id;
+    sparksee::gdb::oid_t m_src;
+    sparksee::gdb::oid_t m_tgt;
 };
 
 
@@ -67,8 +67,8 @@ public:
 
 protected:
     HLink();
-    HLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt );
-    HLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt, double weight );
+    HLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
+    HLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt, double weight );
 
 private:
     double m_weight;
@@ -93,8 +93,8 @@ public:
 
 private:
     VLink();
-    VLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt );
-    VLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt, double weight );
+    VLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
+    VLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt, double weight );
 
 private:
     double m_weight;

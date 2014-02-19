@@ -24,7 +24,7 @@
 #include <string>
 
 #include <mld/config.h>
-#include <mld/DexManager.h>
+#include <mld/SparkseeManager.h>
 #include <mld/Session.h>
 #include <mld/io/GraphImporter.h>
 #include <mld/utils/Timer.h>
@@ -86,13 +86,13 @@ int main( int argc, char *argv[] )
     if( !ok )
         return EXIT_FAILURE;
 
-    mld::DexManager dexManager(ctx.workDir + L"mydex.cfg");
-    dexManager.createDatabase(ctx.workDir + ctx.dbName + L".dex", ctx.dbName);
+    mld::SparkseeManager sparkseeManager(ctx.workDir + L"mysparksee.cfg");
+    sparkseeManager.createDatabase(ctx.workDir + ctx.dbName + L".sparksee", ctx.dbName);
 
-    SessionPtr sess = dexManager.newSession();
-    dex::gdb::Graph* g = sess->GetGraph();
+    SessionPtr sess = sparkseeManager.newSession();
+    sparksee::gdb::Graph* g = sess->GetGraph();
     // Create Db scheme
-    dexManager.createScheme(g);
+    sparkseeManager.createScheme(g);
     sess->Begin();
     GraphImporter::fromSnapFormat(g, ctx.inputPath);
     sess->Commit();

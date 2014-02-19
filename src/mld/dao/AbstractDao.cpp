@@ -16,14 +16,14 @@
 **
 ****************************************************************************/
 
-#include <dex/gdb/Value.h>
+#include <sparksee/gdb/Value.h>
 #include "mld/dao/AbstractDao.h"
 
 using namespace mld;
 
-AbstractDao::AbstractDao( dex::gdb::Graph* g )
+AbstractDao::AbstractDao( sparksee::gdb::Graph* g )
     : m_g(g)
-    , m_v( new dex::gdb::Value )
+    , m_v( new sparksee::gdb::Value )
 {
 }
 

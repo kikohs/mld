@@ -9,7 +9,7 @@ macro(append_tool tool_name tool_srcs)
 endmacro(append_tool)
 
 # Append tool here
-append_tool(HelloDex hello_dex.cpp)
+append_tool(HelloSparksee hello_sparksee.cpp)
 append_tool(SnapParser snap_parser.cpp)
 
 
@@ -29,11 +29,11 @@ foreach(val RANGE ${len2})
 
     get_property( CONFIG_LOCATION TARGET ${tool_name} PROPERTY LOCATION )
 
-    # POST BUILD relinking for Dex library. Otherwise you need to copy libdex to the /bin directory
+    # POST BUILD relinking for Sparksee library. Otherwise you need to copy libsparksee to the /bin directory
     if( APPLE )
         add_custom_command(TARGET ${tool_name}
             POST_BUILD
-            COMMAND /usr/bin/install_name_tool -change @loader_path/libdex.dylib ${LIBRARY_OUTPUT_PATH}/libdex.dylib ${CONFIG_LOCATION}
+            COMMAND /usr/bin/install_name_tool -change @loader_path/libsparksee.dylib ${LIBRARY_OUTPUT_PATH}/libsparksee.dylib ${CONFIG_LOCATION}
             WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH}
             DEPENDS ${tool_name}
         )

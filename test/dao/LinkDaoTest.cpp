@@ -18,29 +18,29 @@
 
 #include <gtest/gtest.h>
 
-#include <dex/gdb/Graph.h>
-#include <dex/gdb/Objects.h>
-#include <dex/gdb/ObjectsIterator.h>
+#include <sparksee/gdb/Graph.h>
+#include <sparksee/gdb/Objects.h>
+#include <sparksee/gdb/ObjectsIterator.h>
 
 #include <mld/common.h>
 #include <mld/config.h>
-#include <mld/DexManager.h>
+#include <mld/SparkseeManager.h>
 
 #include <mld/dao/LinkDao.h>
 #include <mld/dao/SNodeDao.h>
 
 using namespace mld;
-using namespace dex::gdb;
+using namespace sparksee::gdb;
 
 TEST( LinkDaoTest, H_LINK_add )
 {
-    mld::DexManager dexManager(mld::kRESOURCES_DIR + L"mydex.cfg");
-    dexManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.dex", L"MLDTest");
+    mld::SparkseeManager sparkseeManager(mld::kRESOURCES_DIR + L"mysparksee.cfg");
+    sparkseeManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.sparksee", L"MLDTest");
 
-    SessionPtr sess = dexManager.newSession();
+    SessionPtr sess = sparkseeManager.newSession();
     Graph* g = sess->GetGraph();
     // Create Db scheme
-    dexManager.createScheme(g);
+    sparkseeManager.createScheme(g);
 
     std::unique_ptr<LinkDao> lkDao( new LinkDao(g) );
     std::unique_ptr<SNodeDao> snDao( new SNodeDao(g) );
@@ -97,13 +97,13 @@ TEST( LinkDaoTest, H_LINK_add )
 
 TEST( LinkDaoTest, V_LINK_add )
 {
-    mld::DexManager dexManager(mld::kRESOURCES_DIR + L"mydex.cfg");
-    dexManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.dex", L"MLDTest");
+    mld::SparkseeManager sparkseeManager(mld::kRESOURCES_DIR + L"mysparksee.cfg");
+    sparkseeManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.sparksee", L"MLDTest");
 
-    SessionPtr sess = dexManager.newSession();
+    SessionPtr sess = sparkseeManager.newSession();
     Graph* g = sess->GetGraph();
     // Create Db scheme
-    dexManager.createScheme(g);
+    sparkseeManager.createScheme(g);
 
     std::unique_ptr<LinkDao> lkDao( new LinkDao(g) );
     std::unique_ptr<SNodeDao> snDao( new SNodeDao(g) );
@@ -159,13 +159,13 @@ TEST( LinkDaoTest, V_LINK_add )
 
 TEST( LinkDaoTest, H_LINK_get )
 {
-    mld::DexManager dexManager(mld::kRESOURCES_DIR + L"mydex.cfg");
-    dexManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.dex", L"MLDTest");
+    mld::SparkseeManager sparkseeManager(mld::kRESOURCES_DIR + L"mysparksee.cfg");
+    sparkseeManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.sparksee", L"MLDTest");
 
-    SessionPtr sess = dexManager.newSession();
+    SessionPtr sess = sparkseeManager.newSession();
     Graph* g = sess->GetGraph();
     // Create Db scheme
-    dexManager.createScheme(g);
+    sparkseeManager.createScheme(g);
 
     std::unique_ptr<LinkDao> lkDao( new LinkDao(g) );
     std::unique_ptr<SNodeDao> snDao( new SNodeDao(g) );
@@ -173,9 +173,9 @@ TEST( LinkDaoTest, H_LINK_get )
 #ifdef MLD_SAFE
     // Invalid ids
     auto r = lkDao->getHLink(87687, 4541);
-    EXPECT_EQ(r.id(), dex::gdb::Objects::InvalidOID);
+    EXPECT_EQ(r.id(), sparksee::gdb::Objects::InvalidOID);
     auto r2 = lkDao->getHLink(87687);
-    EXPECT_EQ(r2.id(), dex::gdb::Objects::InvalidOID);
+    EXPECT_EQ(r2.id(), sparksee::gdb::Objects::InvalidOID);
 #endif
 
     // Add node first
@@ -222,13 +222,13 @@ TEST( LinkDaoTest, H_LINK_get )
 
 TEST( LinkDaoTest, V_LINK_get )
 {
-    mld::DexManager dexManager(mld::kRESOURCES_DIR + L"mydex.cfg");
-    dexManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.dex", L"MLDTest");
+    mld::SparkseeManager sparkseeManager(mld::kRESOURCES_DIR + L"mysparksee.cfg");
+    sparkseeManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.sparksee", L"MLDTest");
 
-    SessionPtr sess = dexManager.newSession();
+    SessionPtr sess = sparkseeManager.newSession();
     Graph* g = sess->GetGraph();
     // Create Db scheme
-    dexManager.createScheme(g);
+    sparkseeManager.createScheme(g);
 
     std::unique_ptr<LinkDao> lkDao( new LinkDao(g) );
     std::unique_ptr<SNodeDao> snDao( new SNodeDao(g) );
@@ -236,10 +236,10 @@ TEST( LinkDaoTest, V_LINK_get )
 #ifdef MLD_SAFE
     // Invalid ids
     auto r = lkDao->getVLink(87687, 4541);
-    EXPECT_EQ(r.id(), dex::gdb::Objects::InvalidOID);
+    EXPECT_EQ(r.id(), sparksee::gdb::Objects::InvalidOID);
     // Invalid id
     auto r2 = lkDao->getVLink(87687);
-    EXPECT_EQ(r2.id(), dex::gdb::Objects::InvalidOID);
+    EXPECT_EQ(r2.id(), sparksee::gdb::Objects::InvalidOID);
 #endif
     // Add node first
     SuperNode n1 = snDao->addNode();
@@ -286,13 +286,13 @@ TEST( LinkDaoTest, V_LINK_get )
 
 TEST( LinkDaoTest, H_LINK_remove )
 {
-    mld::DexManager dexManager(mld::kRESOURCES_DIR + L"mydex.cfg");
-    dexManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.dex", L"MLDTest");
+    mld::SparkseeManager sparkseeManager(mld::kRESOURCES_DIR + L"mysparksee.cfg");
+    sparkseeManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.sparksee", L"MLDTest");
 
-    SessionPtr sess = dexManager.newSession();
+    SessionPtr sess = sparkseeManager.newSession();
     Graph* g = sess->GetGraph();
     // Create Db scheme
-    dexManager.createScheme(g);
+    sparkseeManager.createScheme(g);
 
     std::unique_ptr<LinkDao> lkDao( new LinkDao(g) );
     std::unique_ptr<SNodeDao> snDao( new SNodeDao(g) );
@@ -342,13 +342,13 @@ TEST( LinkDaoTest, H_LINK_remove )
 
 TEST( LinkDaoTest, V_LINK_remove )
 {
-    mld::DexManager dexManager(mld::kRESOURCES_DIR + L"mydex.cfg");
-    dexManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.dex", L"MLDTest");
+    mld::SparkseeManager sparkseeManager(mld::kRESOURCES_DIR + L"mysparksee.cfg");
+    sparkseeManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.sparksee", L"MLDTest");
 
-    SessionPtr sess = dexManager.newSession();
+    SessionPtr sess = sparkseeManager.newSession();
     Graph* g = sess->GetGraph();
     // Create Db scheme
-    dexManager.createScheme(g);
+    sparkseeManager.createScheme(g);
 
     std::unique_ptr<LinkDao> lkDao( new LinkDao(g) );
     std::unique_ptr<SNodeDao> snDao( new SNodeDao(g) );
@@ -398,13 +398,13 @@ TEST( LinkDaoTest, V_LINK_remove )
 
 TEST( LinkDaoTest, H_LINK_update )
 {
-    mld::DexManager dexManager(mld::kRESOURCES_DIR + L"mydex.cfg");
-    dexManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.dex", L"MLDTest");
+    mld::SparkseeManager sparkseeManager(mld::kRESOURCES_DIR + L"mysparksee.cfg");
+    sparkseeManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.sparksee", L"MLDTest");
 
-    SessionPtr sess = dexManager.newSession();
+    SessionPtr sess = sparkseeManager.newSession();
     Graph* g = sess->GetGraph();
     // Create Db scheme
-    dexManager.createScheme(g);
+    sparkseeManager.createScheme(g);
 
     std::unique_ptr<LinkDao> lkDao( new LinkDao(g) );
     std::unique_ptr<SNodeDao> snDao( new SNodeDao(g) );
@@ -450,13 +450,13 @@ TEST( LinkDaoTest, H_LINK_update )
 
 TEST( LinkDaoTest, V_LINK_update )
 {
-    mld::DexManager dexManager(mld::kRESOURCES_DIR + L"mydex.cfg");
-    dexManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.dex", L"MLDTest");
+    mld::SparkseeManager sparkseeManager(mld::kRESOURCES_DIR + L"mysparksee.cfg");
+    sparkseeManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.sparksee", L"MLDTest");
 
-    SessionPtr sess = dexManager.newSession();
+    SessionPtr sess = sparkseeManager.newSession();
     Graph* g = sess->GetGraph();
     // Create Db scheme
-    dexManager.createScheme(g);
+    sparkseeManager.createScheme(g);
 
     std::unique_ptr<LinkDao> lkDao( new LinkDao(g) );
     std::unique_ptr<SNodeDao> snDao( new SNodeDao(g) );

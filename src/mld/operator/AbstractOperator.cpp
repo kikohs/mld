@@ -21,7 +21,7 @@
 
 using namespace mld;
 
-AbstractOperator::AbstractOperator( dex::gdb::Graph* g )
+AbstractOperator::AbstractOperator( sparksee::gdb::Graph* g )
     : m_dao( new MLGDao(g) )
 {
 }

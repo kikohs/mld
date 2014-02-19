@@ -25,7 +25,7 @@
 #include "mld/dao/AbstractDao.h"
 #include "mld/model/Link.h"
 
-namespace dex {
+namespace sparksee {
 namespace gdb {
     class Graph;
     class Value;
@@ -40,49 +40,49 @@ namespace mld {
 class MLD_API LinkDao : public AbstractDao
 {
 public:
-    LinkDao( dex::gdb::Graph* g );
+    LinkDao( sparksee::gdb::Graph* g );
     virtual ~LinkDao() override;
 
-    HLink addHLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt );
-    HLink addHLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt, double weight );
+    HLink addHLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
+    HLink addHLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt, double weight );
 
-    VLink addVLink( dex::gdb::oid_t child, dex::gdb::oid_t parent );
-    VLink addVLink( dex::gdb::oid_t child, dex::gdb::oid_t parent, double weight );
+    VLink addVLink( sparksee::gdb::oid_t child, sparksee::gdb::oid_t parent );
+    VLink addVLink( sparksee::gdb::oid_t child, sparksee::gdb::oid_t parent, double weight );
 
-    HLink getHLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt );
-    HLink getHLink( dex::gdb::oid_t hid );
+    HLink getHLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
+    HLink getHLink( sparksee::gdb::oid_t hid );
     std::vector<HLink> getHLink( const ObjectsPtr& objs );
-    HLink getOrCreateHLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt, double weight );
+    HLink getOrCreateHLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt, double weight );
 
-    VLink getVLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt );
-    VLink getVLink( dex::gdb::oid_t vid );
+    VLink getVLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
+    VLink getVLink( sparksee::gdb::oid_t vid );
     std::vector<VLink> getVLink( const ObjectsPtr& objs );
 
-    bool removeHLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt );
-    bool removeHLink( dex::gdb::oid_t hid );
+    bool removeHLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
+    bool removeHLink( sparksee::gdb::oid_t hid );
 
-    bool removeVLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt );
-    bool removeVLink( dex::gdb::oid_t vid );
+    bool removeVLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
+    bool removeVLink( sparksee::gdb::oid_t vid );
 
-    bool updateHLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt, double weight );
-    bool updateHLink( dex::gdb::oid_t hid, double weight );
+    bool updateHLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt, double weight );
+    bool updateHLink( sparksee::gdb::oid_t hid, double weight );
 
-    bool updateVLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt, double weight );
-    bool updateVLink( dex::gdb::oid_t vid, double weight );
+    bool updateVLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt, double weight );
+    bool updateVLink( sparksee::gdb::oid_t vid, double weight );
 
-    dex::gdb::type_t hlinkType() const { return m_hType; }
-    dex::gdb::type_t vlinkType() const { return m_vType; }
-
-private:
-    double getWeight( dex::gdb::type_t edgeType, dex::gdb::oid_t id );
-    bool setWeight( dex::gdb::type_t edgeType, dex::gdb::oid_t id, double weight );
-
-    bool removeLinkImpl( dex::gdb::type_t edgeType, dex::gdb::oid_t src, dex::gdb::oid_t tgt );
-    bool removeLinkImpl( dex::gdb::type_t edgeType, dex::gdb::oid_t id );
+    sparksee::gdb::type_t hlinkType() const { return m_hType; }
+    sparksee::gdb::type_t vlinkType() const { return m_vType; }
 
 private:
-    dex::gdb::type_t m_hType;
-    dex::gdb::type_t m_vType;
+    double getWeight( sparksee::gdb::type_t edgeType, sparksee::gdb::oid_t id );
+    bool setWeight( sparksee::gdb::type_t edgeType, sparksee::gdb::oid_t id, double weight );
+
+    bool removeLinkImpl( sparksee::gdb::type_t edgeType, sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
+    bool removeLinkImpl( sparksee::gdb::type_t edgeType, sparksee::gdb::oid_t id );
+
+private:
+    sparksee::gdb::type_t m_hType;
+    sparksee::gdb::type_t m_vType;
 };
 
 } // end namespace mld

@@ -20,7 +20,7 @@
 #include <codecvt>
 #include <string>
 
-#include <dex/gdb/Objects.h>
+#include <sparksee/gdb/Objects.h>
 #include "mld/model/SuperNode.h"
 
 using namespace mld;
@@ -28,11 +28,11 @@ using namespace mld;
 // ****** NODE ****** //
 
 Node::Node()
-    : m_id(dex::gdb::Objects::InvalidOID)
+    : m_id(sparksee::gdb::Objects::InvalidOID)
 {
 }
 
-Node::Node( dex::gdb::oid_t id )
+Node::Node( sparksee::gdb::oid_t id )
     : m_id(id)
 {
 }
@@ -52,7 +52,7 @@ SuperNode::SuperNode()
 {
 }
 
-SuperNode::SuperNode( dex::gdb::oid_t id )
+SuperNode::SuperNode( sparksee::gdb::oid_t id )
     : Node(id)
     , m_weight(kSUPERNODE_DEF_VALUE)
     , m_label(L"")
@@ -60,7 +60,7 @@ SuperNode::SuperNode( dex::gdb::oid_t id )
 {
 }
 
-SuperNode::SuperNode( dex::gdb::oid_t id, const std::wstring& label, double weight , bool isRoot )
+SuperNode::SuperNode( sparksee::gdb::oid_t id, const std::wstring& label, double weight , bool isRoot )
     : Node(id)
     , m_weight(weight)
     , m_label(label)

@@ -16,17 +16,17 @@
 **
 ****************************************************************************/
 
-#include <dex/gdb/Graph.h>
-#include <dex/gdb/Objects.h>
-#include <dex/gdb/Graph_data.h>
-#include <dex/gdb/Value.h>
+#include <sparksee/gdb/Graph.h>
+#include <sparksee/gdb/Objects.h>
+#include <sparksee/gdb/Graph_data.h>
+#include <sparksee/gdb/Value.h>
 
 #include "mld/Graph_types.h"
 #include "mld/dao/LayerDao.h"
 #include "mld/utils/log.h"
 
 using namespace mld;
-using namespace dex::gdb;
+using namespace sparksee::gdb;
 
 LayerDao::LayerDao( Graph* g )
     : AbstractDao(g)

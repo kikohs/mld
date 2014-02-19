@@ -19,7 +19,7 @@
 #include <gtest/gtest.h>
 
 #include <mld/config.h>
-#include <mld/DexManager.h>
+#include <mld/SparkseeManager.h>
 
 #include <mld/operator/coarseners.h>
 #include <mld/dao/MLGDao.h>
@@ -29,13 +29,13 @@ using namespace mld;
 
 TEST( CoarsenerTest, HeavyEdgeCoarsenerTest )
 {
-    mld::DexManager dexManager(mld::kRESOURCES_DIR + L"mydex.cfg");
-    dexManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.dex", L"MLDTest");
+    mld::SparkseeManager sparkseeManager(mld::kRESOURCES_DIR + L"mysparksee.cfg");
+    sparkseeManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.sparksee", L"MLDTest");
 
-    SessionPtr sess = dexManager.newSession();
-    dex::gdb::Graph* g = sess->GetGraph();
+    SessionPtr sess = sparkseeManager.newSession();
+    sparksee::gdb::Graph* g = sess->GetGraph();
     // Create Db scheme
-    dexManager.createScheme(g);
+    sparkseeManager.createScheme(g);
     std::unique_ptr<MLGDao> dao( new MLGDao(g) );
 
     std::unique_ptr<HeavyEdgeCoarsener> coarsener( new HeavyEdgeCoarsener(g) );
@@ -116,13 +116,13 @@ TEST( CoarsenerTest, HeavyEdgeCoarsenerTest )
 
 TEST( CoarsenerTest, XCoarsenerFirstPassAndMirror )
 {
-    mld::DexManager dexManager(mld::kRESOURCES_DIR + L"mydex.cfg");
-    dexManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.dex", L"MLDTest");
+    mld::SparkseeManager sparkseeManager(mld::kRESOURCES_DIR + L"mysparksee.cfg");
+    sparkseeManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.sparksee", L"MLDTest");
 
-    SessionPtr sess = dexManager.newSession();
-    dex::gdb::Graph* g = sess->GetGraph();
+    SessionPtr sess = sparkseeManager.newSession();
+    sparksee::gdb::Graph* g = sess->GetGraph();
     // Create Db scheme
-    dexManager.createScheme(g);
+    sparkseeManager.createScheme(g);
     std::unique_ptr<MLGDao> dao( new MLGDao(g) );
     std::unique_ptr<XCoarsener> coarsener( new XCoarsener(g) );
     // No layer
@@ -184,13 +184,13 @@ TEST( CoarsenerTest, XCoarsenerFirstPassAndMirror )
 
     // n4 top should be linked to the other tops
     HLink n43t = dao->getHLink(n4t.id(), n3t.id());
-    EXPECT_NE(dex::gdb::Objects::InvalidOID, n43t.id());
+    EXPECT_NE(sparksee::gdb::Objects::InvalidOID, n43t.id());
     HLink n42t = dao->getHLink(n4t.id(), n2t.id());
-    EXPECT_NE(dex::gdb::Objects::InvalidOID, n42t.id());
+    EXPECT_NE(sparksee::gdb::Objects::InvalidOID, n42t.id());
 
     // Hlink should exists between n3t and n2t
     HLink n32t = dao->getHLink(n3t.id(), n2t.id());
-    EXPECT_NE(dex::gdb::Objects::InvalidOID, n32t.id());
+    EXPECT_NE(sparksee::gdb::Objects::InvalidOID, n32t.id());
     EXPECT_DOUBLE_EQ(7, n32t.weight());
 
 //    // Redo coarsening
@@ -218,13 +218,13 @@ TEST( CoarsenerTest, XCoarsenerFirstPassAndMirror )
 
 TEST( CoarsenerTest, XCoarsenerSecondPass )
 {
-    mld::DexManager dexManager(mld::kRESOURCES_DIR + L"mydex.cfg");
-    dexManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.dex", L"MLDTest");
+    mld::SparkseeManager sparkseeManager(mld::kRESOURCES_DIR + L"mysparksee.cfg");
+    sparkseeManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.sparksee", L"MLDTest");
 
-    SessionPtr sess = dexManager.newSession();
-    dex::gdb::Graph* g = sess->GetGraph();
+    SessionPtr sess = sparkseeManager.newSession();
+    sparksee::gdb::Graph* g = sess->GetGraph();
     // Create Db scheme
-    dexManager.createScheme(g);
+    sparkseeManager.createScheme(g);
     std::unique_ptr<MLGDao> dao( new MLGDao(g) );
     std::unique_ptr<XCoarsener> coarsener( new XCoarsener(g) );
     Layer base = dao->addBaseLayer();

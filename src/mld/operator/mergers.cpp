@@ -16,11 +16,11 @@
 **
 ****************************************************************************/
 
-#include <dex/gdb/Graph.h>
-#include <dex/gdb/Objects.h>
-#include <dex/gdb/ObjectsIterator.h>
-#include <dex/gdb/Graph_data.h>
-#include <dex/gdb/Value.h>
+#include <sparksee/gdb/Graph.h>
+#include <sparksee/gdb/Objects.h>
+#include <sparksee/gdb/ObjectsIterator.h>
+#include <sparksee/gdb/Graph_data.h>
+#include <sparksee/gdb/Value.h>
 
 #include "mld/operator/mergers.h"
 #include "mld/dao/MLGDao.h"
@@ -30,7 +30,7 @@
 #endif
 
 using namespace mld;
-using namespace dex::gdb;
+using namespace sparksee::gdb;
 
 namespace {
 
@@ -51,7 +51,7 @@ std::pair<SuperNode, SuperNode> getHeaviestNodeFirst( const HLink& hlink, MLGDao
 
 } // end namespace anonymous
 
-BasicAdditiveMerger::BasicAdditiveMerger( dex::gdb::Graph* g )
+BasicAdditiveMerger::BasicAdditiveMerger( sparksee::gdb::Graph* g )
     : AbstractSingleMerger(g)
 {
 }

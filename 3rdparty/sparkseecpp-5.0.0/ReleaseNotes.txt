@@ -1,0 +1,13 @@
+=============================================================================
+Version 5.0 (February 2014)
+=============================================================================
+- DEX is now called SPARKSEE.
+- New PYTHON interface: Sparkseepython.
+- Added support for 64 bits processors on iOS.
+- New Select APIs to restrict the search on a given set of Objects.
+- New RenameType and RenameAttribute APIs added.
+- New APIs FindOrCreateEdge and FindOrCreateObject documentation update.
+- Fixed a problem using textstreams with HighAvailability.
+- Performance improvement on some Select and Neighbors operations.
+- General bug fixing.
+

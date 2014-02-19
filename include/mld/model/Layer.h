@@ -19,7 +19,7 @@
 #ifndef MLD_LAYER_H
 #define MLD_LAYER_H
 
-#include <dex/gdb/common.h>
+#include <sparksee/gdb/common.h>
 #include "mld/common.h"
 
 namespace mld {
@@ -32,7 +32,7 @@ public:
     virtual ~Layer();
 
     // Read only data
-    dex::gdb::oid_t id() const { return m_id; }
+    sparksee::gdb::oid_t id() const { return m_id; }
     bool isBaseLayer() const { return m_isBase; }
 
     void setDescription( const std::wstring& des ) { m_desc = des; }
@@ -40,10 +40,10 @@ public:
 
 protected:
     Layer();
-    Layer( dex::gdb::oid_t id );
+    Layer( sparksee::gdb::oid_t id );
 
 protected:
-    dex::gdb::oid_t m_id;
+    sparksee::gdb::oid_t m_id;
     bool m_isBase;
     std::wstring m_desc;
 };

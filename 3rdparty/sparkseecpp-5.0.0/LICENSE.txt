@@ -1,0 +1,161 @@
+Software end-user license agreement
+===================================
+
+NOTICE TO THE USER: BY COPYING, INSTALLING OR USING THIS SOFTWARE OR PART OF
+THIS SOFTWARE, YOU AGREE TO THE TERMS AND CONDITIONS OF THIS AGREEMENT AS IF
+IT WERE A WRITTEN AGREEMENT NEGOTIATED AND SIGNED BY YOU.  THIS AGREEMENT IS
+ENFORCEABLE AGAINST YOU AND ANY OTHER LEGAL PERSON ACTING ON YOUR BEHALF. 
+
+IF, AFTER READING THE TERMS AND CONDITIONS HEREIN, YOU DO NOT AGREE TO THEM,
+YOU MAY NOT INSTALL THIS SOFTWARE ON YOUR COMPUTER. 
+
+SPARSITY, S.L. (hereinafter "the licensor") IS AN SPANISH SPIN-OUT COMPANY OF
+THE UNIVERSITAT POLITECNICA DE CATALUNYA (UPC) AND IS THE EXCLUSIVE LICENSOR
+OF ALL THE INTELLECTUAL PROPERTY OF THE SOFTWARE AND ONLY AUTHORIZES YOU TO
+USE THE SOFTWARE IN ACCORDANCE WITH THE TERMS SET OUT IN THIS AGREEMENT.
+
+1. Definitions
+==============
+
+"Software" means (a) all the information provided in this agreement, including
+but not limited to (i) software files and other computer information belonging
+to the licensor or third parties; (ii) written material and explanatory files
+("Documentation"); and (b) any modified versions and copies of this
+information, such as improvements, updates and additions to the information
+provided to you by the licensor at any time, insofar as it is not the object
+of another agreement (collectively,"Updates").
+
+"User" means the physical or legal person who accepts the terms and conditions
+of this agreement.
+
+"Computer" means a computer device that accepts information in digital or
+similar form and processes that information to achieve a specific result based
+on a sequence of instructions.
+
+
+2. Intellectual Property
+========================
+
+The Software and the authorized copies are property of UPC and Sparsity S.L is
+the exclusive licensor. This agreement shall not imply the waiver ortransfer,
+in whole or in part , of this ownership neither by UPC nor the licensor. The
+Software is protected by law, including, but not limited to, the laws of Spain
+and other countries on intellectual property, and by the applicable
+international agreements. Except to the extent expressly stipulated here, this
+agreement does not grant the user any intellectual property rights over the
+Software. All rights not expressly granted are reserved for the licensor. 
+
+
+3. Single License
+=================
+
+The licensor grants the user a FREE and non-exclusive single license to use the
+Software. The user may: 
+
+1) Install and use a copy of the Software for personal, research or 
+   development use on a single computer
+
+2) Develop software using the Software licensed
+
+3) License software developed using the licensed Software to third parties with
+   no commercial purpose
+
+This agreement does not authorize the user to do any of the following:
+
+1) Use or copy the Software in any way other than that specified in this
+   agreement;
+
+2) Disassemble, decompile or translate the Software, or modify it in any way
+   other than that permitted by the specific Spanish law on intellectual
+   property; 
+
+3) Sublicense, lease, rent, sell, transfer or transmit his or her right to the
+   use of the Software.
+
+4) Authorize the total or partial copying of the Software onto the computer of
+   another natural or legal person;
+
+5) Use the Software as the basis for software developed by third parties.
+
+Should the user wish to license software developed using the licensed Software
+to third parties, he or she should contact the licensor.
+
+
+
+4. Recognition
+====================
+
+If the Software is used to develop a software or a service, the resulting piece
+of software or service must recognise the source of the Software. In a visible
+place there must be an informative text that the software is "powered by Sparksee"
+and link it to the Software website: www.sparsity-technologies.com
+
+If the Software is used to obtain any published piece of information, the
+publication must recognise the use of the Software. In a visible place there
+must be an informative text and a link to the Software website: 
+www.sparsity-technologies.com
+
+
+
+5. Limited Guarantee
+====================
+
+The licensor does not guarantee the uninterrupted or error-free operation of a
+program or that any defects that may occur will be corrected. The user is
+responsible for the results obtained through the use of the software. 
+
+
+6. Liability
+============
+
+The licensor shall not be liable for any claims for damages, including partial
+or total noncompliance, negligence, falsification or any other claim 
+
+
+7. Authorization for the use of personal data
+=============================================
+
+The user accepts that the licensor uses their personal data for the following
+purposes only:
+
+- Communication of Sparksee updates
+
+- Information about the licensor courses, events and any other licensor
+  product updates
+
+- The licensor may create press releases, or other pieces of news and 
+  notifications using user data
+
+In order to withdraw the authorization, the user shall send an e-mail to the
+following e-mail address: info@sparsity-technologies.com
+
+
+
+8. Other Provisions
+===================
+
+8.1 No legally recognized rights of the user shall be subject to elimination
+    or limitation in virtue of this agreement.
+
+8.2 The licensor may terminate this license if the user fails to comply with
+    the conditions of this agreement. If the licensor decides to terminate the
+    license, this decision also terminates the authorization of the user to
+    make use of the Software.
+
+8.3 The user may not bring any action which may arise from this agreement more
+    than two years after the cause of said action, unless otherwise established
+    by Spanish law without the possibility of contractual waiver or limitation. 
+
+8.4 This license is indefinite and failure to comply with it by the user may
+    give rise to legal action by the licensor at any time.
+
+8.5 The licensor shall not be liable for noncompliance with their obligations
+    when said noncompliance is due to force majeure.
+
+8.6 This agreement is governed by Spanish law and the courts of Barcelona shall
+    be the authority competent to resolve any conflicts that may arise from
+    this agreement.
+
+
+
+Barcelona,  November 15th 2012

@@ -16,19 +16,19 @@
 **
 ****************************************************************************/
 
-#include <dex/gdb/Objects.h>
+#include <sparksee/gdb/Objects.h>
 
 #include "mld/model/Layer.h"
 
 using namespace mld;
 
 Layer::Layer()
-    : m_id(dex::gdb::Objects::InvalidOID)
+    : m_id(sparksee::gdb::Objects::InvalidOID)
     , m_isBase(false)
 {
 }
 
-Layer::Layer( dex::gdb::oid_t id )
+Layer::Layer( sparksee::gdb::oid_t id )
     : m_id(id)
     , m_isBase(false)
 {

@@ -24,7 +24,7 @@
 #include "mld/model/Layer.h"
 #include "mld/model/SuperNode.h"
 
-namespace dex {
+namespace sparksee {
 namespace gdb {
     class Graph;
 }}
@@ -40,7 +40,7 @@ class MLGDao;
 class MLD_API AbstractSelector
 {
 public:
-    AbstractSelector( dex::gdb::Graph* g );
+    AbstractSelector( sparksee::gdb::Graph* g );
     virtual ~AbstractSelector() = 0;
 
     // Disable copy and assignement ctor
@@ -55,7 +55,7 @@ protected:
 class MLD_API AbstractSingleSelector: public AbstractSelector
 {
 public:
-    AbstractSingleSelector( dex::gdb::Graph* g );
+    AbstractSingleSelector( sparksee::gdb::Graph* g );
     virtual ~AbstractSingleSelector() = 0;
     virtual HLink selectBestHLink( const Layer& layer ) = 0;
 };
@@ -64,7 +64,7 @@ public:
 class MLD_API AbstractMultiSelector: public AbstractSelector
 {
 public:
-    AbstractMultiSelector( dex::gdb::Graph* g );
+    AbstractMultiSelector( sparksee::gdb::Graph* g );
     virtual ~AbstractMultiSelector() = 0;
 
     /**
@@ -91,7 +91,7 @@ public:
      * @param node
      * @return SuperNode oids
      */
-    virtual ObjectsPtr getUnflaggedNeighbors( dex::gdb::oid_t node ) = 0;
+    virtual ObjectsPtr getUnflaggedNeighbors( sparksee::gdb::oid_t node ) = 0;
 
     /**
      * @brief Flag node as processed, update 2-hop neighbors score
@@ -105,7 +105,7 @@ public:
      * @param snid input
      * @return flagged
      */
-    virtual bool isFlagged( dex::gdb::oid_t snid ) = 0;
+    virtual bool isFlagged( sparksee::gdb::oid_t snid ) = 0;
 
     /**
      * @brief Filter input to return only flagged nodes

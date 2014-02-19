@@ -17,16 +17,16 @@
 ****************************************************************************/
 
 #include <numeric>  // std::accumulate
-#include <dex/gdb/Graph.h>
-#include <dex/gdb/Objects.h>
-#include <dex/gdb/ObjectsIterator.h>
+#include <sparksee/gdb/Graph.h>
+#include <sparksee/gdb/Objects.h>
+#include <sparksee/gdb/ObjectsIterator.h>
 
 #include "mld/Graph_types.h"
 #include "mld/operator/XSelector.h"
 #include "mld/dao/MLGDao.h"
 
 using namespace mld;
-using namespace dex::gdb;
+using namespace sparksee::gdb;
 
 namespace {
 

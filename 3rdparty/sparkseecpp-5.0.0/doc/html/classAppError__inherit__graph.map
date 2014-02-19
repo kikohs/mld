@@ -1,0 +1,5 @@
+<area shape="rect" href="$classLicenseError.html" title="License error class." alt="" coords="5,239,104,265">
+<area shape="rect" href="$classUnsupportedOperationError.html" title="Unsupported operation error class." alt="" coords="128,239,325,265">
+<area shape="rect" href="$classWrongArgumentError.html" title="Wrong argument error class." alt="" coords="349,239,504,265">
+<area shape="rect" href="$classError.html" title="Error class." alt="" coords="201,84,252,111">
+<area shape="rect" href="$classException.html" title="Exception class." alt="" coords="185,7,268,33">

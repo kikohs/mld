@@ -15,7 +15,7 @@ add_subdirectory(io)
 set( project_SRCS
     common.h
     config.h
-    DexManager.cpp
+    SparkseeManager.cpp
     Graph_types.cpp
     MLGBuilder.cpp
     ${DAO_SRCS}
@@ -31,7 +31,7 @@ set( project_SRCS
 set( CUR_PUB_HDRS
     ${CMAKE_CURRENT_SOURCE_DIR}/common.h
     ${CMAKE_CURRENT_SOURCE_DIR}/config.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/DexManager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/SparkseeManager.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Session.h
     ${CMAKE_CURRENT_SOURCE_DIR}/MLGBuilder.h
 )
@@ -44,7 +44,7 @@ set( ALL_SRCS
 
 # Set here libraries to link to the target
 set( LIBS_TO_LINK
-    ${DEX_LIBRARIES}
+    ${SPARKSEE_LIBRARIES}
     ${LIBCPLUSPLUS}
 #    ${Boost_LIBRARIES}
 )
@@ -108,8 +108,8 @@ install( TARGETS ${PROJECT_NAME}
     RUNTIME DESTINATION ${BIN_INSTALL_DIR}
     ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
 )
-# Copy DEX_LIBRARIES
-install( FILES ${DEX_LIB_FILES} DESTINATION ${LIB_INSTALL_DIR} )
+# Copy SPARKSEE_LIBRARIES
+install( FILES ${SPARKSEE_LIB_FILES} DESTINATION ${LIB_INSTALL_DIR} )
 
 
 

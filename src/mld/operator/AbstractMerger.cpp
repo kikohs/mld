@@ -21,7 +21,7 @@
 
 using namespace mld;
 
-AbstractMerger::AbstractMerger( dex::gdb::Graph* g )
+AbstractMerger::AbstractMerger( sparksee::gdb::Graph* g )
     : m_dao( new MLGDao(g) )
 {
 }
@@ -32,7 +32,7 @@ AbstractMerger::~AbstractMerger()
 
 // Single Merger
 
-AbstractSingleMerger::AbstractSingleMerger( dex::gdb::Graph* g )
+AbstractSingleMerger::AbstractSingleMerger( sparksee::gdb::Graph* g )
     : AbstractMerger(g)
 {
 }
@@ -43,7 +43,7 @@ AbstractSingleMerger::~AbstractSingleMerger()
 
 // MultiMerger
 
-AbstractMultiMerger::AbstractMultiMerger( dex::gdb::Graph* g )
+AbstractMultiMerger::AbstractMultiMerger( sparksee::gdb::Graph* g )
     : AbstractMerger(g)
 {
 }

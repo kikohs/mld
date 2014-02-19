@@ -28,7 +28,7 @@ namespace mld {
 class MLD_API HeavyEdgeSelector: public AbstractSingleSelector
 {
 public:
-    HeavyEdgeSelector( dex::gdb::Graph* g );
+    HeavyEdgeSelector( sparksee::gdb::Graph* g );
     virtual ~HeavyEdgeSelector() override;
 
     virtual HLink selectBestHLink( const Layer& layer ) override;

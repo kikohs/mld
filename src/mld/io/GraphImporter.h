@@ -20,7 +20,7 @@
 #define MLD_GRAPHIMPORTER_H
 
 #include <iostream>
-#include <dex/gdb/Graph.h>
+#include <sparksee/gdb/Graph.h>
 
 #include "mld/common.h"
 
@@ -37,7 +37,7 @@ public:
      * @param logpath Import log file
      * @return success
      */
-    static bool fromSnapFormat(dex::gdb::Graph* g, const std::string& filepath );
+    static bool fromSnapFormat(sparksee::gdb::Graph* g, const std::string& filepath );
 };
 
 } // end namespace mld

@@ -19,7 +19,7 @@
 #include <gtest/gtest.h>
 
 #include <mld/config.h>
-#include <mld/DexManager.h>
+#include <mld/SparkseeManager.h>
 
 #include <mld/operator/XSelector.h>
 #include <mld/dao/MLGDao.h>
@@ -28,19 +28,19 @@
 using namespace mld;
 
 // Local variable
-typedef std::map<int, dex::gdb::oid_t> NodeMap;
+typedef std::map<int, sparksee::gdb::oid_t> NodeMap;
 NodeMap nMap;
 
 
 TEST( XSelectorTest, initScheme )
 {
-    mld::DexManager dexManager(mld::kRESOURCES_DIR + L"mydex.cfg");
-    dexManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.dex", L"MLDTest");
+    mld::SparkseeManager sparkseeManager(mld::kRESOURCES_DIR + L"mysparksee.cfg");
+    sparkseeManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.sparksee", L"MLDTest");
 
-    SessionPtr sess = dexManager.newSession();
-    dex::gdb::Graph* g = sess->GetGraph();
+    SessionPtr sess = sparkseeManager.newSession();
+    sparksee::gdb::Graph* g = sess->GetGraph();
     // Create Db scheme
-    dexManager.createScheme(g);
+    sparkseeManager.createScheme(g);
     std::unique_ptr<MLGDao> dao( new MLGDao(g) );
 
     Layer base = dao->addBaseLayer();
@@ -82,10 +82,10 @@ TEST( XSelectorTest, initScheme )
 
 TEST( XSelectorTest, Flagging )
 {
-    mld::DexManager dexManager(mld::kRESOURCES_DIR + L"mydex.cfg");
-    dexManager.openDatabase(mld::kRESOURCES_DIR + L"MLDTest.dex", L"MLDTest");
-    SessionPtr sess = dexManager.newSession();
-    dex::gdb::Graph* g = sess->GetGraph();
+    mld::SparkseeManager sparkseeManager(mld::kRESOURCES_DIR + L"mysparksee.cfg");
+    sparkseeManager.openDatabase(mld::kRESOURCES_DIR + L"MLDTest.sparksee", L"MLDTest");
+    SessionPtr sess = sparkseeManager.newSession();
+    sparksee::gdb::Graph* g = sess->GetGraph();
     std::unique_ptr<MLGDao> dao( new MLGDao(g) );
     std::unique_ptr<XSelector> sel( new XSelector(g) );
 
@@ -121,10 +121,10 @@ TEST( XSelectorTest, Flagging )
 
 TEST( XSelectorTest, inOrOutEdges )
 {
-    mld::DexManager dexManager(mld::kRESOURCES_DIR + L"mydex.cfg");
-    dexManager.openDatabase(mld::kRESOURCES_DIR + L"MLDTest.dex", L"MLDTest");
-    SessionPtr sess = dexManager.newSession();
-    dex::gdb::Graph* g = sess->GetGraph();
+    mld::SparkseeManager sparkseeManager(mld::kRESOURCES_DIR + L"mysparksee.cfg");
+    sparkseeManager.openDatabase(mld::kRESOURCES_DIR + L"MLDTest.sparksee", L"MLDTest");
+    SessionPtr sess = sparkseeManager.newSession();
+    sparksee::gdb::Graph* g = sess->GetGraph();
     std::unique_ptr<MLGDao> dao( new MLGDao(g) );
     std::unique_ptr<XSelector> sel( new XSelector(g) );
 
@@ -182,10 +182,10 @@ TEST( XSelectorTest, inOrOutEdges )
 
 TEST( XSelectorTest, rootCentralityScore )
 {
-    mld::DexManager dexManager(mld::kRESOURCES_DIR + L"mydex.cfg");
-    dexManager.openDatabase(mld::kRESOURCES_DIR + L"MLDTest.dex", L"MLDTest");
-    SessionPtr sess = dexManager.newSession();
-    dex::gdb::Graph* g = sess->GetGraph();
+    mld::SparkseeManager sparkseeManager(mld::kRESOURCES_DIR + L"mysparksee.cfg");
+    sparkseeManager.openDatabase(mld::kRESOURCES_DIR + L"MLDTest.sparksee", L"MLDTest");
+    SessionPtr sess = sparkseeManager.newSession();
+    sparksee::gdb::Graph* g = sess->GetGraph();
     std::unique_ptr<MLGDao> dao( new MLGDao(g) );
     std::unique_ptr<XSelector> sel( new XSelector(g) );
 
@@ -230,10 +230,10 @@ TEST( XSelectorTest, rootCentralityScore )
 
 TEST( XSelectorTest, twoHubAffinityScore )
 {
-    mld::DexManager dexManager(mld::kRESOURCES_DIR + L"mydex.cfg");
-    dexManager.openDatabase(mld::kRESOURCES_DIR + L"MLDTest.dex", L"MLDTest");
-    SessionPtr sess = dexManager.newSession();
-    dex::gdb::Graph* g = sess->GetGraph();
+    mld::SparkseeManager sparkseeManager(mld::kRESOURCES_DIR + L"mysparksee.cfg");
+    sparkseeManager.openDatabase(mld::kRESOURCES_DIR + L"MLDTest.sparksee", L"MLDTest");
+    SessionPtr sess = sparkseeManager.newSession();
+    sparksee::gdb::Graph* g = sess->GetGraph();
     std::unique_ptr<MLGDao> dao( new MLGDao(g) );
     std::unique_ptr<XSelector> sel( new XSelector(g) );
 
@@ -261,10 +261,10 @@ TEST( XSelectorTest, twoHubAffinityScore )
 
 TEST( XSelectorTest, gravityScore )
 {
-    mld::DexManager dexManager(mld::kRESOURCES_DIR + L"mydex.cfg");
-    dexManager.openDatabase(mld::kRESOURCES_DIR + L"MLDTest.dex", L"MLDTest");
-    SessionPtr sess = dexManager.newSession();
-    dex::gdb::Graph* g = sess->GetGraph();
+    mld::SparkseeManager sparkseeManager(mld::kRESOURCES_DIR + L"mysparksee.cfg");
+    sparkseeManager.openDatabase(mld::kRESOURCES_DIR + L"MLDTest.sparksee", L"MLDTest");
+    SessionPtr sess = sparkseeManager.newSession();
+    sparksee::gdb::Graph* g = sess->GetGraph();
     std::unique_ptr<MLGDao> dao( new MLGDao(g) );
     std::unique_ptr<XSelector> sel( new XSelector(g) );
 
@@ -292,10 +292,10 @@ TEST( XSelectorTest, gravityScore )
 
 TEST( XSelectorTest, calcScore )
 {
-    mld::DexManager dexManager(mld::kRESOURCES_DIR + L"mydex.cfg");
-    dexManager.openDatabase(mld::kRESOURCES_DIR + L"MLDTest.dex", L"MLDTest");
-    SessionPtr sess = dexManager.newSession();
-    dex::gdb::Graph* g = sess->GetGraph();
+    mld::SparkseeManager sparkseeManager(mld::kRESOURCES_DIR + L"mysparksee.cfg");
+    sparkseeManager.openDatabase(mld::kRESOURCES_DIR + L"MLDTest.sparksee", L"MLDTest");
+    SessionPtr sess = sparkseeManager.newSession();
+    sparksee::gdb::Graph* g = sess->GetGraph();
     std::unique_ptr<MLGDao> dao( new MLGDao(g) );
     std::unique_ptr<XSelector> sel( new XSelector(g) );
 
@@ -326,10 +326,10 @@ TEST( XSelectorTest, calcScore )
 
 TEST( XSelectorTest, rankNodes )
 {
-    mld::DexManager dexManager(mld::kRESOURCES_DIR + L"mydex.cfg");
-    dexManager.openDatabase(mld::kRESOURCES_DIR + L"MLDTest.dex", L"MLDTest");
-    SessionPtr sess = dexManager.newSession();
-    dex::gdb::Graph* g = sess->GetGraph();
+    mld::SparkseeManager sparkseeManager(mld::kRESOURCES_DIR + L"mysparksee.cfg");
+    sparkseeManager.openDatabase(mld::kRESOURCES_DIR + L"MLDTest.sparksee", L"MLDTest");
+    SessionPtr sess = sparkseeManager.newSession();
+    sparksee::gdb::Graph* g = sess->GetGraph();
     std::unique_ptr<MLGDao> dao( new MLGDao(g) );
     std::unique_ptr<XSelector> sel( new XSelector(g) );
 
@@ -339,11 +339,11 @@ TEST( XSelectorTest, rankNodes )
     // Only 5 node in graph
     for( int i = 0; i < 5; i++ ) {
         SuperNode n = sel->next();
-        EXPECT_NE(dex::gdb::Objects::InvalidOID, n.id());
+        EXPECT_NE(sparksee::gdb::Objects::InvalidOID, n.id());
     }
     // Invalid node
     SuperNode n = sel->next();
-    EXPECT_EQ(dex::gdb::Objects::InvalidOID, n.id());
+    EXPECT_EQ(sparksee::gdb::Objects::InvalidOID, n.id());
 
     EXPECT_TRUE(sel->rankNodes(base));
     // Flag n0
@@ -356,7 +356,7 @@ TEST( XSelectorTest, rankNodes )
         EXPECT_TRUE(sel->updateScore(nodeSet, false));
         for( int i = 0; i < 5; i++ ) {
             SuperNode n = sel->next();
-            EXPECT_NE(dex::gdb::Objects::InvalidOID, n.id());
+            EXPECT_NE(sparksee::gdb::Objects::InvalidOID, n.id());
         }
     }
 
@@ -366,7 +366,7 @@ TEST( XSelectorTest, rankNodes )
     // Only n4 left
     EXPECT_EQ(nMap[4], sel->next().id());
     // Invalid
-    EXPECT_EQ(dex::gdb::Objects::InvalidOID, sel->next().id());
+    EXPECT_EQ(sparksee::gdb::Objects::InvalidOID, sel->next().id());
 
     sel.reset();
     dao.reset();

@@ -20,7 +20,7 @@
 #include "mld/dao/MLGDao.h"
 
 using namespace mld;
-using namespace dex::gdb;
+using namespace sparksee::gdb;
 
 // AbstractSelector
 

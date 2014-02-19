@@ -35,7 +35,7 @@ class AbstractMultiMerger;
 class MLD_API AbstractCoarsener : public AbstractOperator
 {
 public:
-    AbstractCoarsener( dex::gdb::Graph* g );
+    AbstractCoarsener( sparksee::gdb::Graph* g );
     virtual ~AbstractCoarsener() = 0;
 
     /**
@@ -55,7 +55,7 @@ protected:
 class MLD_API AbstractSingleCoarsener : public AbstractCoarsener
 {
 public:
-    AbstractSingleCoarsener( dex::gdb::Graph* g );
+    AbstractSingleCoarsener( sparksee::gdb::Graph* g );
     virtual ~AbstractSingleCoarsener() = 0;
 
 protected:

@@ -16,9 +16,9 @@
 **
 ****************************************************************************/
 
-#include <dex/gdb/Graph.h>
-#include <dex/gdb/Objects.h>
-#include <dex/gdb/ObjectsIterator.h>
+#include <sparksee/gdb/Graph.h>
+#include <sparksee/gdb/Objects.h>
+#include <sparksee/gdb/ObjectsIterator.h>
 
 #include "mld/dao/MLGDao.h"
 #include "mld/operator/XCoarsener.h"
@@ -27,7 +27,7 @@
 #include "mld/utils/Timer.h"
 
 using namespace mld;
-using namespace dex::gdb;
+using namespace sparksee::gdb;
 
 XCoarsener::XCoarsener( Graph* g )
     : AbstractCoarsener(g)

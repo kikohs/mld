@@ -16,8 +16,8 @@
 **
 ****************************************************************************/
 
-#include <dex/gdb/Objects.h>
-#include <dex/gdb/ObjectsIterator.h>
+#include <sparksee/gdb/Objects.h>
+#include <sparksee/gdb/ObjectsIterator.h>
 
 #include "mld/operator/MultiAdditiveMerger.h"
 #include "mld/operator/AbstractSelector.h"
@@ -29,7 +29,7 @@
 #endif
 
 using namespace mld;
-using namespace dex::gdb;
+using namespace sparksee::gdb;
 
 MultiAdditiveMerger::MultiAdditiveMerger( Graph* g )
     : AbstractMultiMerger(g)

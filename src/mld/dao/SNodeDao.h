@@ -25,7 +25,7 @@
 #include "mld/dao/AbstractDao.h"
 #include "mld/model/SuperNode.h"
 
-namespace dex {
+namespace sparksee {
 namespace gdb {
     class Graph;
     class Value;
@@ -36,19 +36,19 @@ namespace mld {
 class MLD_API SNodeDao : public AbstractDao
 {
 public:
-    SNodeDao( dex::gdb::Graph* g );
+    SNodeDao( sparksee::gdb::Graph* g );
     ~SNodeDao();
 
     SuperNode addNode();
-    void removeNode( dex::gdb::oid_t id );
+    void removeNode( sparksee::gdb::oid_t id );
     void updateNode( const SuperNode& n );
-    SuperNode getNode( dex::gdb::oid_t id );
+    SuperNode getNode( sparksee::gdb::oid_t id );
     std::vector<SuperNode> getNode( const ObjectsPtr& objs );
 
-    dex::gdb::type_t superNodeType() const { return m_snType; }
+    sparksee::gdb::type_t superNodeType() const { return m_snType; }
 
 private:
-    dex::gdb::type_t m_snType;
+    sparksee::gdb::type_t m_snType;
 };
 
 } // end namespace mld

@@ -28,7 +28,7 @@
 #include "mld/model/Layer.h"
 #include "mld/model/Link.h"
 
-namespace dex {
+namespace sparksee {
 namespace gdb {
     class Graph;
     class Value;
@@ -57,17 +57,17 @@ class MLD_API MLGDao: public AbstractDao
         BOTTOM
     };
 
-typedef std::map<dex::gdb::oid_t, SuperNode> NodeMap;
+typedef std::map<sparksee::gdb::oid_t, SuperNode> NodeMap;
 
 public:
-    MLGDao( dex::gdb::Graph* g );
+    MLGDao( sparksee::gdb::Graph* g );
     virtual ~MLGDao() override;
 
     /**
-     * @brief Give access to the inner dex graph handle
+     * @brief Give access to the inner sparksee graph handle
      * @return Graph
      */
-    dex::gdb::Graph* graph() const { return m_g; }
+    sparksee::gdb::Graph* graph() const { return m_g; }
 
     /**
      * @brief Return new empty ObjectsPtr
@@ -151,14 +151,14 @@ public:
      * @param id SuperNode id
      * @return Parent SuperNodes
      */
-    std::vector<SuperNode> getParentNodes( dex::gdb::oid_t id );
+    std::vector<SuperNode> getParentNodes( sparksee::gdb::oid_t id );
 
     /**
      * @brief Get child nodes for the given supernode id
      * @param id SuperNode id
      * @return Child SuperNodes
      */
-    std::vector<SuperNode> getChildNodes( dex::gdb::oid_t id );
+    std::vector<SuperNode> getChildNodes( sparksee::gdb::oid_t id );
 
     /**
      * @brief Get number of SuperNode for input layer
@@ -221,20 +221,20 @@ public:
                             );
 
     // Forward to SNDao
-    void removeNode( dex::gdb::oid_t id );
+    void removeNode( sparksee::gdb::oid_t id );
     void updateNode( const SuperNode& n );
-    SuperNode getNode( dex::gdb::oid_t id );
+    SuperNode getNode( sparksee::gdb::oid_t id );
     std::vector<SuperNode> getNode( const ObjectsPtr& objs );
 
     // Forward to LinkDao
-    HLink getHLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt );
-    HLink getHLink( dex::gdb::oid_t hid );
-    HLink getOrCreateHLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt, double weight );
+    HLink getHLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
+    HLink getHLink( sparksee::gdb::oid_t hid );
+    HLink getOrCreateHLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt, double weight );
     bool updateHLink( const HLink& link );
     std::vector<HLink> getHLink( const ObjectsPtr& objs );
 
-    VLink getVLink( dex::gdb::oid_t src, dex::gdb::oid_t tgt );
-    VLink getVLink( dex::gdb::oid_t vid );
+    VLink getVLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
+    VLink getVLink( sparksee::gdb::oid_t vid );
     bool updateVLink( const VLink& link );
 
     // Forward to LayerDAO
@@ -344,7 +344,7 @@ public:
      * @param id Layer id
      * @return Layer
      */
-    Layer getLayer( dex::gdb::oid_t id );
+    Layer getLayer( sparksee::gdb::oid_t id );
     /**
      * @brief Check if layer exists
      * @param layer
@@ -352,23 +352,23 @@ public:
      */
     bool exists( const Layer& layer );
 
-    dex::gdb::type_t hlinkType() const;
-    dex::gdb::type_t vlinkType() const;
-    dex::gdb::type_t superNodeType() const;
+    sparksee::gdb::type_t hlinkType() const;
+    sparksee::gdb::type_t vlinkType() const;
+    sparksee::gdb::type_t superNodeType() const;
 
 private:
-    dex::gdb::oid_t getLayerIdForSuperNode( dex::gdb::oid_t nid );
+    sparksee::gdb::oid_t getLayerIdForSuperNode( sparksee::gdb::oid_t nid );
     Layer mirrorLayerImpl( Direction dir );
     HLink mirrorEdge( const HLink& current, Direction dir, const Layer& newLayer, NodeMap& nodeMap );
-    SuperNode mirrorNode( const dex::gdb::oid_t current, Direction dir, const Layer& newLayer );
-    bool copyAndMergeLinks( dex::gdb::type_t linkType, const SuperNode& source,
+    SuperNode mirrorNode( const sparksee::gdb::oid_t current, Direction dir, const Layer& newLayer );
+    bool copyAndMergeLinks( sparksee::gdb::type_t linkType, const SuperNode& source,
                             const SuperNode& target, bool safe, const WeightMergerFunc& f );
 
 private:
     std::unique_ptr<SNodeDao> m_sn;
     std::unique_ptr<LayerDao> m_layer;
     std::unique_ptr<LinkDao> m_link;
-    dex::gdb::type_t m_ownsType;
+    sparksee::gdb::type_t m_ownsType;
 };
 
 } // end namespace mld
