@@ -125,8 +125,8 @@ TEST( CoarsenerTest, XCoarsenerFirstPassAndMirror )
     dexManager.createScheme(g);
     std::unique_ptr<MLGDao> dao( new MLGDao(g) );
     std::unique_ptr<XCoarsener> coarsener( new XCoarsener(g) );
-    // Fails
-    coarsener->run();
+    // No layer
+    EXPECT_FALSE(coarsener->run());
 
     Layer base = dao->addBaseLayer();
 
@@ -271,9 +271,13 @@ TEST( CoarsenerTest, XCoarsenerSecondPass )
         EXPECT_EQ(size_t(5), children.size());
     }
 
+    // Start another reduction, less than 2 nodes
+    coarsener->setReductionFactor(1);
+    EXPECT_FALSE(coarsener->run());
+
     coarsener.reset();
     dao.reset();
     sess.reset();
 
-//    LOG(logINFO) << Timer::dumpTrials();
+    LOG(logINFO) << Timer::dumpTrials();
 }

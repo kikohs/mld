@@ -200,7 +200,6 @@ bool XCoarsener::secondPass( const Layer& top, int64_t& mergeCount )
         return false;
     }
 
-    LOG(logDEBUG) << "XCoarsener::secondPass mergeCount: " << mergeCount;
     // While there are node to collapse
     while( m_sel->hasNext() && mergeCount > 0 ) {
         // Get best node to coarsen

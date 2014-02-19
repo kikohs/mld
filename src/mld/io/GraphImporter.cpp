@@ -19,6 +19,8 @@
 #include <iostream>
 #include <fstream>
 
+#include <dex/gdb/Objects.h>
+
 #include "mld/io/GraphImporter.h"
 #include "mld/Graph_types.h"
 #include "mld/utils/Timer.h"
@@ -63,8 +65,11 @@ bool GraphImporter::fromSnapFormat( dex::gdb::Graph* g, const std::string& filep
     LOG(logINFO) << "Parsing SNAP undirected graph: " << filepath;
     MLGDao dao(g);
     LinkDao linkDao(g);
-    dao.addBaseLayer();
-    Layer base = dao.baseLayer();
+    Layer base = dao.addBaseLayer();
+    if( base.id() == Objects::InvalidOID ) {
+        LOG(logERROR) << "GraphImporter::fromSnapFormat cannot add base layer";
+        return false;
+    }
 
     std::ifstream infile(filepath.c_str());
 
