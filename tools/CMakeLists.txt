@@ -11,6 +11,7 @@ endmacro(append_tool)
 # Append tool here
 append_tool(HelloSparksee hello_sparksee.cpp)
 append_tool(SnapParser snap_parser.cpp)
+append_tool(Coarsener coarsener.cpp)
 
 
 # Create executable for each tool

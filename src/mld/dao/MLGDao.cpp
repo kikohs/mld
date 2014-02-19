@@ -47,6 +47,14 @@ MLGDao::~MLGDao()
 {
 }
 
+void MLGDao::setGraph( Graph* g )
+{
+    AbstractDao::setGraph(g);
+    m_sn->setGraph(g);
+    m_layer->setGraph(g);
+    m_link->setGraph(g);
+}
+
 ObjectsPtr MLGDao::newObjectsPtr() const
 {
     // Create a dummy request to obtain an Objects object

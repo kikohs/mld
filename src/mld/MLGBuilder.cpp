@@ -21,6 +21,7 @@
 #include "mld/utils/Timer.h"
 
 using namespace mld;
+using namespace sparksee::gdb;
 
 MLGBuilder::MLGBuilder()
 {
@@ -28,6 +29,7 @@ MLGBuilder::MLGBuilder()
 
 MLGBuilder::~MLGBuilder()
 {
+    m_steps.clear();
 }
 
 bool MLGBuilder::run()
@@ -49,4 +51,10 @@ bool MLGBuilder::run()
         m_steps.pop_front();
     }
     return true;
+}
+
+bool MLGBuilder::fromRawString( Graph* g, const std::string& input )
+{
+    // TODO
+    return false;
 }

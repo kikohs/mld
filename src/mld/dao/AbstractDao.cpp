@@ -31,3 +31,8 @@ AbstractDao::~AbstractDao()
 {
     // DO NOT DELETE GRAPH
 }
+
+void AbstractDao::setGraph( sparksee::gdb::Graph* g )
+{
+    m_g = g;
+}

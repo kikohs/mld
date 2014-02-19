@@ -23,6 +23,11 @@
 
 #include "mld/common.h"
 
+namespace sparksee {
+namespace gdb {
+    class Graph;
+}}
+
 namespace mld {
 
 class AbstractOperator;
@@ -45,6 +50,14 @@ public:
      */
     void addStep( const OperatorPtr& step ) { m_steps.push_back(step); }
     void clearSteps() { m_steps.clear(); }
+
+    /**
+     * @brief Parse coarsening plan from input
+     * Create corresponding coarseners
+     * @param input
+     * @return parsing success
+     */
+    bool fromRawString( sparksee::gdb::Graph* g, const std::string& input );
 
     /**
      * @brief Run all the steps FIFO, empyting the queue

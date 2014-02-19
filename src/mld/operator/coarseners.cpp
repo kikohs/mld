@@ -20,7 +20,6 @@
 #include "mld/operator/mergers.h"
 #include "mld/operator/selectors.h"
 #include "mld/dao/MLGDao.h"
-
 #include "mld/utils/Timer.h"
 
 using namespace mld;

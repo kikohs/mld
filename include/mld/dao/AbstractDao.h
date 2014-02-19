@@ -38,6 +38,13 @@ public:
     AbstractDao( const AbstractDao& ) = delete;
     AbstractDao& operator=( const AbstractDao& ) = delete;
 
+    virtual void setGraph( sparksee::gdb::Graph* g );
+    /**
+     * @brief Give access to the inner sparksee graph handle
+     * @return Graph
+     */
+    sparksee::gdb::Graph* graph() const { return m_g; }
+
 protected:
     AbstractDao( sparksee::gdb::Graph* g );
 

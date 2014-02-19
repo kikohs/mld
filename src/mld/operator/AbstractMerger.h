@@ -66,6 +66,14 @@ public:
      * @return success
      */
     virtual bool merge( const HLink& hlink, const AbstractSingleSelector& selector ) = 0;
+
+    /**
+     * @brief Compute weight for the future merged node
+     * @param target Node to update
+     * @param source Source node
+     * @return new weight
+     */
+    virtual double computeWeight( const SuperNode& target, const SuperNode& source ) = 0;
 };
 
 // Multi Merger

@@ -28,6 +28,7 @@
 #include <mld/Session.h>
 #include <mld/io/GraphImporter.h>
 #include <mld/utils/Timer.h>
+#include <mld/MLGBuilder.h>
 
 using namespace TCLAP;
 using namespace mld;
@@ -35,42 +36,40 @@ using namespace mld;
 struct InputContext {
     std::wstring dbName;
     std::wstring workDir;
-    std::string inputPath;
+    std::string inputPlan;
 };
-
-std::wstring extractDbName( const std::wstring& inputPath )
-{
-    std::vector<std::wstring> strs;
-    boost::algorithm::split(strs, inputPath, boost::is_any_of(L"/"));
-    // Get filename from path /test/sdfds.txt
-    std::wstring filename = strs.back();
-    strs.clear();
-    boost::algorithm::split(strs, filename, boost::is_any_of(L"."));
-    // Remove last part of .txt for instance
-    strs.pop_back();
-    return boost::algorithm::join(strs, L".");
-}
 
 bool parseOptions( int argc, char *argv[], InputContext& out )
 {
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     try {
         // Define the command line object.
-        CmdLine cmd("Snap Parser", ' ', "0.1");
+        CmdLine cmd("Coarsener", ' ', "0.1");
 
-        // Define a value argument and add it to the command line.
-        ValueArg<std::string> inputArg("i", "input", "undirected snap graph", true, "", "path");
+        // Input plan
+        ValueArg<std::string> inputArg("s", "steps",
+                                       "Coarsening plan\n  \
+                                       e.g: H:[0.1, 0.2, 0.4] X:0.5 \n",
+                                       true, "", "string");
         cmd.add(inputArg);
+        // Working dir
         ValueArg<std::string> wdArg("d", "workDir", "MLD working directory",
                                     false, converter.to_bytes(mld::kRESOURCES_DIR), "path");
         cmd.add(wdArg);
+
+        // Db Name
+        ValueArg<std::string> nameArg("n", "name", "MLD database name (without extension)",
+                                    true, "", "path");
+        cmd.add(nameArg);
+
+
         // Parse the args.
         cmd.parse(argc, argv);
 
         // Get the value parsed by each arg.
-        out.inputPath = inputArg.getValue();
+        out.inputPlan = inputArg.getValue();
         out.workDir = converter.from_bytes(wdArg.getValue());
-        out.dbName = extractDbName(converter.from_bytes(out.inputPath));
+        out.dbName = converter.from_bytes(nameArg.getValue());
     } catch( ArgException& e ) {
         LOG(logERROR) << "error: " << e.error() << " for arg " << e.argId();
         return false;
@@ -86,16 +85,25 @@ int main( int argc, char *argv[] )
         return EXIT_FAILURE;
 
     mld::SparkseeManager sparkseeManager(ctx.workDir + L"mysparksee.cfg");
-    sparkseeManager.createDatabase(ctx.workDir + ctx.dbName + L".sparksee", ctx.dbName);
-
+    sparkseeManager.openDatabase(ctx.workDir + ctx.dbName + L".sparksee");
     SessionPtr sess = sparkseeManager.newSession();
     sparksee::gdb::Graph* g = sess->GetGraph();
-    // Create Db scheme
-    sparkseeManager.createScheme(g);
-    sess->Begin();
-    GraphImporter::fromSnapFormat(g, ctx.inputPath);
-    sess->Commit();
+
+    {  // MLGBuilder will go out of scope before Session
+        MLGBuilder builder;
+        if( !builder.fromRawString(g, ctx.inputPlan) ) {
+            LOG(logERROR) << "Coarsener: failed to parse input plan";
+            return EXIT_FAILURE;
+        }
+
+        if( !builder.run() ) {
+            LOG(logERROR) << "Coarsener: run coarsenung plan failed";
+            return EXIT_FAILURE;
+        }
+    }
+
     LOG(logINFO) << Timer::dumpTrials();
+    sess.reset();
     return EXIT_SUCCESS;
 }
 

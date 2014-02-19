@@ -30,12 +30,11 @@ class AbstractSingleMerger;
 class AbstractMultiSelector;
 class AbstractMultiMerger;
 
-
-
 class MLD_API AbstractCoarsener : public AbstractOperator
 {
 public:
     AbstractCoarsener( sparksee::gdb::Graph* g );
+    AbstractCoarsener( sparksee::gdb::Graph* g, float fac );
     virtual ~AbstractCoarsener() = 0;
 
     /**
@@ -64,7 +63,6 @@ protected:
     virtual bool postExec() override;
 
 protected:
-    float m_reductionFac;
     std::unique_ptr<AbstractSingleSelector> m_sel;
     std::unique_ptr<AbstractSingleMerger> m_merger;
 };

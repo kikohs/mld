@@ -65,7 +65,7 @@ TEST( BasicAdditiveMergerTest, Check1 )
     //       | /
     //       n3
     // Heaviest hlink to collapse
-    HLink hl12 = dao->addHLink(n1, n2, 5);
+    dao->addHLink(n1, n2, 5);
     dao->addHLink(n1, n4, 4);
     dao->addHLink(n2, n5, 3);
     HLink hl13 = dao->addHLink(n1, n3);
@@ -83,41 +83,41 @@ TEST( BasicAdditiveMergerTest, Check1 )
     bool success = merger->merge(best, *selector);
     EXPECT_TRUE(success);
     // Check that a node has actually been merge
-    EXPECT_EQ(dao->getNodeCount(base), 5);
-    EXPECT_EQ(dao->getNodeCount(current), 4);
+    EXPECT_EQ(5, dao->getNodeCount(base));
+    EXPECT_EQ(4, dao->getNodeCount(current));
     auto hlIds = dao->getAllHLinkIds(current);
     // 5 hlinks at the beginning, there should only be 3 left
     // n1-n3 should have been merge in n2-n3
     // n1-n2 has been collapsed
-    EXPECT_EQ(hlIds->Count(), 3);
+    EXPECT_EQ(3, hlIds->Count());
     hlIds.reset();
 
     // Check N2 (n2 parent) weight
     auto n2Parents = dao->getParentNodes(n2.id());
-    EXPECT_EQ(n2Parents.size(), size_t(1));
+    EXPECT_EQ(size_t(1), n2Parents.size());
     SuperNode N2 = n2Parents[0];
-    EXPECT_EQ(N2.weight(), n2.weight() + n1.weight());
+    EXPECT_EQ(n2.weight() + n1.weight(), N2.weight());
     // Check N2 hlinks, should be 3
     ObjectsPtr N2links(g->Explode(N2.id(), dao->hlinkType(), Outgoing));
-    EXPECT_EQ(N2links->Count(), 3);
+    EXPECT_EQ(3, N2links->Count());
     N2links.reset();
     // Check that n1 has been merge, VLINK to N2
     auto n1Parents = dao->getParentNodes(n1.id());
-    EXPECT_EQ(n1Parents.size(), size_t(1));
+    EXPECT_EQ(size_t(1), n1Parents.size());
     // n1 parent is N2
-    EXPECT_EQ(n1Parents[0], N2);
+    EXPECT_EQ(N2, n1Parents[0]);
 
     // Check common edge merging
     // HL23 weight should equal hl23 + hl13 weights
     auto n3Parents = dao->getParentNodes(n3.id());
     EXPECT_EQ(n3Parents.size(), size_t(1));
     HLink HL23 = dao->getHLink(N2.id(), n3Parents[0].id());
-    EXPECT_NE(HL23.id(), sparksee::gdb::Objects::InvalidOID);
-    EXPECT_EQ(HL23.weight(), hl13.weight() + hl23.weight());
+    EXPECT_NE(Objects::InvalidOID, HL23.id());
+    EXPECT_EQ(hl13.weight() + hl23.weight(), HL23.weight());
 
     // Check N2 parents, should be 2 (1 n1, 1 n2)
     auto N2Parents = dao->getParentNodes(N2.id());
-    EXPECT_EQ(N2Parents.size(), size_t(2));
+    EXPECT_EQ(size_t(2), N2Parents.size());
 
     merger.reset();
     selector.reset();

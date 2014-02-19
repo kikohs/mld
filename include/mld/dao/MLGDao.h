@@ -63,12 +63,7 @@ public:
     MLGDao( sparksee::gdb::Graph* g );
     virtual ~MLGDao() override;
 
-    /**
-     * @brief Give access to the inner sparksee graph handle
-     * @return Graph
-     */
-    sparksee::gdb::Graph* graph() const { return m_g; }
-
+    virtual void setGraph( sparksee::gdb::Graph* g ) override;
     /**
      * @brief Return new empty ObjectsPtr
      * @return

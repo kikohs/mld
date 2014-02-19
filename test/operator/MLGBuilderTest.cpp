@@ -70,25 +70,22 @@ TEST( MLGBuilderTest, runStepTest )
     {
         std::unique_ptr<Timer> t(new Timer("Coarsening benchmark"));
         MLGBuilder builder;
-        std::shared_ptr<HeavyEdgeCoarsener> coarsener(new HeavyEdgeCoarsener(g));
+        OperatorPtr coarsener(new HeavyEdgeCoarsener(g));
         // 4 steps of 1 node
         builder.addStep(coarsener);
         builder.addStep(coarsener);
         builder.addStep(coarsener);
         builder.addStep(coarsener);
-        bool success = builder.run();
-        EXPECT_EQ(success, true);
+        EXPECT_TRUE(builder.run());
         Layer top = dao->topLayer();
-        EXPECT_EQ(dao->getNodeCount(top), 1);
-        EXPECT_EQ(dao->countLayers(), 5);
+        EXPECT_EQ(1, dao->getNodeCount(top));
+        EXPECT_EQ(5, dao->countLayers());
 
         // Only 1 node should failed
         builder.addStep(coarsener);
-        success = builder.run();
-        EXPECT_EQ(success, false);
+        EXPECT_FALSE(builder.run());
         // Still 5 layers, mirror should have failed
-        EXPECT_EQ(dao->countLayers(), 5);
-
+        EXPECT_EQ(5, dao->countLayers());
     }
 
     dao.reset();
