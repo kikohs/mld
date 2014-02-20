@@ -50,7 +50,7 @@ namespace gdb {
 
 namespace mld {
 
-typedef std::unique_ptr<sparksee::gdb::Objects> ObjectsPtr;
+typedef std::shared_ptr<sparksee::gdb::Objects> ObjectsPtr;
 typedef std::unique_ptr<sparksee::gdb::ObjectsIterator> ObjectsIt;
 /**
  * @brief H_LINK default weight value

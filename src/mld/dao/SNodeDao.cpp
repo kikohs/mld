@@ -116,6 +116,9 @@ SuperNode SNodeDao::getNode( oid_t id )
 std::vector<SuperNode> SNodeDao::getNode( const ObjectsPtr& objs )
 {
     std::vector<SuperNode> res;
+    if( !objs )
+        return res;
+
     res.reserve(objs->Count());
     ObjectsIt it(objs->Iterator());
     while( it->HasNext() ) {

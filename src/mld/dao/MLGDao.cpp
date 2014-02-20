@@ -172,42 +172,32 @@ Layer MLGDao::mirrorBottomLayer()
 
 std::vector<SuperNode> MLGDao::getParentNodes( oid_t id )
 {
-    std::vector<SuperNode> res;
-#ifdef MLD_SAFE
-    try {
-#endif
-        ObjectsPtr parents(m_g->Neighbors(id, m_link->vlinkType(), Outgoing));
-        ObjectsIt parIt(parents->Iterator());
-
-        while( parIt->HasNext() ) {
-            res.push_back(m_sn->getNode(parIt->Next()));
-        }
-#ifdef MLD_SAFE
-    } catch( Error& e ) {
-        LOG(logERROR) << "MLGDao::getParentNodes: " << e.Message();
-    }
-#endif
-    return res;
+    return m_sn->getNode(getParentIds(id));
 }
 
-std::vector<SuperNode> MLGDao::getChildNodes( oid_t id )
+ObjectsPtr MLGDao::getParentIds( oid_t id )
 {
-    std::vector<SuperNode> res;
-#ifdef MLD_SAFE
-    try {
-#endif
-        ObjectsPtr children(m_g->Neighbors(id, m_link->vlinkType(), Ingoing));
-        ObjectsIt childIt(children->Iterator());
+    return getVLinkEndpoints(id, TOP);
+}
 
-        while( childIt->HasNext() ) {
-            res.push_back(m_sn->getNode(childIt->Next()));
-        }
-#ifdef MLD_SAFE
-    } catch( Error& e ) {
-        LOG(logERROR) << "MLGDao::getChildNodes: " << e.Message();
+SuperNodeVec MLGDao::getChildNodes( oid_t id )
+{
+    return m_sn->getNode(getChildIds(id));
+}
+
+ObjectsPtr MLGDao::getChildIds( oid_t id )
+{
+    return getVLinkEndpoints(id, BOTTOM);
+}
+
+bool MLGDao::checkAffiliation( sparksee::gdb::oid_t source, sparksee::gdb::oid_t target, Direction dir )
+{
+    ObjectsPtr p(getVLinkEndpoints(source, dir));
+    if( !p->Exists(target) ) {
+        LOG(logERROR) << " MLGDao::checkAffiliation: source and target node are not affiliated";
+        return false;
     }
-#endif
-    return res;
+    return true;
 }
 
 int64_t MLGDao::getNodeCount( const Layer& l )
@@ -275,14 +265,75 @@ HLink MLGDao::getUnsafeHeaviestHLink()
     return m_link->getHLink(hid);
 }
 
-bool MLGDao::copyAndMergeVLinks( const SuperNode& source, const SuperNode& target, bool safe, const WeightMergerFunc& f )
+bool MLGDao::horizontalCopyVLinks( const SuperNode& source,
+                                   const SuperNode& target,
+                                   bool safe,
+                                   const ObjectsPtr& subset,
+                                   const WeightMergerFunc& f )
 {
-    return copyAndMergeLinks(vlinkType(), source, target, safe, f);
+    return horizontalCopyLinks(vlinkType(), source, target, safe, subset, f);
 }
 
-bool MLGDao::copyAndMergeHLinks( const SuperNode& source, const SuperNode& target, bool safe, const WeightMergerFunc& f )
+bool MLGDao::horizontalCopyHLinks( const SuperNode& source,
+                                   const SuperNode& target,
+                                   bool safe,
+                                   const ObjectsPtr& subset,
+                                   const WeightMergerFunc& f )
 {
-    return copyAndMergeLinks(hlinkType(), source, target, safe, f);
+    return horizontalCopyLinks(hlinkType(), source, target, safe, subset, f);
+}
+
+bool MLGDao::verticalCopyHLinks( const SuperNode& source,
+                                 const SuperNode& target,
+                                 Direction dir,
+                                 bool safe,
+                                 const ObjectsPtr& subset,
+                                 const WeightMergerFunc& f )
+{
+    if( safe ) {  // Check source and target affiliation
+        if( !checkAffiliation(source.id(), target.id(), dir) ) {
+            return false;
+        }
+    }
+
+    // Get source's neighbors
+    ObjectsPtr srcNeighbors;
+    if( subset )
+        srcNeighbors = subset; // Temporary borrow
+    else
+        srcNeighbors.reset(m_g->Neighbors(source.id(), hlinkType(), Any));
+
+    ObjectsIt it(srcNeighbors->Iterator());
+    while( it->HasNext() ) {
+        oid_t current = it->Next();
+        SuperNodeVec kin;
+        if( dir == TOP )
+            kin = getParentNodes(current);
+        else
+            kin = getChildNodes(current);
+
+        if( kin.empty() ) {
+            LOG(logERROR) << "MLGDao::verticalCopyHLinks: node as no parents";
+            return false;
+        }
+
+        HLink currentLink = getHLink(source.id(), current);
+        // For each child or parent
+        for( SuperNode& k: kin ) {
+            HLink link = getHLink(target.id(), k.id());
+            if( link.id() == Objects::InvalidOID ) {  // Top HLink doesn't exist
+                addHLink(target.id(), k.id(), currentLink.weight());
+            }
+            else {  // Update top HLink with functor
+                link.setWeight( f(link.weight(), currentLink.weight()) );
+                if( !updateHLink(link) ) {
+                    LOG(logERROR) << "MLGDao::verticalCopyHLinks: Failed to update top/bottom nodes HLINK";
+                    return false;
+                }
+            }
+        }
+    }
+    return true;
 }
 
 // ****** PRIVATE METHODS ****** //
@@ -394,8 +445,30 @@ SuperNode MLGDao::mirrorNode( oid_t current, Direction dir, const Layer& newLaye
     return newNode;
 }
 
-bool MLGDao::copyAndMergeLinks(type_t linkType, const SuperNode& source,
-                                const SuperNode& target, bool safe, const WeightMergerFunc& f )
+ObjectsPtr MLGDao::getVLinkEndpoints( oid_t current, Direction dir )
+{
+    ObjectsPtr res;
+#ifdef MLD_SAFE
+    try {
+#endif
+        if( dir == TOP )
+            res.reset(m_g->Neighbors(current, m_link->vlinkType(), Outgoing));
+        else
+            res.reset(m_g->Neighbors(current, m_link->vlinkType(), Ingoing));
+#ifdef MLD_SAFE
+    } catch( Error& e ) {
+        LOG(logERROR) << "MLGDao::getVLinkEndpoints: " << e.Message();
+    }
+#endif
+    return res;
+}
+
+bool MLGDao::horizontalCopyLinks( type_t linkType,
+                                const SuperNode& source,
+                                const SuperNode& target,
+                                bool safe,
+                                const ObjectsPtr& subset,
+                                const WeightMergerFunc& f )
 {
     if( safe ) {
         auto srcLayer = getLayerIdForSuperNode(source.id());
@@ -408,7 +481,11 @@ bool MLGDao::copyAndMergeLinks(type_t linkType, const SuperNode& source,
     // Get target's neighbors
     ObjectsPtr tgtNeighbors(m_g->Neighbors(target.id(), linkType, Any));
     // Get source's neighbors
-    ObjectsPtr srcNeighbors(m_g->Neighbors(source.id(), linkType, Any));
+    ObjectsPtr srcNeighbors;
+    if( subset )
+        srcNeighbors = subset;
+    else
+        srcNeighbors.reset(m_g->Neighbors(source.id(), linkType, Any));
 
     // Get common neighbors
     ObjectsPtr commonNeighbors( Objects::CombineIntersection(tgtNeighbors.get(), srcNeighbors.get()) );
@@ -505,7 +582,7 @@ SuperNode MLGDao::getNode( oid_t id )
     return m_sn->getNode(id);
 }
 
-std::vector<SuperNode> MLGDao::getNode( const ObjectsPtr& objs )
+SuperNodeVec MLGDao::getNode( const ObjectsPtr& objs )
 {
     return m_sn->getNode(objs);
 }

@@ -291,11 +291,13 @@ TEST( MLGDaoTest, copyAndMergeLinks )
     SuperNode n1c = dao->addNodeToLayer(current);
     SuperNode n2c = dao->addNodeToLayer(current);
     SuperNode n3c = dao->addNodeToLayer(current);
+    SuperNode n4c = dao->addNodeToLayer(current);
     dao->addVLink(n1, n1c);
     dao->addVLink(n2, n2c);
     dao->addVLink(n2, n1c);
     dao->addVLink(n3, n3c);
     dao->addVLink(n3, n2c);
+    dao->addVLink(n4, n4c);
 
     dao->addHLink(n2c, n1c, 40);
     dao->addHLink(n2c, n3c, 2);
@@ -323,33 +325,34 @@ TEST( MLGDaoTest, copyAndMergeLinks )
     //   |      \   |           |
     //   |       \  |           |
     //   |        \ |           |
-    //  n1c ------- n2c ------- n3c
-    //   | \        |  \        |
-    //   |  \       |   \       |
-    //   |   \      |    \      |
-    //   |    \     |     \     |
-    //   |     \    |      \    |
-    //   |      \   |       \   |
-    //   |       \  |        \  |
-    //   |        \ |         \ |
+    //  n1c ------- n2c ------- n3c     n4c
+    //   | \        |  \        |       |
+    //   |  \       |   \       |       |
+    //   |   \      |    \      |       |
+    //   |    \     |     \     |       |
+    //   |     \    |      \    |       |
+    //   |      \   |       \   |       |
+    //   |       \  |        \  |       |
+    //   |        \ |         \ |       |
     //  n1 -------- n2 -------- n3 ---- n4
     //   \______________________/
 
     // Test HLinks, n3 - n1 should be added to n1 - n2 and
     // n2 - n4 should have been created
 
-    bool ok = dao->copyAndMergeHLinks(n3, n2);
+    bool ok = dao->horizontalCopyHLinks(n3, n2);
     EXPECT_TRUE(ok);
     HLink h12 = dao->getHLink(n1.id(), n2.id());
     EXPECT_DOUBLE_EQ(140, h12.weight());
     HLink h24 = dao->getHLink(n2.id(), n4.id());
     EXPECT_NE(Objects::InvalidOID, h24.id());
+    EXPECT_DOUBLE_EQ(50, h24.weight());
 
     // Test VLINKs
 
     // n3 - n2c should be added to n2 - n2c
     // n2 - n3c should be created
-    ok = dao->copyAndMergeVLinks(n3, n2);
+    ok = dao->horizontalCopyVLinks(n3, n2);
     EXPECT_TRUE(ok);
     VLink v2_2c = dao->getVLink(n2.id(), n2c.id());
     EXPECT_DOUBLE_EQ(2, v2_2c.weight());
@@ -359,7 +362,7 @@ TEST( MLGDaoTest, copyAndMergeLinks )
     // n1c - n1t should be added to n2c - n1t
     // n2 - n1c should be added n2 - n2c
     // n1 - n2c should be created
-    ok = dao->copyAndMergeVLinks(n1c, n2c);
+    ok = dao->horizontalCopyVLinks(n1c, n2c);
     EXPECT_TRUE(ok);
     VLink v2c_1t = dao->getVLink(n2c.id(), n1t.id());
     EXPECT_DOUBLE_EQ(2, v2c_1t.weight());
@@ -369,15 +372,29 @@ TEST( MLGDaoTest, copyAndMergeLinks )
     EXPECT_NE(Objects::InvalidOID, v1_2c.id());
 
     // n1c - n3t and n2c - n3t should be created
-    ok = dao->copyAndMergeVLinks(n1t, n3t);
+    ok = dao->horizontalCopyVLinks(n1t, n3t);
     EXPECT_TRUE(ok);
     VLink v1c_3t = dao->getVLink(n1c.id(), n3t.id());
     EXPECT_NE(Objects::InvalidOID, v1c_3t.id());
     VLink v2c_3t = dao->getVLink(n1.id(), n2c.id());
     EXPECT_NE(Objects::InvalidOID, v2c_3t.id());
 
+    // Test verticalCopyHLinks
+    // At this point n2 has 3 parents n1c, n2c, n3c
+    // n3 still has 2 parents n2c, n3c
+    // n2 - n4 exists (w: 50) and n2 - n3 (w:50)
+    ok = dao->verticalCopyHLinks(n4.id(), n4c.id());
+    EXPECT_TRUE(ok);
+    HLink h34 = dao->getHLink(n3.id(), n4.id());
+    HLink h3c_4c = dao->getHLink(n3c.id(), n4c.id());
+    EXPECT_DOUBLE_EQ(h24.weight() + h34.weight(), h3c_4c.weight());
+    // Link should have been created
+    HLink h2c_4c = dao->getHLink(n2c.id(), n4c.id());
+    EXPECT_NE(Objects::InvalidOID, h2c_4c.id());
+
     // Test merge nodes not on same layer
-    ok = dao->copyAndMergeVLinks(n1, n1c);
+    // Should fail with error message
+    ok = dao->horizontalCopyVLinks(n1, n1c);
     EXPECT_FALSE(ok);
 
     dao.reset();

@@ -96,10 +96,11 @@ public:
     /**
      * @brief Flag node as processed, update 2-hop neighbors score
      * @param node Input node
+     * @param removeNeighbors, if true neighbors are removes from selection list
      * @param withFlagged Account for already flagged nodes in score
      * @return success
      */
-    virtual bool flagAndUpdateScore( const SuperNode& root, bool withFlagged=false ) = 0;
+    virtual bool flagAndUpdateScore( const SuperNode& root, bool removeNeighbors=true, bool withFlagged=false ) = 0;
     /**
      * @brief Check if some input node oid is already in the flagged set
      * @param snid input

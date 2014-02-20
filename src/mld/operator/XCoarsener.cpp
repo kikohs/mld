@@ -72,9 +72,9 @@ bool XCoarsener::exec()
         return false;
     }
 
-    auto nodes = m_sel->remainingNodes();
-    if( nodes->Count() != 0 ) {  // If coarsening stopped before all nodes have been coarsened
-        if( !mirrorRemainingNodes(top, nodes) ) {
+    // If coarsening stopped before all nodes have been coarsened
+    if( m_sel->hasNext() ) {
+        if( !mirrorRemainingNodes(top) ) {
             LOG(logERROR) << "XCoarsener::exec: mirroring failed";
             return false;
         }
@@ -123,13 +123,12 @@ bool XCoarsener::firstPass( const Layer& prev, const Layer& top, int64_t& mergeC
         m_dao->updateNode(rootTop);
 
         // Link 2 root nodes
-        VLink l(m_dao->addVLink(root, rootTop));
+        m_dao->addVLink(root, rootTop);
 
         // Create VLinks from neighbors to rootTop SuperNode
         ObjectsIt it(neighbors->Iterator());
         while( it->HasNext() ) {
-            auto id = it->Next();
-            m_dao->addVLink(SuperNode(id), rootTop);
+            m_dao->addVLink(SuperNode(it->Next()), rootTop);
         }
         // Create hlinks on top layer between root node and other top root nodes
         if( !createTopHLinks1N2Hops(root, rootTop) ) {
@@ -152,21 +151,14 @@ bool XCoarsener::firstPass( const Layer& prev, const Layer& top, int64_t& mergeC
     return true;
 }
 
-bool XCoarsener::mirrorRemainingNodes( const Layer& top, const ObjectsPtr& nodes )
+bool XCoarsener::mirrorRemainingNodes( const Layer& top )
 {
     LOG(logDEBUG) << "XCoarsener::mirrorRemainingNodes";
     std::unique_ptr<Timer> t(new Timer("XCoarsener::mirrorRemainingNodes"));
     // No all node have been coarsened, we need to duplicate them on the top layer
-    if( nodes->Count() == 0 ) {
-        LOG(logWARNING) << "XCoarsener::mirrorRemainingNodes: empty node set";
-        return true;
-    }
-
-    // Create VLINKS
-    ObjectsIt it(nodes->Iterator());
-    // For each node
-    while( it->HasNext() ) {
-        SuperNode root(m_dao->getNode(it->Next()));
+    // Create VLINKS for each node
+    while( m_sel->hasNext() ) {
+        SuperNode root(m_sel->next());
         LOG(logDEBUG) << "XCoarsener::mirrorRemainingNodes root: " << root;
         // Create top node
         SuperNode rootTop(m_dao->addNodeToLayer(top));
@@ -184,9 +176,11 @@ bool XCoarsener::mirrorRemainingNodes( const Layer& top, const ObjectsPtr& nodes
         // Set as root node for this layer
         root.setRoot(true);
         m_dao->updateNode(root);
-        // Add node in flagged set
-        m_sel->rootNodes()->Add(root.id());
-        m_sel->flaggedNodes()->Add(root.id());
+        // Flag node as root but do not remove neighbors
+        if( !m_sel->flagAndUpdateScore(root, false) ) {
+            LOG(logERROR) << "XCoarsener::mirrorRemainingNodes: flagNode failed";
+            return false;
+        }
     }
     return true;
 }
@@ -227,7 +221,7 @@ bool XCoarsener::createTopHLinks1Hop( const SuperNode& root, const SuperNode& ro
 {
     ObjectsPtr hop1(m_dao->graph()->Neighbors(root.id(), m_dao->hlinkType(), Any));
     ObjectsPtr nodeSet(m_sel->getFlaggedNodesFrom(hop1));
-    return createTopHLinks(root, rootTop, nodeSet);
+    return m_dao->verticalCopyHLinks(root, rootTop, MLGDao::TOP, false, nodeSet);
 }
 
 bool XCoarsener::createTopHLinks1N2Hops( const SuperNode& root, const SuperNode& rootTop )
@@ -243,32 +237,5 @@ bool XCoarsener::createTopHLinks1N2Hops( const SuperNode& root, const SuperNode&
 
     // For each flagged node, get root node, get Vlink and
     // hlink rootTop and 2hopTop node
-    return createTopHLinks(root, rootTop, nodeSet);
-}
-
-bool XCoarsener::createTopHLinks( const SuperNode& root, const SuperNode& rootTop, const ObjectsPtr& nodeSet )
-{
-    ObjectsIt it(nodeSet->Iterator());
-    while( it->HasNext() ) {
-        auto current = it->Next();
-        auto parents = m_dao->getParentNodes(current);
-        if( parents.empty() ) {
-            LOG(logERROR) << " XCoarsener::createTopHLinks: flagged node as no parents";
-            return false;
-        }
-        SuperNode top = parents.at(0);
-        HLink currentLink = m_dao->getHLink(root.id(), current);
-        HLink topLink = m_dao->getHLink(rootTop.id(), top.id());
-        if( topLink.id() == Objects::InvalidOID ) {  // Top HLink doesn't exist
-            m_dao->addHLink(rootTop.id(), top.id(), currentLink.weight());
-        }
-        else {  // Update top HLink
-            topLink.setWeight( topLink.weight() + currentLink.weight() );
-            if( !m_dao->updateHLink(topLink) ) {
-                LOG(logERROR) << " XCoarsener::createTopHLinks: Failed to update top root nodes HLINK";
-                return false;
-            }
-        }
-    }
-    return true;
+    return m_dao->verticalCopyHLinks(root, rootTop, MLGDao::TOP, false, nodeSet);
 }

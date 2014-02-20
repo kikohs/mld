@@ -68,13 +68,13 @@ bool MultiAdditiveMerger::merge( SuperNode& target, const ObjectsPtr& neighbors 
     while( it->HasNext() ) {
         SuperNode src = m_dao->getNode(it->Next());
         // Create new VLINKS to children and parents of source
-        if( !m_dao->copyAndMergeVLinks(src, target, false) ) {
+        if( !m_dao->horizontalCopyVLinks(src, target, false) ) {
             LOG(logERROR) << "MultiAdditiveMerger::merge failed to copy and merge vlinks";
             return false;
         }
 
         // Create new HLINKS to source's neighbors, add weight for common edges
-        if( !m_dao->copyAndMergeHLinks(src, target, false) ) {
+        if( !m_dao->horizontalCopyHLinks(src, target, false) ) {
             LOG(logERROR) << "MultiAdditiveMerger::merge failed to copy and merge hlinks";
             return false;
         }

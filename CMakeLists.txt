@@ -155,6 +155,7 @@ if( BUILD_TESTS )
     add_subdirectory( ${3RDPARTY_DIR}/gtest-1.6.0 )
     enable_testing()
     include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
+    add_definitions( -DMLD_WITH_TESTS )
     add_subdirectory( test )
 endif( BUILD_TESTS )
 

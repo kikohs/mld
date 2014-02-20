@@ -43,8 +43,8 @@ namespace mld {
 
 namespace mld {
 
-
 typedef std::function<double (double, double)>  WeightMergerFunc;
+typedef std::vector<SuperNode> SuperNodeVec;
 
 /**
  * @brief The MultiLayerGraph (MLG) dao
@@ -52,6 +52,7 @@ typedef std::function<double (double, double)>  WeightMergerFunc;
  */
 class MLD_API MLGDao: public AbstractDao
 {
+public:
     enum Direction {
         TOP,
         BOTTOM
@@ -59,7 +60,6 @@ class MLD_API MLGDao: public AbstractDao
 
 typedef std::map<sparksee::gdb::oid_t, SuperNode> NodeMap;
 
-public:
     MLGDao( sparksee::gdb::Graph* g );
     virtual ~MLGDao() override;
 
@@ -116,7 +116,7 @@ public:
      * @param l Input layer
      * @return Nodes
      */
-    std::vector<SuperNode> getAllSuperNode( const Layer& l );
+    SuperNodeVec getAllSuperNode( const Layer& l );
 
     /**
      * @brief Get all Hlink for an input layer
@@ -146,14 +146,26 @@ public:
      * @param id SuperNode id
      * @return Parent SuperNodes
      */
-    std::vector<SuperNode> getParentNodes( sparksee::gdb::oid_t id );
+    SuperNodeVec getParentNodes( sparksee::gdb::oid_t id );
+    ObjectsPtr getParentIds( sparksee::gdb::oid_t id );
 
     /**
      * @brief Get child nodes for the given supernode id
      * @param id SuperNode id
      * @return Child SuperNodes
      */
-    std::vector<SuperNode> getChildNodes( sparksee::gdb::oid_t id );
+    SuperNodeVec getChildNodes( sparksee::gdb::oid_t id );
+    ObjectsPtr getChildIds( sparksee::gdb::oid_t id );
+
+    /**
+     * @brief Check if source and target node are either parent
+     * or child node from each other.
+     * @param source Source node id
+     * @param target Target node id
+     * @param dir Direction
+     * @return affiliation
+     */
+    bool checkAffiliation( sparksee::gdb::oid_t source, sparksee::gdb::oid_t target, Direction dir );
 
     /**
      * @brief Get number of SuperNode for input layer
@@ -193,11 +205,11 @@ public:
      * @param f Merge function for common links
      * @return success
      */
-    bool copyAndMergeVLinks( const SuperNode& source,
-                             const SuperNode& target,
-                             bool safe=true,
-                             const WeightMergerFunc& f=[](double a, double b) {return a + b;}
-                            );
+    bool horizontalCopyVLinks( const SuperNode& source,
+                               const SuperNode& target,
+                               bool safe=true,
+                               const ObjectsPtr& subset=ObjectsPtr(),
+                               const WeightMergerFunc& f=[](double a, double b) {return a + b;} );
 
     /**
      * @brief Copy all HLinks form source node to target, applying merge function f
@@ -209,17 +221,35 @@ public:
      * @param f Merge function for common links
      * @return success
      */
-    bool copyAndMergeHLinks( const SuperNode& source,
+    bool horizontalCopyHLinks( const SuperNode& source,
+                               const SuperNode& target,
+                               bool safe=true,
+                               const ObjectsPtr& subset=ObjectsPtr(),
+                               const WeightMergerFunc& f=[](double a, double b) {return a + b;} );
+
+    /**
+     * Vertical copy of all HLinks from source node on Layer k to target node on
+     * Layer k+1 or k-1
+     * @param source Source Node
+     * @param target Target Node
+     * @param d Direction TOP or BOTTOM
+     * @param subset Subset of HLinks to copy, if empty, all HLinks are copied
+     * @param safe Check if nodes are on the same layer before merging
+     * @param f Merge function for common links
+     * @return success
+     */
+    bool verticalCopyHLinks( const SuperNode& source,
                              const SuperNode& target,
+                             Direction direction=TOP,
                              bool safe=true,
-                             const WeightMergerFunc& f=[](double a, double b) {return a + b;}
-                            );
+                             const ObjectsPtr& subset=ObjectsPtr(),
+                             const WeightMergerFunc& f=[](double a, double b) {return a + b;} );
 
     // Forward to SNDao
     void removeNode( sparksee::gdb::oid_t id );
     void updateNode( const SuperNode& n );
     SuperNode getNode( sparksee::gdb::oid_t id );
-    std::vector<SuperNode> getNode( const ObjectsPtr& objs );
+    SuperNodeVec getNode( const ObjectsPtr& objs );
 
     // Forward to LinkDao
     HLink getHLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
@@ -355,9 +385,14 @@ private:
     sparksee::gdb::oid_t getLayerIdForSuperNode( sparksee::gdb::oid_t nid );
     Layer mirrorLayerImpl( Direction dir );
     HLink mirrorEdge( const HLink& current, Direction dir, const Layer& newLayer, NodeMap& nodeMap );
-    SuperNode mirrorNode( const sparksee::gdb::oid_t current, Direction dir, const Layer& newLayer );
-    bool copyAndMergeLinks( sparksee::gdb::type_t linkType, const SuperNode& source,
-                            const SuperNode& target, bool safe, const WeightMergerFunc& f );
+    SuperNode mirrorNode( sparksee::gdb::oid_t current, Direction dir, const Layer& newLayer );
+    ObjectsPtr getVLinkEndpoints( sparksee::gdb::oid_t current, Direction dir );
+    bool horizontalCopyLinks(sparksee::gdb::type_t linkType,
+                              const SuperNode& source,
+                              const SuperNode& target,
+                              bool safe,
+                              const ObjectsPtr& subset,
+                              const WeightMergerFunc& f );
 
 private:
     std::unique_ptr<SNodeDao> m_sn;

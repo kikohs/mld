@@ -38,13 +38,11 @@ class MLD_API SNodeDao : public AbstractDao
 public:
     SNodeDao( sparksee::gdb::Graph* g );
     ~SNodeDao();
-
     SuperNode addNode();
     void removeNode( sparksee::gdb::oid_t id );
     void updateNode( const SuperNode& n );
     SuperNode getNode( sparksee::gdb::oid_t id );
     std::vector<SuperNode> getNode( const ObjectsPtr& objs );
-
     sparksee::gdb::type_t superNodeType() const { return m_snType; }
 
 private:

@@ -38,7 +38,7 @@ public:
     virtual bool hasNext() override;
     virtual SuperNode next() override;
     virtual ObjectsPtr getUnflaggedNeighbors( sparksee::gdb::oid_t node ) override;
-    virtual bool flagAndUpdateScore( const SuperNode& root, bool withFlagged=false ) override;
+    virtual bool flagAndUpdateScore( const SuperNode& root, bool removeNeighbors=true, bool withFlagged=false ) override;
     virtual bool isFlagged( sparksee::gdb::oid_t snid ) override;
 
     virtual ObjectsPtr getFlaggedNodesFrom( const ObjectsPtr& input ) override;
@@ -66,12 +66,6 @@ public:
      * @param input
      */
     virtual void removeCandidates( const ObjectsPtr& input );
-
-    /**
-     * @brief Remaining SuperNode ids in the selection queue
-     * @return nodes id
-     */
-    ObjectsPtr remainingNodes();
 
     // Score related functions, pure functions
     double rootCentralityScore( sparksee::gdb::oid_t node, bool withFlagged );

@@ -66,10 +66,10 @@ private:
     /**
      * @brief If the coarsening stops before the all layer is coarsened
      * the remaining uncoarsened nodes need to be mirrored
-     * @param nodes
+     * @param top Layer
      * @return success
      */
-    bool mirrorRemainingNodes( const Layer& top, const ObjectsPtr& nodes );
+    bool mirrorRemainingNodes( const Layer& top );
 
     /**
      * @brief Create HLINKS for newly created top root node
@@ -100,8 +100,6 @@ private:
      * @return success
      */
     bool createTopHLinks1N2Hops( const SuperNode& root, const SuperNode& rootTop );
-
-    bool createTopHLinks( const SuperNode& root, const SuperNode& rootTop, const ObjectsPtr& nodeSet );
 
 protected:
     std::unique_ptr<XSelector> m_sel;

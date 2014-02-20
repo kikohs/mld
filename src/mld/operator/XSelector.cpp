@@ -89,7 +89,7 @@ ObjectsPtr XSelector::getUnflaggedNeighbors( oid_t node )
     return neighbors;
 }
 
-bool XSelector::flagAndUpdateScore( const SuperNode& root, bool withFlagged )
+bool XSelector::flagAndUpdateScore( const SuperNode& root, bool removeNeighbors, bool withFlagged )
 {   
     // Add to root node set
     m_rootNodes->Add(root.id());
@@ -99,13 +99,16 @@ bool XSelector::flagAndUpdateScore( const SuperNode& root, bool withFlagged )
     if( unflagged->Count() == 0 )
         return true;
 
-    // Add current root, to be removed from queue
-    // if selector is used normally with the next() method
-    // root node is already removed from queue
-    unflagged->Add(root.id());
-    m_flagged->Union(unflagged.get());
-    // Remove from selection queue
-    removeCandidates(unflagged);
+    if( removeNeighbors ) {
+        // Add current root, to be removed from queue
+        // if selector is used normally with the next() method
+        // root node is already removed from queue
+        unflagged->Add(root.id());
+        m_flagged->Union(unflagged.get());
+        // Remove from selection queue
+        removeCandidates(unflagged);
+        unflagged->Remove(root.id());
+    }
 
     // Keep only unflagged neighbor nodes
     ObjectsPtr neighbors(m_dao->graph()->Neighbors(unflagged.get(), m_dao->hlinkType(), Any));
@@ -157,15 +160,6 @@ void XSelector::removeCandidates( const ObjectsPtr& input )
     }
 }
 
-ObjectsPtr XSelector::remainingNodes()
-{
-    ObjectsPtr res = m_dao->newObjectsPtr();
-    for( auto it = m_scores.begin(); it != m_scores.end(); it++ ) {
-        res->Add(it->second);
-    }
-    return res;
-}
-
 ObjectsPtr XSelector::inEdges( oid_t root, bool withFlagged )
 {
     return inOrOutEdges(true, root, withFlagged);
@@ -190,9 +184,6 @@ double XSelector::getEdgeWeight( const ObjectsPtr& edgeOids )
     return total;
 }
 
-/**
- * @brief In score = traverse_edge_weight / in_edge_weight
- */
 double XSelector::rootCentralityScore( oid_t node, bool withFlagged )
 {
     double travWeight = 0.0;

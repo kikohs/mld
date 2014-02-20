@@ -80,10 +80,10 @@ bool BasicAdditiveMerger::merge( const HLink& hlink, const AbstractSingleSelecto
     std::tie(tgt, src) = getHeaviestNodeFirst(hlink, m_dao.get());
 
     // Create new VLINKS to children and parents of source
-    m_dao->copyAndMergeVLinks(src, tgt, false);
+    m_dao->horizontalCopyVLinks(src, tgt, false);
 
     // Create new HLINKS to source's neighbors, add weight for common edges
-    m_dao->copyAndMergeHLinks(src, tgt, false);
+    m_dao->horizontalCopyHLinks(src, tgt, false);
 
     // Update target weight
     tgt.setWeight( computeWeight(tgt, src) );
