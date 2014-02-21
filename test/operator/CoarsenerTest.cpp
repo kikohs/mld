@@ -81,7 +81,7 @@ TEST( CoarsenerTest, HeavyEdgeCoarsenerTest )
     // Maximum coarsening
     coarsener->setReductionFactor(1.0);
     r = coarsener->computeMergeCount(1000);
-    EXPECT_EQ(uint64_t(1000), r);
+    EXPECT_EQ(uint64_t(999), r);
 
     // 10% reduction over 5 nodes is 0.5, so only 1 node should be merged
     coarsener->setReductionFactor(0.1);
@@ -92,8 +92,8 @@ TEST( CoarsenerTest, HeavyEdgeCoarsenerTest )
     EXPECT_EQ(4, dao->getNodeCount(top));
 
     // Redo coarsening
-    coarsener->setReductionFactor(1);
-    coarsener->run();
+    coarsener->setReductionFactor(0.99);
+    EXPECT_TRUE(coarsener->run());
 
     // Check supernode
     top = dao->topLayer();
@@ -111,10 +111,10 @@ TEST( CoarsenerTest, HeavyEdgeCoarsenerTest )
     dao.reset();
     sess.reset();
 
-    LOG(logINFO) << Timer::dumpTrials();
+//    LOG(logINFO) << Timer::dumpTrials();
 }
 
-TEST( CoarsenerTest, XCoarsenerFirstPassAndMirror )
+TEST( CoarsenerTest, XCoarsenerCurrentPassAndMirror )
 {
     mld::SparkseeManager sparkseeManager(mld::kRESOURCES_DIR + L"mysparksee.cfg");
     sparkseeManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.sparksee", L"MLDTest");
@@ -125,9 +125,6 @@ TEST( CoarsenerTest, XCoarsenerFirstPassAndMirror )
     sparkseeManager.createScheme(g);
     std::unique_ptr<MLGDao> dao( new MLGDao(g) );
     std::unique_ptr<XCoarsener> coarsener( new XCoarsener(g) );
-    // No layer
-    EXPECT_FALSE(coarsener->run());
-
     Layer base = dao->addBaseLayer();
 
     // Create nodes
@@ -213,10 +210,10 @@ TEST( CoarsenerTest, XCoarsenerFirstPassAndMirror )
     dao.reset();
     sess.reset();
 
-    LOG(logINFO) << Timer::dumpTrials();
+//    LOG(logINFO) << Timer::dumpTrials();
 }
 
-TEST( CoarsenerTest, XCoarsenerSecondPass )
+TEST( CoarsenerTest, XCoarsenerMultiPassTop )
 {
     mld::SparkseeManager sparkseeManager(mld::kRESOURCES_DIR + L"mysparksee.cfg");
     sparkseeManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.sparksee", L"MLDTest");
@@ -256,7 +253,7 @@ TEST( CoarsenerTest, XCoarsenerSecondPass )
 
     // Full reduction order will be n4, n3 and n5
     coarsener->setReductionFactor(1);
-    coarsener->run();
+    EXPECT_TRUE(coarsener->run());
 
     // Check supernode
     Layer top = dao->topLayer();
@@ -272,12 +269,75 @@ TEST( CoarsenerTest, XCoarsenerSecondPass )
     }
 
     // Start another reduction, less than 2 nodes
-    coarsener->setReductionFactor(1);
-    EXPECT_FALSE(coarsener->run());
+//    coarsener->setReductionFactor(1);
+//    EXPECT_FALSE(coarsener->run());
 
     coarsener.reset();
     dao.reset();
     sess.reset();
 
-    LOG(logINFO) << Timer::dumpTrials();
+//    LOG(logINFO) << Timer::dumpTrials();
+}
+
+TEST( CoarsenerTest, XCoarsenerSinglePass )
+{
+    mld::SparkseeManager sparkseeManager(mld::kRESOURCES_DIR + L"mysparksee.cfg");
+    sparkseeManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.sparksee", L"MLDTest");
+
+    SessionPtr sess = sparkseeManager.newSession();
+    sparksee::gdb::Graph* g = sess->GetGraph();
+    // Create Db scheme
+    sparkseeManager.createScheme(g);
+    std::unique_ptr<MLGDao> dao( new MLGDao(g) );
+    std::unique_ptr<XCoarsener> coarsener( new XCoarsener(g) );
+    Layer base = dao->addBaseLayer();
+
+    // Create nodes
+    SuperNode n1 = dao->addNodeToLayer(base);
+    SuperNode n2 = dao->addNodeToLayer(base);
+    SuperNode n3 = dao->addNodeToLayer(base);
+    SuperNode n4 = dao->addNodeToLayer(base);
+    SuperNode n5 = dao->addNodeToLayer(base);
+    // Node 2 is the heaviest
+    n2.setWeight(100);
+    dao->updateNode(n2);
+
+    // Create hlinks
+
+    // n4 -- n1 - n2 --- n5
+    //       |    /
+    //       |   /
+    //       |  /
+    //       | /
+    //       n3
+
+    dao->addHLink(n1, n2, 5);
+    dao->addHLink(n1, n4, 4);
+    dao->addHLink(n2, n5, 3);
+    dao->addHLink(n1, n3);
+    dao->addHLink(n2, n3, 7);
+
+    // Full reduction order will be n4, n3 and n5
+    coarsener->setReductionFactor(1);
+    coarsener->setSinglePass(true); // will mirror layer
+    EXPECT_TRUE(coarsener->run());
+
+    // Check supernode
+    Layer top = dao->topLayer();
+    auto nodes = dao->getAllSuperNode(top);
+
+    EXPECT_EQ(size_t(1), nodes.size());
+    if( !nodes.empty() ) {
+        auto node = nodes.at(0);
+        EXPECT_DOUBLE_EQ(104, node.weight()); // 100 + 1 + 1 + 1 + 1
+        auto children = dao->getChildNodes(node.id());
+        // Should have 5 children from the previous coarsening pass
+        EXPECT_EQ(size_t(5), children.size());
+    }
+
+    coarsener.reset();
+    dao.reset();
+    sess.reset();
+
+//    LOG(logINFO) << Timer::dumpTrials();
 }

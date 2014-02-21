@@ -30,6 +30,7 @@ using namespace sparksee::gdb;
 AbstractCoarsener::AbstractCoarsener( sparksee::gdb::Graph* g )
     : AbstractOperator(g)
     , m_reductionFac(0.0)
+    , m_singlePass(false)
 {
 }
 
@@ -67,6 +68,10 @@ uint64_t AbstractCoarsener::computeMergeCount( int64_t numVertices )
     else {
         mergeCount = m_reductionFac * numVertices + 1;
     }
+
+    if( m_singlePass ) // multi pass has 1 mergeCount iteration for currentLayer pass
+        return std::min(mergeCount, uint64_t(numVertices - 1));
+
     return mergeCount;
 }
 
@@ -74,6 +79,7 @@ uint64_t AbstractCoarsener::computeMergeCount( int64_t numVertices )
 AbstractSingleCoarsener::AbstractSingleCoarsener( sparksee::gdb::Graph* g )
     : AbstractCoarsener(g)
 {
+    m_singlePass = true;
 }
 
 AbstractSingleCoarsener::~AbstractSingleCoarsener()
@@ -83,7 +89,7 @@ AbstractSingleCoarsener::~AbstractSingleCoarsener()
 bool AbstractSingleCoarsener::preExec()
 {
     if( !m_sel || !m_merger ) {
-        LOG(logERROR) << "AbstractSingleCoarsener::pre_exec: You need to set a \
+        LOG(logERROR) << "AbstractSingleCoarsener::preExec: You need to set a \
                          Selector and a Merger in children classes";
         return false;
     }
@@ -91,7 +97,7 @@ bool AbstractSingleCoarsener::preExec()
     // Check base layer node count
     auto numVertices = m_dao->getNodeCount(m_dao->baseLayer());
     if( numVertices < 2 ) {
-        LOG(logERROR) << "AbstractSingleCoarsener::pre_exec: invalid base layer contains less than 2 nodes";
+        LOG(logERROR) << "AbstractSingleCoarsener::preExec: invalid base layer contains less than 2 nodes";
         return false;
     }
 
@@ -99,7 +105,7 @@ bool AbstractSingleCoarsener::preExec()
     Layer current = m_dao->topLayer();
     numVertices = m_dao->getNodeCount(current);
     if( numVertices < 2 ) {
-        LOG(logERROR) << "AbstractSingleCoarsener::pre_exec: current layer contains less than 2 nodes";
+        LOG(logERROR) << "AbstractSingleCoarsener::preExec: current layer contains less than 2 nodes";
         return false;
     }
 

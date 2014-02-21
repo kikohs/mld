@@ -56,6 +56,12 @@ bool XSelector::rankNodes( const Layer& layer )
     ObjectsIt it(nodes->Iterator());
     while( it->HasNext() ) {
         auto nid = it->Next();
+#ifdef MLD_SAFE
+        if( nid == Objects::InvalidOID ) {
+            LOG(logERROR) << "XSelector::rankNodes invalid node";
+            return false;
+        }
+#endif
         // Add values in the mutable priority queue, no nodes are flagged
         m_scores.push(nid, calcScore(nid, true));
     }
@@ -67,14 +73,15 @@ bool XSelector::hasNext()
     return !m_scores.empty();
 }
 
-SuperNode XSelector::next()
+SuperNode XSelector::next( bool popNode )
 {
     if( hasNext() ) {
-        auto nid = m_scores.front_value();
-        SuperNode n = m_dao->getNode(nid);
-        // Remove item
-        m_scores.pop();
-        return n;
+        oid_t nid = m_scores.front_value();
+
+        if( popNode )
+            m_scores.pop();
+
+        return m_dao->getNode(nid);
     }
     else {
         return SuperNode();
@@ -139,14 +146,30 @@ double XSelector::calcScore( oid_t snid , bool withFlagged )
     return r / (g * h);
 }
 
-bool XSelector::updateScore( const ObjectsPtr& input , bool withFlagged )
+bool XSelector::updateScore( const ObjectsPtr& input, bool withFlagged )
 {
     ObjectsIt it(input->Iterator());
     while( it->HasNext() ) {
-       auto current = it->Next();
-       m_scores.update(current, calcScore(current, withFlagged));
+        auto id = it->Next();
+        m_scores.update(id, calcScore(id, withFlagged));
     }
     return true;
+}
+
+ObjectsPtr XSelector::getHLinkEnpoints( const SuperNode& root, bool oneHopOnly )
+{
+    ObjectsPtr hop1(m_dao->graph()->Neighbors(root.id(), m_dao->hlinkType(), Any));
+    if( oneHopOnly )
+        return getFlaggedNodesFrom(hop1);
+
+    ObjectsPtr hop1flagged(getFlaggedNodesFrom(hop1));
+    ObjectsPtr hop1Unflagged(getUnflaggedNodesFrom(hop1));
+    ObjectsPtr nodeSet(m_dao->graph()->Neighbors(hop1Unflagged.get(), m_dao->hlinkType(), Any));
+
+    // Keep only unflagged 2-hop's flagged nodes and 1hop flagged nodes
+    nodeSet = getFlaggedNodesFrom(nodeSet);
+    nodeSet->Union(hop1flagged.get());
+    return nodeSet;
 }
 
 void XSelector::removeCandidates( const ObjectsPtr& input )

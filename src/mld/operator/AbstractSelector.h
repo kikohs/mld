@@ -82,9 +82,10 @@ public:
 
     /**
      * @brief Get best node according to score, consume node
+     * @param popNode remove node from selection queue
      * @return Best supernode
      */
-    virtual SuperNode next() = 0;
+    virtual SuperNode next( bool popNode=true ) = 0;
 
     /**
      * @brief Get neighborhood of input node which is not already marked as unavailable
@@ -121,6 +122,16 @@ public:
      * @return non flagged nodes
      */
     virtual ObjectsPtr getUnflaggedNodesFrom( const ObjectsPtr& input ) = 0;
+
+    /**
+     * @brief Get endpoints (node ids) for current root node to create HLinks.
+     * Get flagged 1 hop or unflagged 2-hop's flagged nodes and 1-hop flagged targets to create
+     * HLinks
+     * @param root Root node
+     * @param oneHopOnly if true only the first hop will be retrieved
+     * @return nodeSet
+     */
+    virtual ObjectsPtr getHLinkEnpoints( const SuperNode& root, bool oneHopOnly ) = 0;
 };
 
 } // end namespace mld

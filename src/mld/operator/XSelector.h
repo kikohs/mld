@@ -36,7 +36,7 @@ public:
 
     virtual bool rankNodes( const Layer& layer ) override;
     virtual bool hasNext() override;
-    virtual SuperNode next() override;
+    virtual SuperNode next( bool popNode=true ) override;
     virtual ObjectsPtr getUnflaggedNeighbors( sparksee::gdb::oid_t node ) override;
     virtual bool flagAndUpdateScore( const SuperNode& root, bool removeNeighbors=true, bool withFlagged=false ) override;
     virtual bool isFlagged( sparksee::gdb::oid_t snid ) override;
@@ -57,6 +57,8 @@ public:
      * @return success
      */
     virtual bool updateScore( const ObjectsPtr& input, bool withFlagged );
+
+    virtual ObjectsPtr getHLinkEnpoints( const SuperNode& root, bool oneHopOnly ) override;
 
     sparksee::gdb::Objects* rootNodes() const { return m_rootNodes.get(); }
     sparksee::gdb::Objects* flaggedNodes() const { return m_flagged.get(); }

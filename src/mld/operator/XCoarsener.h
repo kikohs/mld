@@ -46,6 +46,17 @@ protected:
     virtual bool postExec() override;
 
 private:
+    /**
+     * @brief Do the coarsening in 1 pass by mirroring the current layer
+     * @return sucess
+     */
+    bool singlePass( const Layer& top, int64_t& mergeCount );
+
+    /**
+     * @brief Do coarsening in 2 pass, creating top layer on the fly
+     * @return
+     */
+    bool multiPass( const Layer& prev, const Layer& top, int64_t& mergeCount );
 
     /**
      * @brief First pass for the coarsening. Add SuperNodes on top layer
@@ -53,7 +64,7 @@ private:
      * @param mergeCount
      * @return success
      */
-    bool firstPass( const Layer& prev, const Layer& top, int64_t& mergeCount );
+    bool currentLayerPass( const Layer& prev, const Layer& top, int64_t& mergeCount );
 
     /**
      * @brief Second which coarsens the toplayer until merge count condition is reached
@@ -61,7 +72,7 @@ private:
      * @param mergeCount
      * @return success
      */
-    bool secondPass( const Layer& top, int64_t& mergeCount );
+    bool topLayerPass( const Layer& top, int64_t& mergeCount );
 
     /**
      * @brief If the coarsening stops before the all layer is coarsened
@@ -70,36 +81,6 @@ private:
      * @return success
      */
     bool mirrorRemainingNodes( const Layer& top );
-
-    /**
-     * @brief Create HLINKS for newly created top root node
-     * The search radius is 1 hop for the current root node
-     * @param root root SuperNode vlinked to rootTop
-     * @param rootTop Top root SuperNode vlinked to root
-     * @return success
-     */
-    bool createTopHLinks1Hop( const SuperNode& root, const SuperNode& rootTop );
-
-    /**
-     * @brief Create HLINKS for newly created top root node
-     * The search radius is 2 hop, 1 hop for the current root node
-     * and 1 hop for each the root's neighbors
-     *                HLink
-     *      rootTop ---------- currentRootTop
-     *     /                  /
-     *    /                  /
-     *   /                  / VLink
-     *  /          *       /
-     * /           |      /
-     * root - n* - n2 - *r2 (3hop root node)
-     *             |
-     *             *
-     *
-     * @param root root SuperNode vlinked to rootTop
-     * @param rootTop Top root SuperNode vlinked to root
-     * @return success
-     */
-    bool createTopHLinks1N2Hops( const SuperNode& root, const SuperNode& rootTop );
 
 protected:
     std::unique_ptr<XSelector> m_sel;

@@ -47,8 +47,19 @@ public:
     float reductionFactor() const { return m_reductionFac; }
     uint64_t computeMergeCount( int64_t numVertices );
 
+    /**
+     * @brief Set coarsening to only one pass by mirroring the layer
+     * or false by creating a new layer on the fly but requiring
+     * that all nodes from current layer be selected and processed (first pass)
+     * before coarsening the top layer (second pass)
+     * @param v
+     */
+    void setSinglePass( bool v ) { m_singlePass = v; }
+    bool isSinglePass() const { return m_singlePass; }
+
 protected:
     float m_reductionFac;
+    bool m_singlePass;
 };
 
 class MLD_API AbstractSingleCoarsener : public AbstractCoarsener
