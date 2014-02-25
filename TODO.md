@@ -1,7 +1,12 @@
 # Framework
 
-## MLGBuilder
-- Parse coarsening plan
+## Db scheme
+- Add MLG node -> layers
+    - name
+    - version
+
+- Layer
+    - description when coarsening occurs
 
 ## Operator
 - Big refactoring
@@ -17,9 +22,6 @@
 ## IO
 - Export layers
 - Export MLD
-
-# Tests
-- XCoarsener test
 
 # Tools
 - Create Explorer tool

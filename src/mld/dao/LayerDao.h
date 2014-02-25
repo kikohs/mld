@@ -44,6 +44,7 @@ class MLD_API LayerDao : public AbstractDao
 public:
     LayerDao( sparksee::gdb::Graph* g );
     virtual ~LayerDao() override;
+    virtual void setGraph( sparksee::gdb::Graph* g ) override;
 
     Layer addBaseLayer();
     void setAsBaseLayer( Layer& layer );

@@ -49,7 +49,7 @@ bool parseOptions( int argc, char *argv[], InputContext& out )
         // Input plan
         ValueArg<std::string> inputArg("s", "steps",
                                        "Coarsening plan\n  \
-                                       e.g: H:[0.1, 0.2, 0.4] X:0.5 \n",
+                                       e.g: H:[0.1,0.2,0.4] X:0.5 \n",
                                        true, "", "string");
         cmd.add(inputArg);
         // Working dir
@@ -59,9 +59,8 @@ bool parseOptions( int argc, char *argv[], InputContext& out )
 
         // Db Name
         ValueArg<std::string> nameArg("n", "name", "MLD database name (without extension)",
-                                    true, "", "path");
+                                    true, "", "string");
         cmd.add(nameArg);
-
 
         // Parse the args.
         cmd.parse(argc, argv);
@@ -86,7 +85,7 @@ int main( int argc, char *argv[] )
 
     mld::SparkseeManager sparkseeManager(ctx.workDir + L"mysparksee.cfg");
     sparkseeManager.openDatabase(ctx.workDir + ctx.dbName + L".sparksee");
-    SessionPtr sess = sparkseeManager.newSession();
+    SessionPtr sess(sparkseeManager.newSession());
     sparksee::gdb::Graph* g = sess->GetGraph();
 
     {  // MLGBuilder will go out of scope before Session
@@ -97,7 +96,7 @@ int main( int argc, char *argv[] )
         }
 
         if( !builder.run() ) {
-            LOG(logERROR) << "Coarsener: run coarsenung plan failed";
+            LOG(logERROR) << "Coarsener: run coarsening plan failed";
             return EXIT_FAILURE;
         }
     }

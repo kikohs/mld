@@ -30,13 +30,22 @@ using namespace sparksee::gdb;
 
 SNodeDao::SNodeDao( Graph* g )
     : AbstractDao(g)
-    , m_snType(m_g->FindType(NodeType::SUPERNODE))
 {
+    if( g )
+        m_snType = m_g->FindType(NodeType::SUPERNODE);
 }
 
 SNodeDao::~SNodeDao()
 {
     // DO NOT DELETE GRAPH
+}
+
+void SNodeDao::setGraph( Graph* g )
+{
+    if( g ) {
+        AbstractDao::setGraph(g);
+        m_snType = m_g->FindType(NodeType::SUPERNODE);
+    }
 }
 
 SuperNode SNodeDao::addNode()

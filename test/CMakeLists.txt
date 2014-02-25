@@ -22,10 +22,10 @@ append_test(MLGDaoTest dao/MLGDaoTest.cpp)
 # OPERATOR
 append_test(MergerTest operator/MergerTest.cpp)
 append_test(CoarsenerTest operator/CoarsenerTest.cpp)
-append_test(MLGBuilderTest operator/MLGBuilderTest.cpp)
 append_test(XSelectorTest operator/XSelectorTest.cpp)
 
 # TOP level test
+append_test(MLGBuilderTest MLGBuilderTest.cpp)
 append_test(TimerTest TimerTest.cpp)
 
 #### Create executables

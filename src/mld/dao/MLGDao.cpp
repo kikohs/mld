@@ -39,8 +39,9 @@ MLGDao::MLGDao( Graph* g )
     , m_sn( new SNodeDao(g) )
     , m_layer( new LayerDao(g) )
     , m_link( new LinkDao(g) )
-    , m_ownsType(m_g->FindType(EdgeType::OWNS))
 {
+    if( g )
+        m_ownsType = m_g->FindType(EdgeType::OWNS);
 }
 
 MLGDao::~MLGDao()
@@ -49,10 +50,13 @@ MLGDao::~MLGDao()
 
 void MLGDao::setGraph( Graph* g )
 {
-    AbstractDao::setGraph(g);
-    m_sn->setGraph(g);
-    m_layer->setGraph(g);
-    m_link->setGraph(g);
+    if( g ) {
+        AbstractDao::setGraph(g);
+        m_sn->setGraph(g);
+        m_layer->setGraph(g);
+        m_link->setGraph(g);
+        m_ownsType = m_g->FindType(EdgeType::OWNS);
+    }
 }
 
 ObjectsPtr MLGDao::newObjectsPtr() const

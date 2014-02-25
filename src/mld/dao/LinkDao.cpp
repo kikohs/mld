@@ -30,13 +30,24 @@ using namespace sparksee::gdb;
 
 LinkDao::LinkDao( Graph* g )
     : AbstractDao(g)
-    , m_hType(m_g->FindType(EdgeType::H_LINK))
-    , m_vType(m_g->FindType(EdgeType::V_LINK))
 {
+    if( g ) {
+        m_hType = m_g->FindType(EdgeType::H_LINK);
+        m_vType = m_g->FindType(EdgeType::V_LINK);
+    }
 }
 
 LinkDao::~LinkDao()
 {
+}
+
+void LinkDao::setGraph( Graph* g )
+{
+    if( g ) {
+        AbstractDao::setGraph(g);
+        m_hType = m_g->FindType(EdgeType::H_LINK);
+        m_vType = m_g->FindType(EdgeType::V_LINK);
+    }
 }
 
 HLink LinkDao::addHLink( oid_t src, oid_t tgt )

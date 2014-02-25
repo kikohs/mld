@@ -30,13 +30,22 @@ using namespace sparksee::gdb;
 
 LayerDao::LayerDao( Graph* g )
     : AbstractDao(g)
-    , m_lType(m_g->FindType(NodeType::LAYER))
 {
+    if( g )
+        m_lType = m_g->FindType(NodeType::LAYER);
 }
 
 LayerDao::~LayerDao()
 {
     // DO NOT DELETE GRAPH
+}
+
+void LayerDao::setGraph( Graph* g )
+{
+    if( g ) {
+        AbstractDao::setGraph(g);
+        m_lType = m_g->FindType(NodeType::LAYER);
+    }
 }
 
 int64_t LayerDao::countLayers()

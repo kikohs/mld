@@ -38,6 +38,7 @@ class MLD_API SNodeDao : public AbstractDao
 public:
     SNodeDao( sparksee::gdb::Graph* g );
     ~SNodeDao();
+    virtual void setGraph( sparksee::gdb::Graph* g ) override;
     SuperNode addNode();
     void removeNode( sparksee::gdb::oid_t id );
     void updateNode( const SuperNode& n );

@@ -42,6 +42,7 @@ class MLD_API LinkDao : public AbstractDao
 public:
     LinkDao( sparksee::gdb::Graph* g );
     virtual ~LinkDao() override;
+    virtual void setGraph( sparksee::gdb::Graph* g ) override;
 
     HLink addHLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
     HLink addHLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt, double weight );

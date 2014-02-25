@@ -30,9 +30,9 @@ namespace gdb {
 
 namespace mld {
 
-class AbstractOperator;
+class AbstractCoarsener;
 
-typedef std::shared_ptr<AbstractOperator> OperatorPtr;
+typedef std::shared_ptr<AbstractCoarsener> CoarsenerPtr;
 /**
  * @brief The Multi-layer graph builder class
  */
@@ -48,7 +48,7 @@ public:
      * @brief Add step to the queue
      * @param step
      */
-    void addStep( const OperatorPtr& step ) { m_steps.push_back(step); }
+    void addStep( const CoarsenerPtr& step ) { m_steps.push_back(step); }
     void clearSteps() { m_steps.clear(); }
 
     /**
@@ -64,8 +64,12 @@ public:
      * @return success
      */
     bool run();
+
 private:
-    std::deque<OperatorPtr> m_steps;
+    CoarsenerPtr createCoarsener( sparksee::gdb::Graph* g, const std::string& name, float fac );
+
+private:
+    std::deque<CoarsenerPtr> m_steps;
 };
 
 } // end namespace mld
