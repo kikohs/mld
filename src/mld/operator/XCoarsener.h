@@ -39,6 +39,15 @@ class MLD_API XCoarsener: public AbstractCoarsener
 public:
     XCoarsener( sparksee::gdb::Graph* g );
     virtual ~XCoarsener() override;
+    virtual std::string name() const override;
+
+    /**
+     * @brief The reduction factor is no longer a strict constraint
+     * but a minimal bound on the layer.
+     * Under the hood it uses the multipass if true
+     * @param v
+     */
+    void setReducFacAsStrictBound( bool v ) { m_strictBound = v; }
 
 protected:
     virtual bool preExec() override;
@@ -85,6 +94,7 @@ private:
 protected:
     std::unique_ptr<XSelector> m_sel;
     std::unique_ptr<AbstractMultiMerger> m_merger;
+    bool m_strictBound;
 };
 
 

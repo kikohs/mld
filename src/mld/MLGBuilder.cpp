@@ -40,6 +40,7 @@ MLGBuilder::~MLGBuilder()
 
 bool MLGBuilder::run()
 {
+    LOG(logINFO) << "MLGBuilder::run";
     if( m_steps.empty() ) {
         LOG(logWARNING) << "MLGBuilder::run queue is empty";
         return false;
@@ -48,8 +49,8 @@ bool MLGBuilder::run()
     while( !m_steps.empty() ) {
         CoarsenerPtr& step = m_steps.front();
         std::unique_ptr<Timer> t(new Timer("MLGBuilder::run step"));
-        bool ok = step->run();
-        if( !ok ) {
+        LOG(logINFO) << "MLGBuilder::run step " << *step;
+        if( !step->run() ) {
             LOG(logERROR) << "MLGBuilder::run: an operation failed, stop";
             clearSteps();
             return false;
@@ -65,6 +66,8 @@ bool MLGBuilder::fromRawString( Graph* g, const std::string& input )
         LOG(logERROR) << "MLGBuilder::fromRawString empty input";
         return false;
     }
+
+    LOG(logINFO) << "MLGBuilder::fromRawString: " << input;
     std::vector<std::string> tokens;
     ba::split(tokens, input, boost::is_any_of(" "));
 
@@ -79,13 +82,7 @@ bool MLGBuilder::fromRawString( Graph* g, const std::string& input )
             m_steps.clear();
             return false;
         }
-        std::string name(ba::to_lower_copy(tokens2.at(0)));
-        if( name.size() != 1 ) {
-            LOG(logERROR) << "MLGBuilder::fromRawString parse error: " << input;
-            m_steps.clear();
-            return false;
-        }
-
+        std::string name(tokens2.at(0));
         float tmp = 0.0;
         for( size_t i = 1; i < tokens2.size(); ++i ) {
             // Last token shoulb be empty, we check that at least 1 tokens exists
@@ -132,11 +129,18 @@ bool MLGBuilder::fromRawString( Graph* g, const std::string& input )
 CoarsenerPtr MLGBuilder::createCoarsener( Graph* g, const std::string& name, float fac )
 {
     CoarsenerPtr res;
-    if( name == "h" ) {
+    if( name == "H" ) {
         res.reset( new HeavyEdgeCoarsener(g) );
     }
-    else if ( name == "x") {
-        res.reset( new XCoarsener(g) );
+    else if ( name == "Xs") {
+        auto* c = new XCoarsener(g);
+        c->setReducFacAsStrictBound(true);
+        res.reset(c);
+    }
+    else if ( name == "Xm") {
+        auto* c = new XCoarsener(g);
+        c->setReducFacAsStrictBound(false);
+        res.reset(c);
     }
     else {
         LOG(logERROR) << "MLGBuilder::createCoarsener unsupported coarsener";

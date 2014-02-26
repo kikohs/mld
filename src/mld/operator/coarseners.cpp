@@ -43,12 +43,19 @@ HeavyEdgeCoarsener::~HeavyEdgeCoarsener()
 bool HeavyEdgeCoarsener::preExec()
 {
     std::unique_ptr<Timer> t(new Timer("HeavyEdgeCoar::preExec"));
+    LOG(logINFO) << "HeavyEdgeCoarsener::preExec";
     return AbstractSingleCoarsener::preExec();
 }
 
 bool HeavyEdgeCoarsener::exec()
 {
     std::unique_ptr<Timer> t(new Timer("HeavyEdgeCoar::exec"));
+    LOG(logINFO) << "HeavyEdgeCoarsener::exec";
     return AbstractSingleCoarsener::exec();
+}
+
+std::string HeavyEdgeCoarsener::name() const
+{
+    return std::string("HeavyEdgeCoarsener");
 }
 

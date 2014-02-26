@@ -87,18 +87,19 @@ int main( int argc, char *argv[] )
     sparkseeManager.openDatabase(ctx.workDir + ctx.dbName + L".sparksee");
     SessionPtr sess(sparkseeManager.newSession());
     sparksee::gdb::Graph* g = sess->GetGraph();
-
     {  // MLGBuilder will go out of scope before Session
         MLGBuilder builder;
         if( !builder.fromRawString(g, ctx.inputPlan) ) {
             LOG(logERROR) << "Coarsener: failed to parse input plan";
+            sess.reset();
             return EXIT_FAILURE;
         }
 
+        sess->Begin();
         if( !builder.run() ) {
             LOG(logERROR) << "Coarsener: run coarsening plan failed";
-            return EXIT_FAILURE;
         }
+        sess->Commit();
     }
 
     LOG(logINFO) << Timer::dumpTrials();

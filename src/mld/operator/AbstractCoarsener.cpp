@@ -30,7 +30,6 @@ using namespace sparksee::gdb;
 AbstractCoarsener::AbstractCoarsener( sparksee::gdb::Graph* g )
     : AbstractOperator(g)
     , m_reductionFac(0.0)
-    , m_singlePass(false)
 {
 }
 
@@ -48,7 +47,7 @@ void AbstractCoarsener::setReductionFactor( float fac )
         m_reductionFac = fac;
 }
 
-uint64_t AbstractCoarsener::computeMergeCount( int64_t numVertices )
+uint64_t AbstractCoarsener::computeMergeCount(int64_t numVertices, bool willUseMirroring )
 {
     if( numVertices < 2 ) {
         LOG(logWARNING) << "AbstractCoarsener::computeMergeCount: need at least 2 nodes";
@@ -69,17 +68,32 @@ uint64_t AbstractCoarsener::computeMergeCount( int64_t numVertices )
         mergeCount = m_reductionFac * numVertices + 1;
     }
 
-    if( m_singlePass ) // multi pass has 1 mergeCount iteration for currentLayer pass
+    if( willUseMirroring ) // multi pass has 1 mergeCount iteration for currentLayer pass
         return std::min(mergeCount, uint64_t(numVertices - 1));
 
     return mergeCount;
 }
 
+std::string AbstractCoarsener::name() const
+{
+    return std::string("AbstractCoarserner");
+}
+
+std::ostream& operator<<( std::ostream& out, const mld::AbstractCoarsener& coar )
+{
+    out << coar.name() << " fac:"
+        << coar.reductionFactor() << " "
+        ;
+    return out;
+}
+
+//
+// AbstractSingleCoarsener implementation
+//
 
 AbstractSingleCoarsener::AbstractSingleCoarsener( sparksee::gdb::Graph* g )
     : AbstractCoarsener(g)
 {
-    m_singlePass = true;
 }
 
 AbstractSingleCoarsener::~AbstractSingleCoarsener()
@@ -110,14 +124,16 @@ bool AbstractSingleCoarsener::preExec()
     }
 
     Layer top = m_dao->mirrorTopLayer();
-    if( top.id() == Objects::InvalidOID )
+    if( top.id() == Objects::InvalidOID ) {
+        LOG(logERROR) << "AbstractSingleCoarsener::exec: mirroiring failed";
         return false;
+    }
 
     return true;
 }
 
 bool AbstractSingleCoarsener::exec()
-{    
+{
     Layer current = m_dao->topLayer();
     auto numVertices = m_dao->getNodeCount(current);
     auto mergeCount = computeMergeCount(numVertices);
@@ -125,11 +141,11 @@ bool AbstractSingleCoarsener::exec()
     while( mergeCount > 0 ) {
         HLink link = m_sel->selectBestHLink(current);
         if( link.id() != Objects::InvalidOID ) {
-            bool success = m_merger->merge(link, *m_sel);
-            if( !success ) {
+            if( !m_merger->merge(link, *m_sel) ) {
                 LOG(logERROR) << "AbstractSingleCoarsener::exec: Merger failed to collapse HLink " << link;
                 return false;
             }
+            LOG(logDEBUG) << "AbstractSingleCoarsener::exec: Collapsed HLink: " << link;
             mergeCount--;
         }
         else {

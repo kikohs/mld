@@ -55,6 +55,12 @@ TEST( MLGBuilderTest, createFromInputPlan )
     inputPlan = "H:[0.1]";
     EXPECT_TRUE(builder->fromRawString(g, inputPlan));
 
+    inputPlan = "h:[0.1]";
+    EXPECT_FALSE(builder->fromRawString(g, inputPlan));
+
+    inputPlan = "X:[0.1]";  // Xs or Xm
+    EXPECT_FALSE(builder->fromRawString(g, inputPlan));
+
     inputPlan = "H:0.1";
     EXPECT_TRUE(builder->fromRawString(g, inputPlan));
 
@@ -67,19 +73,19 @@ TEST( MLGBuilderTest, createFromInputPlan )
     inputPlan = "H:[0.1] X:";
     EXPECT_FALSE(builder->fromRawString(g, inputPlan));
 
-    inputPlan = "H:[0.1] X:[0.1]";
+    inputPlan = "H:[0.1] Xs:[0.1]";
     EXPECT_FALSE(builder->fromRawString(g, inputPlan));
 
-    inputPlan = "H:[0.1] X:[0.2]";
+    inputPlan = "H:[0.1] Xs:[0.2]";
     EXPECT_TRUE(builder->fromRawString(g, inputPlan));
 
-    inputPlan = "H:0.1 X:[0.2]";
+    inputPlan = "H:0.1 Xs:[0.2]";
     EXPECT_TRUE(builder->fromRawString(g, inputPlan));
 
-    inputPlan = "H:0.1 X:[0.2,0.4]";
+    inputPlan = "H:0.1 Xs:[0.2,0.4]";
     EXPECT_TRUE(builder->fromRawString(g, inputPlan));
 
-    inputPlan = "H:0.1 X:0.2";
+    inputPlan = "H:0.1 Xm:0.2";
     EXPECT_TRUE(builder->fromRawString(g, inputPlan));
 
     inputPlan = "H:0.1 H:0.2";

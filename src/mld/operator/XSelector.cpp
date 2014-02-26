@@ -75,7 +75,7 @@ bool XSelector::hasNext()
 
 SuperNode XSelector::next( bool popNode )
 {
-    if( hasNext() ) {
+    if( !m_scores.empty() ) {
         oid_t nid = m_scores.front_value();
 
         if( popNode )

@@ -42,7 +42,7 @@ set( 3RDPARTY_DIR "${MAINFOLDER}/3rdparty" )
 # CMAKE_MODULE_PATH
 set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${MAINFOLDER}/share/cmake" )
 # Check of resources folder exists, if not create it
-set( RESOURCES_DIR "${MAINFOLDER}/resources/" )
+set( RESOURCES_DIR "${MAINFOLDER}/resources" )
 if( NOT EXISTS ${RESOURCES_DIR} )
     file( MAKE_DIRECTORY ${RESOURCES_DIR} )
 endif()
@@ -137,6 +137,7 @@ endif()
 #### SRC && CUSTOM DEFINITIONS
 # Config file
 configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/src/config.h.in ${CMAKE_CURRENT_SOURCE_DIR}/src/mld/config.h )
+configure_file( ${RESOURCES_DIR}/mysparksee.cfg.in ${RESOURCES_DIR}/mysparksee.cfg )
 
 # SOURCES
 add_subdirectory( src )

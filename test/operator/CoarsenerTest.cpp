@@ -319,7 +319,7 @@ TEST( CoarsenerTest, XCoarsenerSinglePass )
 
     // Full reduction order will be n4, n3 and n5
     coarsener->setReductionFactor(1);
-    coarsener->setSinglePass(true); // will mirror layer
+    coarsener->setReducFacAsStrictBound(true); // will mirror layer
     EXPECT_TRUE(coarsener->run());
 
     // Check supernode

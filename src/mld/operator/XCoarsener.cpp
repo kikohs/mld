@@ -33,6 +33,7 @@ XCoarsener::XCoarsener( Graph* g )
     : AbstractCoarsener(g)
     , m_sel( new XSelector(g) )
     , m_merger( new MultiAdditiveMerger(g) )
+    , m_strictBound(false)
 {
 }
 
@@ -40,9 +41,15 @@ XCoarsener::~XCoarsener()
 {
 }
 
+std::string XCoarsener::name() const
+{
+    return std::string("XCoarsener");
+}
+
 bool XCoarsener::preExec()
 {
     std::unique_ptr<Timer> t(new Timer("XCoarsener::preExec"));
+    LOG(logINFO) << "XCoarsener::preExec";
     // Check current layer node count
     Layer current(m_dao->topLayer());
     if( m_dao->getNodeCount(current) < 2 ) {
@@ -50,7 +57,7 @@ bool XCoarsener::preExec()
         return false;
     }
 
-    if( !m_singlePass ) {  // Single pass will mirror the top layer
+    if( !m_strictBound ) {  // Single pass will mirror the top layer
         Layer top(m_dao->addLayerOnTop());
         if( top.id() == Objects::InvalidOID ) {
             LOG(logERROR) << "XCoarsener::preExec: cannot add layer on top";
@@ -69,13 +76,14 @@ bool XCoarsener::preExec()
 bool XCoarsener::exec()
 {
     std::unique_ptr<Timer> t(new Timer("XCoarsener::exec"));
+    LOG(logINFO) << "XCoarsener::exec";
     Layer top(m_dao->topLayer());
     Layer prev(m_dao->child(top));
 
     int64_t numVertices = m_dao->getNodeCount(prev);
-    int64_t mergeCount = computeMergeCount(numVertices);
+    int64_t mergeCount = computeMergeCount(numVertices, m_strictBound);
 
-    if( m_singlePass )
+    if( m_strictBound )
         return singlePass(top, mergeCount);
 
     return multiPass(prev, top, mergeCount);
@@ -111,6 +119,7 @@ bool XCoarsener::multiPass( const Layer& prev, const Layer& top, int64_t& mergeC
 
     // If coarsening stopped before all nodes have been coarsened
     if( m_sel->hasNext() ) {
+        // Should never occur is not strict bound
         if( !mirrorRemainingNodes(top) ) {
             LOG(logERROR) << "XCoarsener::multiPass: mirroring failed";
             return false;
@@ -130,13 +139,18 @@ bool XCoarsener::multiPass( const Layer& prev, const Layer& top, int64_t& mergeC
 bool XCoarsener::currentLayerPass( const Layer& prev, const Layer& top, int64_t& mergeCount )
 {
     std::unique_ptr<Timer> t(new Timer("XCoarsener::currentLayerPass"));
+    LOG(logINFO) << "XCoarsener::currentLayerPass";
+
+    LOG(logINFO) << "XCoarsener::currentLayerPass rank nodes";
     if( !m_sel->rankNodes(prev) ) { // Rank nodes
         LOG(logERROR) << "XCoarsener::currentLayerPass: selector rank node failed";
         return false;
     }
 
+    LOG(logINFO) << "XCoarsener::currentLayerPass merge";
+    int64_t beforeMerge = mergeCount;
     // While there are nodes to collapse and all nodes are not flagged
-    while( m_sel->hasNext() && mergeCount > 0 ) {
+    while( m_sel->hasNext() ) {
         // Get best node to coarsen
         SuperNode root(m_sel->next());
         // Select valid neighbors (not flagged)
@@ -181,17 +195,22 @@ bool XCoarsener::currentLayerPass( const Layer& prev, const Layer& top, int64_t&
         // Decrease mergeCount number
         mergeCount -= std::max(int64_t(1), neighbors->Count());
     }
+
+    int64_t res = beforeMerge - mergeCount;
+    LOG(logINFO) << "XCoarsener::currentLayerPass merged " << res << " nodes"
+                 << " effective reduction: " << res / double(beforeMerge);
     return true;
 }
 
 bool XCoarsener::mirrorRemainingNodes( const Layer& top )
 {
     std::unique_ptr<Timer> t(new Timer("XCoarsener::mirrorRemainingNodes"));
+    LOG(logINFO) << "XCoarsener::mirrorRemainingNodes";
     // No all node have been coarsened, we need to duplicate them on the top layer
     // Create VLINKS for each node
+    int64_t count = 0;
     while( m_sel->hasNext() ) {
         SuperNode root(m_sel->next());
-//        LOG(logDEBUG) << "XCoarsener::mirrorRemainingNodes root: " << root;
         // Create top node
         SuperNode rootTop(m_dao->addNodeToLayer(top));
         // Update rootTop weight
@@ -214,23 +233,27 @@ bool XCoarsener::mirrorRemainingNodes( const Layer& top )
             LOG(logERROR) << "XCoarsener::mirrorRemainingNodes: flagNode failed";
             return false;
         }
+        count++;
     }
+    LOG(logINFO) << "XCoarsener::mirrorRemainingNodes mirrored" << count << " nodes";
     return true;
 }
 
 bool XCoarsener::topLayerPass( const Layer& top, int64_t& mergeCount )
 {
     std::unique_ptr<Timer> t(new Timer("XCoarsener::topLayerPass"));
+    LOG(logINFO) << "XCoarsener::topLayerPass";
 
     if( !m_sel->rankNodes(top) ) { // Rank nodes
         LOG(logERROR) << "XCoarsener::topLayerPass: selector rank node failed";
         return false;
     }
 
-    while( mergeCount > 0 ) {
+    int64_t beforeMerge = mergeCount;
+    while( m_sel->hasNext() && mergeCount > 0 ) {
         // Get best node to coarsen
         SuperNode root;
-        if( m_singlePass )
+        if( m_strictBound )
             root = m_sel->next(false);  // do not remove node from queue
         else
             root = m_sel->next(true);
@@ -238,12 +261,12 @@ bool XCoarsener::topLayerPass( const Layer& top, int64_t& mergeCount )
 #ifdef MLD_SAFE
         if( root.id() == Objects::InvalidOID ) {
             LOG(logERROR) << "XCoarsener::topLayerPass: selectBestNode failed";
-            return false;
+            break;
         }
 #endif
 
         // Still node to collpase but selector has spent all his node
-        if( !m_singlePass && !m_sel->hasNext() ) {
+        if( !m_strictBound && !m_sel->hasNext() ) {
             if( !m_sel->rankNodes(top) ) { // Rank nodes
                 LOG(logERROR) << "XCoarsener::topLayerPass: 2nd selector rank node failed";
                 return false;
@@ -251,10 +274,9 @@ bool XCoarsener::topLayerPass( const Layer& top, int64_t& mergeCount )
         }
 
         ObjectsPtr neighbors;
-        if( !m_singlePass ) {  // Update neighbors scores and flagged nodes
+        if( !m_strictBound ) {  // Update neighbors scores and flagged nodes
             neighbors = m_sel->getUnflaggedNeighbors(root.id());
             m_sel->flagAndUpdateScore(root, true, false);
-
         }
         else {  // Single pass, no flagged nodes, select all neighbors
             neighbors.reset(m_dao->graph()->Neighbors(root.id(), m_dao->hlinkType(), Any));
@@ -267,7 +289,7 @@ bool XCoarsener::topLayerPass( const Layer& top, int64_t& mergeCount )
             return false;
         }
 
-        if( m_singlePass ) {  // In case of single pass, we update node score by hand
+        if( m_strictBound ) {  // In case of single pass, we update node score by hand
             m_sel->removeCandidates(neighbors);
             // New neighbors now that nodes have been merged
             neighbors.reset(m_dao->graph()->Neighbors(root.id(), m_dao->hlinkType(), Any));
@@ -281,5 +303,6 @@ bool XCoarsener::topLayerPass( const Layer& top, int64_t& mergeCount )
         // Decrease mergeCount number
         mergeCount -= std::max(int64_t(1), neighborsCount);
     }
+    LOG(logINFO) << "XCoarsener::topLayerPass merged " << beforeMerge << " nodes";
     return true;
 }

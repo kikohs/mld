@@ -45,21 +45,18 @@ public:
      */
     void setReductionFactor( float fac );
     float reductionFactor() const { return m_reductionFac; }
-    uint64_t computeMergeCount( int64_t numVertices );
-
     /**
-     * @brief Set coarsening to only one pass by mirroring the layer
-     * or false by creating a new layer on the fly but requiring
-     * that all nodes from current layer be selected and processed (first pass)
-     * before coarsening the top layer (second pass)
-     * @param v
+     * @brief Return the number of nodes to merge
+     * @param numVertices base layer num of vertices returned by sparksee as an int64_t
+     * @param willUseMirroring The count is a bit different is we add an extra pass
+     * by default, all coarseners mirrors the last layer.
+     * @return node count
      */
-    void setSinglePass( bool v ) { m_singlePass = v; }
-    bool isSinglePass() const { return m_singlePass; }
+    uint64_t computeMergeCount( int64_t numVertices, bool willUseMirroring=true );
+    virtual std::string name() const;
 
 protected:
     float m_reductionFac;
-    bool m_singlePass;
 };
 
 class MLD_API AbstractSingleCoarsener : public AbstractCoarsener
@@ -78,7 +75,8 @@ protected:
     std::unique_ptr<AbstractSingleMerger> m_merger;
 };
 
-
 } // end namespace mld
+
+std::ostream& operator<<( std::ostream& out, const mld::AbstractCoarsener& coar );
 
 #endif // MLD_ABSTRACTCOARSENER_H

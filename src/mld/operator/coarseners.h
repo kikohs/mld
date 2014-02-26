@@ -38,6 +38,7 @@ public:
     virtual ~HeavyEdgeCoarsener() override;
     virtual bool preExec() override;
     virtual bool exec() override;
+    virtual std::string name() const override;
 };
 
 } // end namespace mld

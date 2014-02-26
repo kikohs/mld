@@ -13,7 +13,7 @@
 
 namespace mld {
 
-std::wstring kRESOURCES_DIR = L"@RESOURCES_DIR@";
+std::wstring kRESOURCES_DIR = L"@RESOURCES_DIR@/";
 
 } // end namespace mld
 
