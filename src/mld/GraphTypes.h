@@ -16,8 +16,8 @@
 **
 ****************************************************************************/
 
-#ifndef MLD_GRAPH_TYPES_H
-#define MLD_GRAPH_TYPES_H
+#ifndef MLD_GRAPHTYPES_H
+#define MLD_GRAPHTYPES_H
 
 #include <string>
 #include "mld/common.h"
@@ -100,4 +100,4 @@ struct MLD_API V_LinkAttr
 } // end namespace mld
 
 /** @} */
-#endif // MLD_GRAPH_TYPES_H
+#endif // MLD_GRAPHTYPES_H

@@ -21,9 +21,9 @@
 #include <sparksee/gdb/ObjectsIterator.h>
 
 #include "mld/dao/MLGDao.h"
-#include "mld/operator/XCoarsener.h"
-#include "mld/operator/XSelector.h"
-#include "mld/operator/MultiAdditiveMerger.h"
+#include "mld/operator/coarsener/XCoarsener.h"
+#include "mld/operator/selector/XSelector.h"
+#include "mld/operator/merger/MultiAdditiveMerger.h"
 #include "mld/utils/Timer.h"
 
 using namespace mld;

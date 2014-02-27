@@ -21,8 +21,8 @@
 #include <sparksee/gdb/Objects.h>
 #include <sparksee/gdb/ObjectsIterator.h>
 
-#include "mld/Graph_types.h"
-#include "mld/operator/XSelector.h"
+#include "mld/GraphTypes.h"
+#include "mld/operator/selector/XSelector.h"
 #include "mld/dao/MLGDao.h"
 
 using namespace mld;

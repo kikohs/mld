@@ -25,7 +25,7 @@
 #include <mld/common.h>
 #include <mld/config.h>
 #include <mld/SparkseeManager.h>
-#include <mld/Graph_types.h>
+#include <mld/GraphTypes.h>
 
 #include <mld/dao/MLGDao.h>
 

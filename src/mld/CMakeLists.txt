@@ -1,44 +1,43 @@
-# Copy macro
-include(Copy)
-
-add_subdirectory(dao)
-
-add_subdirectory(model)
-
-add_subdirectory(operator)
-
-add_subdirectory(utils)
-
-add_subdirectory(io)
+# TOP SRCS
 
 # SOURCES FILES
-set( project_SRCS
+# Each subdirectory add its sources file to this variable
+set( PROJECT_SRCS
+    CACHE STRING "Sources Files"
+    FORCE
+)
+
+add_subdirectory(dao)
+add_subdirectory(model)
+add_subdirectory(operator)
+add_subdirectory(utils)
+add_subdirectory(io)
+
+set( CUR_SRCS
     common.h
     config.h
     SparkseeManager.cpp
-    Graph_types.cpp
+    GraphTypes.cpp
     MLGBuilder.cpp
-    ${DAO_SRCS}
-    ${MODEL_SRCS}
-    ${OPERATOR_SRCS}
-    ${UTILS_SRCS}
-    ${IO_SRCS}
 )
+
+set( PROJECT_SRCS ${PROJECT_SRCS} ${CUR_SRCS} CACHE STRING "Sources Files" FORCE )
 
 ####### PUBLIC HEADERS ########
-
-# Current dir
 set( CUR_PUB_HDRS
-    ${CMAKE_CURRENT_SOURCE_DIR}/common.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/config.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/SparkseeManager.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Session.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/MLGBuilder.h
+    common.h
+    config.h
+    SparkseeManager.h
+    Session.h
+    MLGBuilder.h
 )
+file( COPY ${CUR_PUB_HDRS} DESTINATION ${PUBLIC_HDRS_DIR} )
 
+
+####### TARGET ########
 # All sources, add sources group here
 set( ALL_SRCS
-    ${project_SRCS} # defined in mld subdirectory
+    ${PROJECT_SRCS} # defined in mld subdirectory
 #    ${MOC_HDRS}
 )
 
@@ -67,40 +66,6 @@ target_link_libraries( ${PROJECT_NAME}
     ${LIBS_TO_LINK}
 )
 
-
-# Copy public headers in directory
-# You need to put the list (PUBLIC_HDRS) with quotes, otherwise
-# the macro only takes the first element.
-# NICE !
-# VARIABLE PUBLIC_HDRS definied in subdirectory
-COPY_FILES_INTO_DIRECTORY_IF_CHANGED( "${CUR_PUB_HDRS}" ${PUBLIC_HDRS_DIR} ${PROJECT_NAME} )
-# DAO
-if( NOT EXISTS ${DAO_PUB_HDRS_DIR} )
-    file( MAKE_DIRECTORY ${DAO_PUB_HDRS_DIR} )
-endif()
-COPY_FILES_INTO_DIRECTORY_IF_CHANGED( "${DAO_PUBLIC_HDRS}" ${DAO_PUB_HDRS_DIR} ${PROJECT_NAME} )
-# MODEL
-if( NOT EXISTS ${MODEL_PUB_HDRS_DIR} )
-    file( MAKE_DIRECTORY ${MODEL_PUB_HDRS_DIR} )
-endif()
-COPY_FILES_INTO_DIRECTORY_IF_CHANGED( "${MODEL_PUBLIC_HDRS}" ${MODEL_PUB_HDRS_DIR} ${PROJECT_NAME} )
-# OPERATOR
-if( NOT EXISTS ${OPERATOR_PUB_HDRS_DIR} )
-    file( MAKE_DIRECTORY ${OPERATOR_PUB_HDRS_DIR} )
-endif()
-COPY_FILES_INTO_DIRECTORY_IF_CHANGED( "${OPERATOR_PUBLIC_HDRS}" ${OPERATOR_PUB_HDRS_DIR} ${PROJECT_NAME} )
-# UTILS
-if( NOT EXISTS ${UTILS_PUB_HDRS_DIR} )
-    file( MAKE_DIRECTORY ${UTILS_PUB_HDRS_DIR} )
-endif()
-COPY_FILES_INTO_DIRECTORY_IF_CHANGED( "${UTILS_PUBLIC_HDRS}" ${UTILS_PUB_HDRS_DIR} ${PROJECT_NAME} )
-# IO
-if( NOT EXISTS ${IO_PUB_HDRS_DIR} )
-    file( MAKE_DIRECTORY ${IO_PUB_HDRS_DIR} )
-endif()
-COPY_FILES_INTO_DIRECTORY_IF_CHANGED( "${IO_PUBLIC_HDRS}" ${IO_PUB_HDRS_DIR} ${PROJECT_NAME} )
-
-
 ## INSTALL LIBS AND EXECUTABLES
 install( TARGETS ${PROJECT_NAME}
     FRAMEWORK DESTINATION ${FRAMEWORK_INSTALL_DIR}
@@ -111,5 +76,9 @@ install( TARGETS ${PROJECT_NAME}
 # Copy SPARKSEE_LIBRARIES
 install( FILES ${SPARKSEE_LIB_FILES} DESTINATION ${LIB_INSTALL_DIR} )
 
+# Add Install Targets for public headers
+if( EXISTS ${PUBLIC_HDRS_DIR} AND IS_DIRECTORY ${PUBLIC_HDRS_DIR} )
+    install( DIRECTORY ${PUBLIC_HDRS_DIR} DESTINATION ${INCLUDE_INSTALL_DIR} )
+endif()
 
 

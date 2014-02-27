@@ -20,8 +20,8 @@
 #define MLD_SELECTORS_H
 
 #include "mld/common.h"
-#include "mld/operator/AbstractSelector.h"
-#include "mld/operator/XSelector.h"
+#include "mld/operator/selectors/AbstractSelector.h"
+#include "mld/operator/selectors/XSelector.h"
 
 namespace mld {
 

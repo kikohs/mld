@@ -16,24 +16,38 @@
 **
 ****************************************************************************/
 
-#ifndef MLD_SELECTORS_H
-#define MLD_SELECTORS_H
+#include "mld/operator/merger/AbstractMerger.h"
+#include "mld/dao/MLGDao.h"
 
-#include "mld/common.h"
-#include "mld/operator/selector/AbstractSelector.h"
-#include "mld/operator/selector/XSelector.h"
+using namespace mld;
 
-namespace mld {
-
-class MLD_API HeavyEdgeSelector: public AbstractSingleSelector
+AbstractMerger::AbstractMerger( sparksee::gdb::Graph* g )
+    : m_dao( new MLGDao(g) )
 {
-public:
-    HeavyEdgeSelector( sparksee::gdb::Graph* g );
-    virtual ~HeavyEdgeSelector() override;
+}
 
-    virtual HLink selectBestHLink( const Layer& layer ) override;
-};
+AbstractMerger::~AbstractMerger()
+{
+}
 
-} // end namespace mld
+// Single Merger
 
-#endif // MLD_SELECTORS_H
+AbstractSingleMerger::AbstractSingleMerger( sparksee::gdb::Graph* g )
+    : AbstractMerger(g)
+{
+}
+
+AbstractSingleMerger::~AbstractSingleMerger()
+{
+}
+
+// MultiMerger
+
+AbstractMultiMerger::AbstractMultiMerger( sparksee::gdb::Graph* g )
+    : AbstractMerger(g)
+{
+}
+
+AbstractMultiMerger::~AbstractMultiMerger()
+{
+}

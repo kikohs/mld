@@ -18,9 +18,9 @@
 
 #include <sparksee/gdb/Objects.h>
 
-#include "mld/operator/AbstractCoarsener.h"
-#include "mld/operator/AbstractSelector.h"
-#include "mld/operator/AbstractMerger.h"
+#include "mld/operator/coarsener/AbstractCoarsener.h"
+#include "mld/operator/selector/AbstractSelector.h"
+#include "mld/operator/merger/AbstractMerger.h"
 #include "mld/dao/MLGDao.h"
 
 using namespace mld;

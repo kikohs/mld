@@ -22,7 +22,7 @@
 #include <sparksee/gdb/Graph_data.h>
 #include <sparksee/gdb/Value.h>
 
-#include "mld/Graph_types.h"
+#include "mld/GraphTypes.h"
 #include "mld/dao/SNodeDao.h"
 
 using namespace mld;

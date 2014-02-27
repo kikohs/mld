@@ -178,10 +178,4 @@ if( BUILD_DOC )
 endif( BUILD_DOC )
 
 
-#
-# Add Install Targets for public headers
-#
-if( EXISTS ${PUBLIC_HDRS_DIR} AND IS_DIRECTORY ${PUBLIC_HDRS_DIR} )
-    install( DIRECTORY ${PUBLIC_HDRS_DIR} DESTINATION ${INCLUDE_INSTALL_DIR} )
-endif()
 

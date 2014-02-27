@@ -22,7 +22,7 @@
 #include <sparksee/gdb/Objects.h>
 
 #include "mld/common.h"
-#include "mld/operator/AbstractCoarsener.h"
+#include "mld/operator/coarsener/AbstractCoarsener.h"
 #include "mld/model/Layer.h"
 
 namespace mld {

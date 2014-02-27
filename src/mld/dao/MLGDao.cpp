@@ -24,7 +24,7 @@
 #include <sparksee/gdb/Values.h>
 #include <sparksee/gdb/ValuesIterator.h>
 
-#include "mld/Graph_types.h"
+#include "mld/GraphTypes.h"
 
 #include "mld/dao/MLGDao.h"
 #include "mld/dao/LayerDao.h"

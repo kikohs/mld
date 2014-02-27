@@ -16,42 +16,24 @@
 **
 ****************************************************************************/
 
-#include "mld/operator/AbstractSelector.h"
-#include "mld/dao/MLGDao.h"
+#ifndef MLD_MULTIADDITIVEMERGER_H
+#define MLD_MULTIADDITIVEMERGER_H
 
-using namespace mld;
-using namespace sparksee::gdb;
+#include "mld/common.h"
+#include "mld/operator/merger/AbstractMerger.h"
 
-// AbstractSelector
+namespace mld {
 
-AbstractSelector::AbstractSelector( Graph* g )
-    : m_dao( new MLGDao(g) )
+class MLD_API MultiAdditiveMerger : public AbstractMultiMerger
 {
-}
+public:
+    MultiAdditiveMerger( sparksee::gdb::Graph* g );
+    virtual ~MultiAdditiveMerger() override;
 
-AbstractSelector::~AbstractSelector()
-{
-}
+    virtual double computeWeight( const SuperNode& target, const ObjectsPtr& neighbors ) override;
+    virtual bool merge( SuperNode& target, const ObjectsPtr& neighbors ) override;
+};
 
-// AbstractSingleSelector
+} // end namespace mld
 
-AbstractSingleSelector::AbstractSingleSelector( Graph* g )
-    : AbstractSelector(g)
-{
-}
-
-AbstractSingleSelector::~AbstractSingleSelector()
-{
-}
-
-
-// AbstractMultiSelector
-
-AbstractMultiSelector::AbstractMultiSelector( Graph* g )
-    : AbstractSelector(g)
-{
-}
-
-AbstractMultiSelector::~AbstractMultiSelector()
-{
-}
+#endif // MULTIADDITIVEMERGER_H

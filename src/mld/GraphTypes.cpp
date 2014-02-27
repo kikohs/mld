@@ -16,7 +16,7 @@
 **
 ****************************************************************************/
 
-#include "mld/Graph_types.h"
+#include "mld/GraphTypes.h"
 
 namespace mld {
 

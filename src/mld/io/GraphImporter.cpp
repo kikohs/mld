@@ -22,7 +22,7 @@
 #include <sparksee/gdb/Objects.h>
 
 #include "mld/io/GraphImporter.h"
-#include "mld/Graph_types.h"
+#include "mld/GraphTypes.h"
 #include "mld/utils/Timer.h"
 #include "mld/dao/MLGDao.h"
 #include "mld/dao/LinkDao.h"

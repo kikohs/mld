@@ -19,8 +19,8 @@
 #include <sparksee/gdb/Objects.h>
 #include <sparksee/gdb/ObjectsIterator.h>
 
-#include "mld/operator/MultiAdditiveMerger.h"
-#include "mld/operator/AbstractSelector.h"
+#include "mld/operator/merger/MultiAdditiveMerger.h"
+#include "mld/operator/selector/AbstractSelector.h"
 #include "mld/model/SuperNode.h"
 #include "mld/dao/MLGDao.h"
 

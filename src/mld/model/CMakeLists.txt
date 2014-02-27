@@ -3,18 +3,24 @@ set( MODEL_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/Layer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/SuperNode.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Link.cpp
-    PARENT_SCOPE
 )
+
+# Add to global variable
+set( PROJECT_SRCS ${PROJECT_SRCS} ${MODEL_SRCS} CACHE STRING "Sources Files" FORCE )
 
 # Public headers
 set( MODEL_PUBLIC_HDRS
-    ${CMAKE_CURRENT_SOURCE_DIR}/Layer.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/SuperNode.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Link.h
-    PARENT_SCOPE
+    Layer.h
+    SuperNode.h
+    Link.h
 )
 
 set( MODEL_PUB_HDRS_DIR
     ${PUBLIC_HDRS_DIR}/model
-    PARENT_SCOPE
 )
+
+# MODEL
+if( NOT EXISTS ${MODEL_PUB_HDRS_DIR} )
+    file( MAKE_DIRECTORY ${MODEL_PUB_HDRS_DIR} )
+endif()
+file( COPY ${MODEL_PUBLIC_HDRS} DESTINATION ${MODEL_PUB_HDRS_DIR} )

@@ -21,7 +21,7 @@
 #include <mld/config.h>
 #include <mld/SparkseeManager.h>
 
-#include <mld/operator/XSelector.h>
+#include <mld/operator/selector/XSelector.h>
 #include <mld/dao/MLGDao.h>
 #include <mld/utils/Timer.h>
 

@@ -21,7 +21,7 @@
 #include <sparksee/gdb/Graph_data.h>
 #include <sparksee/gdb/Value.h>
 
-#include "mld/Graph_types.h"
+#include "mld/GraphTypes.h"
 #include "mld/dao/LayerDao.h"
 #include "mld/utils/log.h"
 

@@ -20,8 +20,8 @@
 #define MLD_COARSENERS_H
 
 #include "mld/common.h"
-#include "mld/operator/AbstractCoarsener.h"
-#include "mld/operator/XCoarsener.h"
+#include "mld/operator/coarsener/AbstractCoarsener.h"
+#include "mld/operator/coarsener/XCoarsener.h"
 
 namespace mld {
 

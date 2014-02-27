@@ -23,7 +23,7 @@
 #include <sparksee/gdb/Value.h>
 
 #include "mld/SparkseeManager.h"
-#include "mld/Graph_types.h"
+#include "mld/GraphTypes.h"
 
 using namespace mld;
 using namespace sparksee::gdb;

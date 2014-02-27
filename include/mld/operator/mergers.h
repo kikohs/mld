@@ -20,8 +20,8 @@
 #define MLD_MERGERS_H
 
 #include "mld/common.h"
-#include "mld/operator/AbstractMerger.h"
-#include "mld/operator/MultiAdditiveMerger.h"
+#include "mld/operator/mergers/AbstractMerger.h"
+#include "mld/operator/mergers/MultiAdditiveMerger.h"
 
 namespace mld {
 

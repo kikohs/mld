@@ -23,7 +23,7 @@
 #include <sparksee/gdb/Objects.h>
 
 #include "mld/common.h"
-#include "mld/operator/AbstractSelector.h"
+#include "mld/operator/selector/AbstractSelector.h"
 #include "mld/utils/mutable_priority_queue.h"
 
 namespace mld {

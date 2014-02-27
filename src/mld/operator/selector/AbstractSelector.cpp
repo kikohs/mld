@@ -16,24 +16,42 @@
 **
 ****************************************************************************/
 
-#ifndef MLD_SELECTORS_H
-#define MLD_SELECTORS_H
-
-#include "mld/common.h"
 #include "mld/operator/selector/AbstractSelector.h"
-#include "mld/operator/selector/XSelector.h"
+#include "mld/dao/MLGDao.h"
 
-namespace mld {
+using namespace mld;
+using namespace sparksee::gdb;
 
-class MLD_API HeavyEdgeSelector: public AbstractSingleSelector
+// AbstractSelector
+
+AbstractSelector::AbstractSelector( Graph* g )
+    : m_dao( new MLGDao(g) )
 {
-public:
-    HeavyEdgeSelector( sparksee::gdb::Graph* g );
-    virtual ~HeavyEdgeSelector() override;
+}
 
-    virtual HLink selectBestHLink( const Layer& layer ) override;
-};
+AbstractSelector::~AbstractSelector()
+{
+}
 
-} // end namespace mld
+// AbstractSingleSelector
 
-#endif // MLD_SELECTORS_H
+AbstractSingleSelector::AbstractSingleSelector( Graph* g )
+    : AbstractSelector(g)
+{
+}
+
+AbstractSingleSelector::~AbstractSingleSelector()
+{
+}
+
+
+// AbstractMultiSelector
+
+AbstractMultiSelector::AbstractMultiSelector( Graph* g )
+    : AbstractSelector(g)
+{
+}
+
+AbstractMultiSelector::~AbstractMultiSelector()
+{
+}
