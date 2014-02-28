@@ -22,7 +22,7 @@
 #include <sparksee/gdb/Objects.h>
 
 #include "mld/common.h"
-#include "mld/operator/coarseners/AbstractCoarsener.h"
+#include "mld/operator/coarsener/AbstractCoarsener.h"
 #include "mld/model/Layer.h"
 
 namespace mld {
@@ -93,7 +93,7 @@ private:
 
 protected:
     std::unique_ptr<XSelector> m_sel;
-    std::unique_ptr<AbstractMultiMerger> m_merger;
+    std::unique_ptr<AbstractNeighborMerger> m_merger;
     bool m_strictBound;
 };
 

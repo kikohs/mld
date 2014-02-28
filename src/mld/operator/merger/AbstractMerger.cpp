@@ -43,11 +43,11 @@ AbstractSingleMerger::~AbstractSingleMerger()
 
 // MultiMerger
 
-AbstractMultiMerger::AbstractMultiMerger( sparksee::gdb::Graph* g )
+AbstractNeighborMerger::AbstractNeighborMerger( sparksee::gdb::Graph* g )
     : AbstractMerger(g)
 {
 }
 
-AbstractMultiMerger::~AbstractMultiMerger()
+AbstractNeighborMerger::~AbstractNeighborMerger()
 {
 }

@@ -77,11 +77,11 @@ public:
 };
 
 // Multi Merger
-class MLD_API AbstractMultiMerger: public AbstractMerger
+class MLD_API AbstractNeighborMerger: public AbstractMerger
 {
 public:
-    AbstractMultiMerger( sparksee::gdb::Graph* g );
-    virtual ~AbstractMultiMerger() = 0;
+    AbstractNeighborMerger( sparksee::gdb::Graph* g );
+    virtual ~AbstractNeighborMerger() = 0;
 
     /**
      * @brief Collapse all available HLinks and node around a node depending on the underlying algorithm

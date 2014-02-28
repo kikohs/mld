@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 EPFL-LTS2
+** Copyright (C) 2014 EPFL-LTS2
 ** Contact: Kirell Benzi (first.last@epfl.ch)
 **
 ** This file is part of MLD.
@@ -19,8 +19,7 @@
 #include <sparksee/gdb/Objects.h>
 #include <sparksee/gdb/ObjectsIterator.h>
 
-#include "mld/operator/merger/MultiAdditiveMerger.h"
-#include "mld/operator/selector/AbstractSelector.h"
+#include "mld/operator/merger/AdditiveNeighborMerger.h"
 #include "mld/model/SuperNode.h"
 #include "mld/dao/MLGDao.h"
 
@@ -31,16 +30,16 @@
 using namespace mld;
 using namespace sparksee::gdb;
 
-MultiAdditiveMerger::MultiAdditiveMerger( Graph* g )
-    : AbstractMultiMerger(g)
+AdditiveNeighborMerger::AdditiveNeighborMerger( Graph* g )
+    : AbstractNeighborMerger(g)
 {
 }
 
-MultiAdditiveMerger::~MultiAdditiveMerger()
+AdditiveNeighborMerger::~AdditiveNeighborMerger()
 {
 }
 
-double MultiAdditiveMerger::computeWeight( const SuperNode& target,
+double AdditiveNeighborMerger::computeWeight( const SuperNode& target,
                                       const ObjectsPtr& neighbors
                                     )
 {
@@ -52,15 +51,15 @@ double MultiAdditiveMerger::computeWeight( const SuperNode& target,
     return total;
 }
 
-bool MultiAdditiveMerger::merge( SuperNode& target, const ObjectsPtr& neighbors )
+bool AdditiveNeighborMerger::merge( SuperNode& target, const ObjectsPtr& neighbors )
 {
 #ifdef MLD_FINE_TIMER
-    std::unique_ptr<Timer> t(new Timer("MultiAdditiveMerger::merge"));
+    std::unique_ptr<Timer> t(new Timer("AdditiveNeighborMerger::merge"));
 #endif
 
 #ifdef MLD_SAFE
     if( !neighbors ) {
-        LOG(logERROR) << "MultiAdditiveMerger::merge null Object";
+        LOG(logERROR) << "AdditiveNeighborMerger::merge null Object";
     }
 #endif
     double total = target.weight();
@@ -69,13 +68,13 @@ bool MultiAdditiveMerger::merge( SuperNode& target, const ObjectsPtr& neighbors 
         SuperNode src = m_dao->getNode(it->Next());
         // Create new VLINKS to children and parents of source
         if( !m_dao->horizontalCopyVLinks(src, target, false) ) {
-            LOG(logERROR) << "MultiAdditiveMerger::merge failed to copy and merge vlinks";
+            LOG(logERROR) << "AdditiveNeighborMerger::merge failed to copy and merge vlinks";
             return false;
         }
 
         // Create new HLINKS to source's neighbors, add weight for common edges
         if( !m_dao->horizontalCopyHLinks(src, target, false) ) {
-            LOG(logERROR) << "MultiAdditiveMerger::merge failed to copy and merge hlinks";
+            LOG(logERROR) << "AdditiveNeighborMerger::merge failed to copy and merge hlinks";
             return false;
         }
 

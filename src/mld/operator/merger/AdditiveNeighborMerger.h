@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 EPFL-LTS2
+** Copyright (C) 2014 EPFL-LTS2
 ** Contact: Kirell Benzi (first.last@epfl.ch)
 **
 ** This file is part of MLD.
@@ -16,25 +16,26 @@
 **
 ****************************************************************************/
 
-#ifndef MLD_MERGERS_H
-#define MLD_MERGERS_H
+#ifndef MLD_ADDITIVENEIGHBORMERGER_H
+#define MLD_ADDITIVENEIGHBORMERGER_H
 
-#include "mld/common.h"
 #include "mld/operator/merger/AbstractMerger.h"
-#include "mld/operator/merger/AdditiveNeighborMerger.h"
 
 namespace mld {
 
-class MLD_API BasicAdditiveMerger: public AbstractSingleMerger
+/**
+ * @brief The AdditiveNeighborMerger class
+ * Add weights for common edges
+ */
+class MLD_API AdditiveNeighborMerger : public AbstractNeighborMerger
 {
 public:
-    BasicAdditiveMerger( sparksee::gdb::Graph* g );
-    virtual ~BasicAdditiveMerger() override;
-
-    virtual double computeWeight( const SuperNode& target, const SuperNode& source ) override;
-    virtual bool merge( const HLink& hlink, const AbstractSingleSelector& selector ) override;
+    AdditiveNeighborMerger( sparksee::gdb::Graph* g );
+    virtual ~AdditiveNeighborMerger() override;
+    virtual bool merge( SuperNode& target, const ObjectsPtr& neighbors ) override;
+    virtual double computeWeight( const SuperNode& target, const ObjectsPtr& neighbors ) override;
 };
 
 } // end namespace mld
 
-#endif // MLD_MERGERS_H
+#endif // MLD_ADDITIVENEIGHBORMERGER_H

@@ -17,12 +17,10 @@
 ****************************************************************************/
 
 #include "mld/operator/AbstractOperator.h"
-#include "mld/dao/MLGDao.h"
 
 using namespace mld;
 
-AbstractOperator::AbstractOperator( sparksee::gdb::Graph* g )
-    : m_dao( new MLGDao(g) )
+AbstractOperator::AbstractOperator()
 {
 }
 

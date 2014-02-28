@@ -47,6 +47,12 @@ public:
     AbstractSelector( const AbstractSelector& ) = delete;
     AbstractSelector& operator=( const AbstractSelector& ) = delete;
 
+    /**
+     * @brief Selector's name
+     * @return
+     */
+    virtual std::string name() const = 0;
+
 protected:
     std::unique_ptr<MLGDao> m_dao;
 };

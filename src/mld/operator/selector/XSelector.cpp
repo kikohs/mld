@@ -16,7 +16,6 @@
 **
 ****************************************************************************/
 
-#include <numeric>  // std::accumulate
 #include <sparksee/gdb/Graph.h>
 #include <sparksee/gdb/Objects.h>
 #include <sparksee/gdb/ObjectsIterator.h>

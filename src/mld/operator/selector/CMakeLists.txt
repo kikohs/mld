@@ -2,6 +2,7 @@
 
 set( SELECTOR_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/AbstractSelector.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/NeighborSelector.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/XSelector.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/selectors.cpp
 )
@@ -12,6 +13,7 @@ set( PROJECT_SRCS ${PROJECT_SRCS} ${SELECTOR_SRCS} CACHE STRING "Sources Files" 
 # Public headers
 set( SELECTOR_PUBLIC_HDRS
     AbstractSelector.h
+    NeighborSelector.h
     XSelector.h
 )
 

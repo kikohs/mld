@@ -32,6 +32,8 @@ public:
     virtual ~HeavyEdgeSelector() override;
 
     virtual HLink selectBestHLink( const Layer& layer ) override;
+
+    virtual std::string name() const override { return "HeavyEdgeSelector"; }
 };
 
 } // end namespace mld

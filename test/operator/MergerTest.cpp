@@ -182,7 +182,7 @@ TEST( MultiAdditiveMergerTest, Check )
     //  n1 -------- n2 -------- n3 ---- n4
     //   \______________________/
 
-    std::unique_ptr<MultiAdditiveMerger> merger( new MultiAdditiveMerger(g) );
+    std::unique_ptr<AdditiveNeighborMerger> merger( new AdditiveNeighborMerger(g) );
 
     ObjectsPtr neighbors(dao->graph()->Neighbors(n2.id(), dao->hlinkType(), Any));
     // n2 = n2 + n1 + n3

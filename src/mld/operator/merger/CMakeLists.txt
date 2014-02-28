@@ -2,7 +2,7 @@
 
 set( MERGER_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/AbstractMerger.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/MultiAdditiveMerger.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/AdditiveNeighborMerger.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/mergers.cpp
 )
 
@@ -12,7 +12,7 @@ set( PROJECT_SRCS ${PROJECT_SRCS} ${MERGER_SRCS} CACHE STRING "Sources Files" FO
 # Public headers
 set( MERGER_PUBLIC_HDRS
     AbstractMerger.h
-    MultiAdditiveMerger.h
+    AdditiveNeighborMerger.h
 )
 
 set( MERGER_PUB_HDRS_DIR

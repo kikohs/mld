@@ -93,7 +93,7 @@ private:
 
 protected:
     std::unique_ptr<XSelector> m_sel;
-    std::unique_ptr<AbstractMultiMerger> m_merger;
+    std::unique_ptr<AbstractNeighborMerger> m_merger;
     bool m_strictBound;
 };
 

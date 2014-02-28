@@ -23,7 +23,7 @@
 #include <sparksee/gdb/Objects.h>
 
 #include "mld/common.h"
-#include "mld/operator/selectors/AbstractSelector.h"
+#include "mld/operator/selector/AbstractSelector.h"
 #include "mld/utils/mutable_priority_queue.h"
 
 namespace mld {
@@ -57,6 +57,8 @@ public:
      * @return success
      */
     virtual bool updateScore( const ObjectsPtr& input, bool withFlagged );
+
+    virtual std::string name() const override { return "XSelector"; }
 
     virtual ObjectsPtr getHLinkEnpoints( const SuperNode& root, bool oneHopOnly ) override;
 

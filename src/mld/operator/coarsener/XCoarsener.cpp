@@ -23,7 +23,7 @@
 #include "mld/dao/MLGDao.h"
 #include "mld/operator/coarsener/XCoarsener.h"
 #include "mld/operator/selector/XSelector.h"
-#include "mld/operator/merger/MultiAdditiveMerger.h"
+#include "mld/operator/merger/AdditiveNeighborMerger.h"
 #include "mld/utils/Timer.h"
 
 using namespace mld;
@@ -32,7 +32,7 @@ using namespace sparksee::gdb;
 XCoarsener::XCoarsener( Graph* g )
     : AbstractCoarsener(g)
     , m_sel( new XSelector(g) )
-    , m_merger( new MultiAdditiveMerger(g) )
+    , m_merger( new AdditiveNeighborMerger(g) )
     , m_strictBound(false)
 {
 }

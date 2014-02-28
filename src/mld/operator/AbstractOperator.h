@@ -21,16 +21,7 @@
 
 #include "mld/common.h"
 
-namespace sparksee {
-namespace gdb {
-    class Graph;
-    class Value;
-    class Objects;
-}}
-
 namespace mld {
-
-class MLGDao;
 
 /**
  * @brief Abstract MLG Operator
@@ -39,7 +30,7 @@ class MLGDao;
 class MLD_API AbstractOperator
 {
 public:
-    AbstractOperator( sparksee::gdb::Graph* g );
+    AbstractOperator();
     virtual ~AbstractOperator() = 0;
 
     // Disable copy and assignement ctor
@@ -72,9 +63,6 @@ protected:
      * @return success
      */
     virtual bool postExec() = 0;
-
-protected:
-    std::unique_ptr<MLGDao> m_dao;
 };
 
 } // end namespace mld

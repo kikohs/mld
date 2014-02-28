@@ -22,19 +22,27 @@
 #include "mld/common.h"
 #include "mld/operator/AbstractOperator.h"
 
+namespace sparksee {
+namespace gdb {
+    class Graph;
+    class Value;
+    class Objects;
+}}
+
 namespace mld {
 
 class AbstractSingleSelector;
 class AbstractSingleMerger;
 
 class AbstractMultiSelector;
-class AbstractMultiMerger;
+class AbstractNeighborMerger;
+
+class MLGDao;
 
 class MLD_API AbstractCoarsener : public AbstractOperator
 {
 public:
     AbstractCoarsener( sparksee::gdb::Graph* g );
-    AbstractCoarsener( sparksee::gdb::Graph* g, float fac );
     virtual ~AbstractCoarsener() = 0;
 
     /**
@@ -56,6 +64,7 @@ public:
     virtual std::string name() const;
 
 protected:
+    std::unique_ptr<MLGDao> m_dao;
     float m_reductionFac;
 };
 

@@ -28,7 +28,8 @@ using namespace sparksee::gdb;
 
 
 AbstractCoarsener::AbstractCoarsener( sparksee::gdb::Graph* g )
-    : AbstractOperator(g)
+    : AbstractOperator()
+    , m_dao( new MLGDao(g) )
     , m_reductionFac(0.0)
 {
 }

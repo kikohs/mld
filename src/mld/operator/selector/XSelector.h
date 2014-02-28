@@ -19,7 +19,6 @@
 #ifndef MLD_XSELECTOR_H
 #define MLD_XSELECTOR_H
 
-#include <queue>
 #include <sparksee/gdb/Objects.h>
 
 #include "mld/common.h"
@@ -57,6 +56,8 @@ public:
      * @return success
      */
     virtual bool updateScore( const ObjectsPtr& input, bool withFlagged );
+
+    virtual std::string name() const override { return "XSelector"; }
 
     virtual ObjectsPtr getHLinkEnpoints( const SuperNode& root, bool oneHopOnly ) override;
 

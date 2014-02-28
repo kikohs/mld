@@ -20,8 +20,8 @@
 #define MLD_SELECTORS_H
 
 #include "mld/common.h"
-#include "mld/operator/selectors/AbstractSelector.h"
-#include "mld/operator/selectors/XSelector.h"
+#include "mld/operator/selector/AbstractSelector.h"
+#include "mld/operator/selector/XSelector.h"
 
 namespace mld {
 
@@ -32,6 +32,8 @@ public:
     virtual ~HeavyEdgeSelector() override;
 
     virtual HLink selectBestHLink( const Layer& layer ) override;
+
+    virtual std::string name() const override { return "HeavyEdgeSelector"; }
 };
 
 } // end namespace mld
