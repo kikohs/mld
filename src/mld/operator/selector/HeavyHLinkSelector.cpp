@@ -50,8 +50,12 @@ void HeavyHLinkSelector::setCurrentBestNeighbors()
 
 HeavyHLinkSelector::Endpoint HeavyHLinkSelector::getBestEnpoint( sparksee::gdb::oid_t snid )
 {
+    if( snid == Objects::InvalidOID ) {
+        LOG(logERROR) << "HeavyHLinkSelector::getBestEnpoint invalid oid";
+        return Endpoint(0.0, Objects::InvalidOID);
+    }
     // Retrieve best neighbors
-    ObjectsPtr nodeSet(getNeighbors(m_current));
+    ObjectsPtr nodeSet(getNeighbors(snid));
     ObjectsIt it(nodeSet->Iterator());
     oid_t best = Objects::InvalidOID;
     double weight = 0.0;
