@@ -62,19 +62,42 @@ public:
     virtual double calcScore( sparksee::gdb::oid_t snid ) = 0;
 
     /**
-     * @brief Get best neighbors, must be reimplemented in child classes
-     * @param snid SuperNode oid
+     * @brief Get best neighbors for current selected node
      * @return Best neighbors
      */
-    virtual ObjectsPtr getBestNeighbors( sparksee::gdb::oid_t snid ) = 0;
+    ObjectsPtr getCurrentBestNeighbors() const { return m_curNeighbors; }
+
+    /**
+     * @brief Get all flagged nodes by the selector
+     * @return Flagged nodes
+     */
+    ObjectsPtr getFlaggedNodes() const { return m_flagged; }
 
 protected:
+    /**
+     * @brief Set current best neighbors pure function to reimplement
+     * m_current holds the current node, this function should set the
+     * m_curNeighbors variable with the proper node set
+     */
+    virtual void setCurrentBestNeighbors() = 0;
     /**
      * @brief Update node score from given input set
      * @param input set
      * @return success
      */
     virtual bool updateScore( const ObjectsPtr& input );
+    /**
+     * @brief Remove already merged nodes
+     * @param input shoudl be currentBestNeighbors
+     */
+    virtual void removeCandidates( const ObjectsPtr& input );
+
+    /**
+     * @brief Get neighbors for current node, with or without memory
+     * @param snid
+     * @return neighbors
+     */
+    ObjectsPtr getNeighbors( sparksee::gdb::oid_t snid );
 
 protected:
     bool m_hasMemory;

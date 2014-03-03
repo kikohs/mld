@@ -22,6 +22,8 @@
 #include "mld/MLGBuilder.h"
 #include "mld/operator/AbstractOperator.h"
 #include "mld/operator/coarseners.h"
+#include "mld/operator/selectors.h"
+#include "mld/operator/mergers.h"
 #include "mld/utils/Timer.h"
 
 using namespace mld;
@@ -128,24 +130,31 @@ bool MLGBuilder::fromRawString( Graph* g, const std::string& input )
 
 CoarsenerPtr MLGBuilder::createCoarsener( Graph* g, const std::string& name, float fac )
 {
-    CoarsenerPtr res;
-    if( name == "H" ) {
-        res.reset( new HeavyEdgeCoarsener(g) );
+    auto* res = new NeighborCoarsener(g);
+    res->setMerger( new AdditiveNeighborMerger(g) );
+    res->setReductionFactor(fac);
+
+    // Set selector
+    if( name == "Hs" ) {
+        res->setSelector( new HeavyHLinkSelector(g) );
+    }
+    else if( name == "Hm" ) {
+        auto* sel = new HeavyHLinkSelector(g);
+        sel->setHasMemory(true);
+        res->setSelector(sel);
     }
     else if ( name == "Xs") {
-        auto* c = new XCoarsener(g);
-        c->setReducFacAsStrictBound(true);
-        res.reset(c);
+        res->setSelector( new XSelector(g) );
     }
     else if ( name == "Xm") {
-        auto* c = new XCoarsener(g);
-        c->setReducFacAsStrictBound(false);
-        res.reset(c);
+        auto* sel = new XSelector(g);
+        sel->setHasMemory(true);
+        res->setSelector(sel);
     }
     else {
         LOG(logERROR) << "MLGBuilder::createCoarsener unsupported coarsener";
+        delete res;
+        return CoarsenerPtr();
     }
-    if( res )
-        res->setReductionFactor(fac);
-    return res;
+    return CoarsenerPtr(res);
 }

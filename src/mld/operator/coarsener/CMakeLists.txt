@@ -1,8 +1,7 @@
 # COARSENER SRCS
 set( COARSENER_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/AbstractCoarsener.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/coarseners.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/XCoarsener.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/NeighborCoarsener.cpp
 )
 
 # Add to global variable
@@ -11,7 +10,7 @@ set( PROJECT_SRCS ${PROJECT_SRCS} ${COARSENER_SRCS} CACHE STRING "Sources Files"
 # Public headers
 set( COARSENER_PUBLIC_HDRS
     AbstractCoarsener.h
-    XCoarsener.h
+    NeighborCoarsener.h
 )
 
 set( COARSENER_PUB_HDRS_DIR

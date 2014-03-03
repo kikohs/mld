@@ -35,7 +35,8 @@ class AbstractSingleSelector;
 class AbstractSingleMerger;
 
 class AbstractMultiSelector;
-class AbstractNeighborMerger;
+class NeighborMerger;
+class NeighborSelector;
 
 class MLGDao;
 

@@ -2,8 +2,8 @@
 
 set( MERGER_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/AbstractMerger.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/NeighborMerger.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/AdditiveNeighborMerger.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/mergers.cpp
 )
 
 # Add to global variable
@@ -12,6 +12,7 @@ set( PROJECT_SRCS ${PROJECT_SRCS} ${MERGER_SRCS} CACHE STRING "Sources Files" FO
 # Public headers
 set( MERGER_PUBLIC_HDRS
     AbstractMerger.h
+    NeighborMerger.h
     AdditiveNeighborMerger.h
 )
 

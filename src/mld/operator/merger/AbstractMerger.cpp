@@ -40,14 +40,3 @@ AbstractSingleMerger::AbstractSingleMerger( sparksee::gdb::Graph* g )
 AbstractSingleMerger::~AbstractSingleMerger()
 {
 }
-
-// MultiMerger
-
-AbstractNeighborMerger::AbstractNeighborMerger( sparksee::gdb::Graph* g )
-    : AbstractMerger(g)
-{
-}
-
-AbstractNeighborMerger::~AbstractNeighborMerger()
-{
-}

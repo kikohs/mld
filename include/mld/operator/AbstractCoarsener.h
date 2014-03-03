@@ -52,8 +52,8 @@ public:
      * by default, all coarseners mirrors the last layer.
      * @return node count
      */
-    uint64_t computeMergeCount( int64_t numVertices, bool willUseMirroring=true );
-    virtual std::string name() const;
+    virtual uint64_t computeMergeCount( int64_t numVertices, bool willUseMirroring=true );
+    virtual std::string name() const = 0;
 
 protected:
     float m_reductionFac;

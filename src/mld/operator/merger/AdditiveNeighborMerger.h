@@ -19,7 +19,7 @@
 #ifndef MLD_ADDITIVENEIGHBORMERGER_H
 #define MLD_ADDITIVENEIGHBORMERGER_H
 
-#include "mld/operator/merger/AbstractMerger.h"
+#include "mld/operator/merger/NeighborMerger.h"
 
 namespace mld {
 
@@ -27,13 +27,14 @@ namespace mld {
  * @brief The AdditiveNeighborMerger class
  * Add weights for common edges
  */
-class MLD_API AdditiveNeighborMerger : public AbstractNeighborMerger
+class MLD_API AdditiveNeighborMerger : public NeighborMerger
 {
 public:
     AdditiveNeighborMerger( sparksee::gdb::Graph* g );
     virtual ~AdditiveNeighborMerger() override;
     virtual bool merge( SuperNode& target, const ObjectsPtr& neighbors ) override;
     virtual double computeWeight( const SuperNode& target, const ObjectsPtr& neighbors ) override;
+    virtual std::string name() const override { return "AdditiveNeighborMerger"; }
 };
 
 } // end namespace mld

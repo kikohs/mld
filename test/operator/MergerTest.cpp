@@ -27,105 +27,12 @@
 #include <mld/SparkseeManager.h>
 
 #include <mld/operator/mergers.h>
-#include <mld/operator/selectors.h>
 #include <mld/dao/MLGDao.h>
 
 using namespace mld;
 using namespace sparksee::gdb;
 
-TEST( BasicAdditiveMergerTest, Check1 )
-{
-    mld::SparkseeManager sparkseeManager(mld::kRESOURCES_DIR + L"mysparksee.cfg");
-    sparkseeManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.sparksee", L"MLDTest");
-
-    SessionPtr sess = sparkseeManager.newSession();
-    Graph* g = sess->GetGraph();
-    // Create Db scheme
-    sparkseeManager.createScheme(g);
-    std::unique_ptr<MLGDao> dao( new MLGDao(g) );
-
-    Layer base = dao->addBaseLayer();
-
-    // Create nodes
-    SuperNode n1 = dao->addNodeToLayer(base);
-    SuperNode n2 = dao->addNodeToLayer(base);
-    SuperNode n3 = dao->addNodeToLayer(base);
-    SuperNode n4 = dao->addNodeToLayer(base);
-    SuperNode n5 = dao->addNodeToLayer(base);
-    // Node 2 is the heaviest
-    n2.setWeight(100);
-    dao->updateNode(n2);
-
-    // Create hlinks
-
-    // n4 -- n1 - n2 --- n5
-    //       |    /
-    //       |   /
-    //       |  /
-    //       | /
-    //       n3
-    // Heaviest hlink to collapse
-    dao->addHLink(n1, n2, 5);
-    dao->addHLink(n1, n4, 4);
-    dao->addHLink(n2, n5, 3);
-    HLink hl13 = dao->addHLink(n1, n3);
-    HLink hl23 = dao->addHLink(n2, n3);
-
-    // Double mirror to test the merging of parents VLinks
-    Layer current = dao->mirrorTopLayer();
-    dao->mirrorTopLayer();
-
-    std::unique_ptr<HeavyEdgeSelector> selector( new HeavyEdgeSelector(g) );
-    std::unique_ptr<BasicAdditiveMerger> merger( new BasicAdditiveMerger(g) );
-
-    // Do merge
-    HLink best = selector->selectBestHLink(current);
-    bool success = merger->merge(best, *selector);
-    EXPECT_TRUE(success);
-    // Check that a node has actually been merge
-    EXPECT_EQ(5, dao->getNodeCount(base));
-    EXPECT_EQ(4, dao->getNodeCount(current));
-    auto hlIds = dao->getAllHLinkIds(current);
-    // 5 hlinks at the beginning, there should only be 3 left
-    // n1-n3 should have been merge in n2-n3
-    // n1-n2 has been collapsed
-    EXPECT_EQ(3, hlIds->Count());
-    hlIds.reset();
-
-    // Check N2 (n2 parent) weight
-    auto n2Parents = dao->getParentNodes(n2.id());
-    EXPECT_EQ(size_t(1), n2Parents.size());
-    SuperNode N2 = n2Parents[0];
-    EXPECT_EQ(n2.weight() + n1.weight(), N2.weight());
-    // Check N2 hlinks, should be 3
-    ObjectsPtr N2links(g->Explode(N2.id(), dao->hlinkType(), Outgoing));
-    EXPECT_EQ(3, N2links->Count());
-    N2links.reset();
-    // Check that n1 has been merge, VLINK to N2
-    auto n1Parents = dao->getParentNodes(n1.id());
-    EXPECT_EQ(size_t(1), n1Parents.size());
-    // n1 parent is N2
-    EXPECT_EQ(N2, n1Parents[0]);
-
-    // Check common edge merging
-    // HL23 weight should equal hl23 + hl13 weights
-    auto n3Parents = dao->getParentNodes(n3.id());
-    EXPECT_EQ(n3Parents.size(), size_t(1));
-    HLink HL23 = dao->getHLink(N2.id(), n3Parents[0].id());
-    EXPECT_NE(Objects::InvalidOID, HL23.id());
-    EXPECT_EQ(hl13.weight() + hl23.weight(), HL23.weight());
-
-    // Check N2 parents, should be 2 (1 n1, 1 n2)
-    auto N2Parents = dao->getParentNodes(N2.id());
-    EXPECT_EQ(size_t(2), N2Parents.size());
-
-    merger.reset();
-    selector.reset();
-    dao.reset();
-    sess.reset();
-}
-
-TEST( MultiAdditiveMergerTest, Check )
+TEST( AdditiveMergerTest, Check )
 {
     mld::SparkseeManager sparkseeManager(mld::kRESOURCES_DIR + L"mysparksee.cfg");
     sparkseeManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.sparksee", L"MLDTest");

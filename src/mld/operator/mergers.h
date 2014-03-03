@@ -19,22 +19,6 @@
 #ifndef MLD_MERGERS_H
 #define MLD_MERGERS_H
 
-#include "mld/common.h"
-#include "mld/operator/merger/AbstractMerger.h"
 #include "mld/operator/merger/AdditiveNeighborMerger.h"
-
-namespace mld {
-
-class MLD_API BasicAdditiveMerger: public AbstractSingleMerger
-{
-public:
-    BasicAdditiveMerger( sparksee::gdb::Graph* g );
-    virtual ~BasicAdditiveMerger() override;
-
-    virtual double computeWeight( const SuperNode& target, const SuperNode& source ) override;
-    virtual bool merge( const HLink& hlink, const AbstractSingleSelector& selector ) override;
-};
-
-} // end namespace mld
 
 #endif // MLD_MERGERS_H

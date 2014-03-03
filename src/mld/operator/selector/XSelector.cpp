@@ -20,7 +20,6 @@
 #include <sparksee/gdb/Objects.h>
 #include <sparksee/gdb/ObjectsIterator.h>
 
-#include "mld/GraphTypes.h"
 #include "mld/operator/selector/XSelector.h"
 #include "mld/dao/MLGDao.h"
 
@@ -32,9 +31,7 @@ namespace {
 } // end namespace anonymous
 
 XSelector::XSelector( Graph* g )
-    : AbstractMultiSelector(g)
-    , m_flagged( m_dao->newObjectsPtr() )
-    , m_rootNodes( m_dao->newObjectsPtr() )
+    : NeighborSelector(g)
 {
 }
 
@@ -42,154 +39,27 @@ XSelector::~XSelector()
 {
 }
 
-bool XSelector::rankNodes( const Layer& layer )
+double XSelector::calcScore( oid_t snid )
 {
-    // Reset variables
-    m_scores.clear();
-    m_lid = layer.id();
-    m_flagged = m_dao->newObjectsPtr();
-    m_rootNodes = m_dao->newObjectsPtr();
-
-    ObjectsPtr nodes(m_dao->getAllNodeIds(layer));
-    // Iterate through each node and calculate score
-    ObjectsIt it(nodes->Iterator());
-    while( it->HasNext() ) {
-        auto nid = it->Next();
-#ifdef MLD_SAFE
-        if( nid == Objects::InvalidOID ) {
-            LOG(logERROR) << "XSelector::rankNodes invalid node";
-            return false;
-        }
-#endif
-        // Add values in the mutable priority queue, no nodes are flagged
-        m_scores.push(nid, calcScore(nid, true));
-    }
-    return true;
-}
-
-bool XSelector::hasNext()
-{
-    return !m_scores.empty();
-}
-
-SuperNode XSelector::next( bool popNode )
-{
-    if( !m_scores.empty() ) {
-        oid_t nid = m_scores.front_value();
-
-        if( popNode )
-            m_scores.pop();
-
-        return m_dao->getNode(nid);
-    }
-    else {
-        return SuperNode();
-    }
-}
-
-ObjectsPtr XSelector::getUnflaggedNeighbors( oid_t node )
-{
-    ObjectsPtr neighbors(m_dao->graph()->Neighbors(node, m_dao->hlinkType(), Any));
-    // Return only neighbors not flagged
-    neighbors->Difference(m_flagged.get());
-    return neighbors;
-}
-
-bool XSelector::flagAndUpdateScore( const SuperNode& root, bool removeNeighbors, bool withFlagged )
-{   
-    // Add to root node set
-    m_rootNodes->Add(root.id());
-    m_flagged->Add(root.id());
-
-    ObjectsPtr unflagged(getUnflaggedNeighbors(root.id()));
-    if( unflagged->Count() == 0 )
-        return true;
-
-    if( removeNeighbors ) {
-        // Add current root, to be removed from queue
-        // if selector is used normally with the next() method
-        // root node is already removed from queue
-        unflagged->Add(root.id());
-        m_flagged->Union(unflagged.get());
-        // Remove from selection queue
-        removeCandidates(unflagged);
-        unflagged->Remove(root.id());
-    }
-
-    // Keep only unflagged neighbor nodes
-    ObjectsPtr neighbors(m_dao->graph()->Neighbors(unflagged.get(), m_dao->hlinkType(), Any));
-    neighbors = getUnflaggedNodesFrom(neighbors);
-    return updateScore(neighbors, withFlagged);
-}
-
-bool XSelector::isFlagged( oid_t snid )
-{
-    return m_flagged->Exists(snid);
-}
-
-ObjectsPtr XSelector::getFlaggedNodesFrom( const ObjectsPtr& input )
-{
-    return ObjectsPtr(Objects::CombineIntersection(input.get(), m_flagged.get()));
-}
-
-ObjectsPtr XSelector::getUnflaggedNodesFrom( const ObjectsPtr& input )
-{
-    return ObjectsPtr(Objects::CombineDifference(input.get(), m_flagged.get()));
-}
-
-double XSelector::calcScore( oid_t snid , bool withFlagged )
-{
-    double r = rootCentralityScore(snid, withFlagged);
-    double h = twoHopHubAffinityScore(snid, withFlagged);
-    double g = gravityScore(snid, withFlagged);
+    double r = rootCentralityScore(snid);
+    double h = twoHopHubAffinityScore(snid);
+    double g = gravityScore(snid);
     return r / (g * h);
 }
 
-bool XSelector::updateScore( const ObjectsPtr& input, bool withFlagged )
+void XSelector::setCurrentBestNeighbors()
 {
-    ObjectsIt it(input->Iterator());
-    while( it->HasNext() ) {
-        auto id = it->Next();
-        m_scores.update(id, calcScore(id, withFlagged));
-    }
-    return true;
+    m_curNeighbors = getNeighbors(m_current);
 }
 
-ObjectsPtr XSelector::getHLinkEnpoints( const SuperNode& root, bool oneHopOnly )
+ObjectsPtr XSelector::inEdges( oid_t root )
 {
-    ObjectsPtr hop1(m_dao->graph()->Neighbors(root.id(), m_dao->hlinkType(), Any));
-    if( oneHopOnly )
-        return getFlaggedNodesFrom(hop1);
-
-    ObjectsPtr hop1flagged(getFlaggedNodesFrom(hop1));
-    ObjectsPtr hop1Unflagged(getUnflaggedNodesFrom(hop1));
-    ObjectsPtr nodeSet(m_dao->graph()->Neighbors(hop1Unflagged.get(), m_dao->hlinkType(), Any));
-
-    // Keep only unflagged 2-hop's flagged nodes and 1hop flagged nodes
-    nodeSet = getFlaggedNodesFrom(nodeSet);
-    nodeSet->Union(hop1flagged.get());
-    return nodeSet;
+    return inOrOutEdges(true, root);
 }
 
-void XSelector::removeCandidates( const ObjectsPtr& input )
+ObjectsPtr XSelector::outEdges( oid_t root )
 {
-    if( !input )
-        return;
-    // Remove candidates nodes from selection
-    ObjectsIt it(input->Iterator());
-    while( it->HasNext() ) {
-        m_scores.erase(it->Next());
-    }
-}
-
-ObjectsPtr XSelector::inEdges( oid_t root, bool withFlagged )
-{
-    return inOrOutEdges(true, root, withFlagged);
-}
-
-ObjectsPtr XSelector::outEdges( oid_t root, bool withFlagged )
-{
-    return inOrOutEdges(false, root, withFlagged);
+    return inOrOutEdges(false, root);
 }
 
 double XSelector::getEdgeWeight( const ObjectsPtr& edgeOids )
@@ -206,19 +76,19 @@ double XSelector::getEdgeWeight( const ObjectsPtr& edgeOids )
     return total;
 }
 
-double XSelector::rootCentralityScore( oid_t node, bool withFlagged )
+double XSelector::rootCentralityScore( oid_t node )
 {
     double travWeight = 0.0;
     double inWeight = 1.0;
 
     ObjectsPtr traverseEdges;
-    if( withFlagged ) {
-        traverseEdges.reset(m_dao->graph()->Explode(node, m_dao->hlinkType(), Any));
-    }
-    else { // Remove flagged nodes
+    if( m_hasMemory ) {
         traverseEdges = m_dao->newObjectsPtr();
-        ObjectsPtr targetSet(getUnflaggedNeighbors(node));
+        ObjectsPtr targetSet(getNeighbors(node));
         edgeRetriever(traverseEdges, node, targetSet);
+    }
+    else {
+        traverseEdges.reset(m_dao->graph()->Explode(node, m_dao->hlinkType(), Any));
     }
 
     // Only direct edges from root to neighbors
@@ -226,27 +96,22 @@ double XSelector::rootCentralityScore( oid_t node, bool withFlagged )
         travWeight = getEdgeWeight(traverseEdges);
 
     // 1 hop radius edges
-    ObjectsPtr inE = inEdges(node, withFlagged);
+    ObjectsPtr inE = inEdges(node);
     if( inE->Count() > 0 )
         inWeight = getEdgeWeight(inE);
 
     return travWeight / inWeight;
 }
 
-double XSelector::twoHopHubAffinityScore( oid_t node, bool withFlagged )
+double XSelector::twoHopHubAffinityScore( oid_t node )
 {
-    auto out = outEdges(node, withFlagged);
+    auto out = outEdges(node);
     return double(std::max(out->Count(), int64_t(1)));
 }
 
-double XSelector::gravityScore( oid_t root, bool withFlagged )
+double XSelector::gravityScore( oid_t root )
 {
-    ObjectsPtr nodeSet;
-    if( withFlagged )
-        nodeSet.reset(m_dao->graph()->Neighbors(root, m_dao->hlinkType(), Any));
-    else
-        nodeSet = getUnflaggedNeighbors(root);
-
+    ObjectsPtr nodeSet = getNeighbors(root);
     nodeSet->Add(root);
     auto nodes = m_dao->getNode(nodeSet);
     double total = 0.0;
@@ -256,15 +121,9 @@ double XSelector::gravityScore( oid_t root, bool withFlagged )
     return total;
 }
 
-
-ObjectsPtr XSelector::inOrOutEdges( bool inEdges, oid_t root, bool withFlagged )
+ObjectsPtr XSelector::inOrOutEdges( bool inEdges, oid_t root )
 {
-    ObjectsPtr neighbors;
-    if( withFlagged )
-        neighbors.reset(m_dao->graph()->Neighbors(root, m_dao->hlinkType(), Any));
-    else
-        neighbors = getUnflaggedNeighbors(root);
-
+    ObjectsPtr neighbors = getNeighbors(root);
     // Root + neighbors
     ObjectsPtr rootSet(neighbors->Copy());
     rootSet->Add(root);
@@ -274,13 +133,7 @@ ObjectsPtr XSelector::inOrOutEdges( bool inEdges, oid_t root, bool withFlagged )
     ObjectsIt it(neighbors->Iterator());
     while( it->HasNext() ) {
         auto source = it->Next();
-        ObjectsPtr hop2;
-        if( withFlagged ) {
-            hop2.reset(m_dao->graph()->Neighbors(source, m_dao->hlinkType(), Any));
-        }
-        else {
-            hop2 = getUnflaggedNeighbors(source);
-        }
+        ObjectsPtr hop2 = getNeighbors(source);
         ObjectsPtr nodeSet;
         if( inEdges ) {
             // Keep only neighbors within 1 hop radius from root

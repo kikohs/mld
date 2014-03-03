@@ -47,6 +47,8 @@ public:
     // Disable copy and assignement ctor
     AbstractMerger( const AbstractMerger& ) = delete;
     AbstractMerger& operator=( const AbstractMerger& ) = delete;
+
+    virtual std::string name() const = 0;
 protected:
     std::unique_ptr<MLGDao> m_dao;
 };
@@ -75,32 +77,6 @@ public:
      */
     virtual double computeWeight( const SuperNode& target, const SuperNode& source ) = 0;
 };
-
-// Multi Merger
-class MLD_API AbstractNeighborMerger: public AbstractMerger
-{
-public:
-    AbstractNeighborMerger( sparksee::gdb::Graph* g );
-    virtual ~AbstractNeighborMerger() = 0;
-
-    /**
-     * @brief Collapse all available HLinks and node around a node depending on the underlying algorithm
-     * Update graph and selector
-     * @param target node
-     * @param neighbors Available neighbors to collapse
-     * @return success
-     */
-    virtual bool merge( SuperNode& target, const ObjectsPtr& neighbors ) = 0;
-
-    /**
-     * @brief Compute weight for the future merged node
-     * @param target Node to update
-     * @param neighbors Neighbors of root node
-     * @return new weight
-     */
-    virtual double computeWeight( const SuperNode& target, const ObjectsPtr& neighbors ) = 0;
-};
-
 
 } // end namespace mld
 

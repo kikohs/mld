@@ -52,54 +52,54 @@ TEST( MLGBuilderTest, createFromInputPlan )
     inputPlan = "H:";
     EXPECT_FALSE(builder->fromRawString(g, inputPlan));
 
-    inputPlan = "H:[0.1]";
+    inputPlan = "Hs:[0.1]";
     EXPECT_TRUE(builder->fromRawString(g, inputPlan));
 
-    inputPlan = "h:[0.1]";
+    inputPlan = "hs:[0.1]";
     EXPECT_FALSE(builder->fromRawString(g, inputPlan));
 
     inputPlan = "X:[0.1]";  // Xs or Xm
     EXPECT_FALSE(builder->fromRawString(g, inputPlan));
 
-    inputPlan = "H:0.1";
+    inputPlan = "Hm:0.1";
     EXPECT_TRUE(builder->fromRawString(g, inputPlan));
 
-    inputPlan = "H:[0.1,0.2]";
+    inputPlan = "Hs:[0.1,0.2]";
     EXPECT_TRUE(builder->fromRawString(g, inputPlan));
 
-    inputPlan = "H:[0.4,0.1]";
+    inputPlan = "Hs:[0.4,0.1]";
     EXPECT_FALSE(builder->fromRawString(g, inputPlan));
 
-    inputPlan = "H:[0.1] X:";
+    inputPlan = "Hm:[0.1] X:";
     EXPECT_FALSE(builder->fromRawString(g, inputPlan));
 
-    inputPlan = "H:[0.1] Xs:[0.1]";
+    inputPlan = "Hs:[0.1] Xs:[0.1]";
     EXPECT_FALSE(builder->fromRawString(g, inputPlan));
 
-    inputPlan = "H:[0.1] Xs:[0.2]";
+    inputPlan = "Hs:[0.1] Xs:[0.2]";
     EXPECT_TRUE(builder->fromRawString(g, inputPlan));
 
-    inputPlan = "H:0.1 Xs:[0.2]";
+    inputPlan = "Hs:0.1 Xs:[0.2]";
     EXPECT_TRUE(builder->fromRawString(g, inputPlan));
 
-    inputPlan = "H:0.1 Xs:[0.2,0.4]";
+    inputPlan = "Hs:0.1 Xs:[0.2,0.4]";
     EXPECT_TRUE(builder->fromRawString(g, inputPlan));
 
-    inputPlan = "H:0.1 Xm:0.2";
+    inputPlan = "Hs:0.1 Xm:0.2";
     EXPECT_TRUE(builder->fromRawString(g, inputPlan));
 
-    inputPlan = "H:0.1 H:0.2";
+    inputPlan = "Hs:0.1 Hm:0.2";
     EXPECT_TRUE(builder->fromRawString(g, inputPlan));
 
-    inputPlan = "H:0.1,0.3 H:0.4";
+    inputPlan = "Hs:0.1,0.3 Hm:0.4";
     EXPECT_TRUE(builder->fromRawString(g, inputPlan));
 
     // stil valid
-    inputPlan = "H:[0.1,0.3 H:0.4";
+    inputPlan = "Hs:[0.1,0.3 Hm:0.4";
     EXPECT_TRUE(builder->fromRawString(g, inputPlan));
 
     // stil valid
-    inputPlan = "H:0.1,0.3] H:0.4";
+    inputPlan = "Hs:0.1,0.3] Hm:0.4";
     EXPECT_TRUE(builder->fromRawString(g, inputPlan));
 
     builder->clearSteps();
@@ -147,7 +147,7 @@ TEST( MLGBuilderTest, runStepTest )
     std::unique_ptr<Timer> t(new Timer("Coarsening benchmark"));
     std::unique_ptr<MLGBuilder> builder( new MLGBuilder );
 
-    CoarsenerPtr coarsener(new HeavyEdgeCoarsener(g));
+    CoarsenerPtr coarsener = builder->createCoarsener(g, "Hs", 0.0);
     // 4 steps of 1 node
     builder->addStep(coarsener);
     builder->addStep(coarsener);

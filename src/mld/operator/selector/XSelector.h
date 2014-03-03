@@ -19,64 +19,32 @@
 #ifndef MLD_XSELECTOR_H
 #define MLD_XSELECTOR_H
 
-#include <sparksee/gdb/Objects.h>
-
-#include "mld/common.h"
-#include "mld/operator/selector/AbstractSelector.h"
-#include "mld/utils/mutable_priority_queue.h"
+#include "mld/operator/selector/NeighborSelector.h"
 
 namespace mld {
 
-class MLD_API XSelector : public AbstractMultiSelector
+class MLD_API XSelector : public NeighborSelector
 {
 public:
     XSelector( sparksee::gdb::Graph* g );
     virtual ~XSelector() override;
 
-    virtual bool rankNodes( const Layer& layer ) override;
-    virtual bool hasNext() override;
-    virtual SuperNode next( bool popNode=true ) override;
-    virtual ObjectsPtr getUnflaggedNeighbors( sparksee::gdb::oid_t node ) override;
-    virtual bool flagAndUpdateScore( const SuperNode& root, bool removeNeighbors=true, bool withFlagged=false ) override;
-    virtual bool isFlagged( sparksee::gdb::oid_t snid ) override;
-
-    virtual ObjectsPtr getFlaggedNodesFrom( const ObjectsPtr& input ) override;
-    virtual ObjectsPtr getUnflaggedNodesFrom( const ObjectsPtr& input ) override;
+    virtual std::string name() const override { return "XSelector"; }
 
     /**
      * @brief Score function
      * @param snid SuperNode oid
      * @return score
      */
-    virtual double calcScore( sparksee::gdb::oid_t snid, bool withFlagged );
-
-    /**
-     * @brief Update node score from given input set
-     * @param input set
-     * @return success
-     */
-    virtual bool updateScore( const ObjectsPtr& input, bool withFlagged );
-
-    virtual std::string name() const override { return "XSelector"; }
-
-    virtual ObjectsPtr getHLinkEnpoints( const SuperNode& root, bool oneHopOnly ) override;
-
-    sparksee::gdb::Objects* rootNodes() const { return m_rootNodes.get(); }
-    sparksee::gdb::Objects* flaggedNodes() const { return m_flagged.get(); }
-
-    /**
-     * @brief Remove input from selection queue
-     * @param input
-     */
-    virtual void removeCandidates( const ObjectsPtr& input );
+    virtual double calcScore( sparksee::gdb::oid_t snid ) override;
 
     // Score related functions, pure functions
-    double rootCentralityScore( sparksee::gdb::oid_t node, bool withFlagged );
-    double twoHopHubAffinityScore( sparksee::gdb::oid_t node, bool withFlagged );
-    double gravityScore( sparksee::gdb::oid_t node, bool withFlagged );
+    double rootCentralityScore( sparksee::gdb::oid_t node );
+    double twoHopHubAffinityScore( sparksee::gdb::oid_t node );
+    double gravityScore( sparksee::gdb::oid_t node );
     double getEdgeWeight( const ObjectsPtr& edgeOids );
-    ObjectsPtr outEdges( sparksee::gdb::oid_t root, bool withFlagged );
-    ObjectsPtr inEdges( sparksee::gdb::oid_t root, bool withFlagged );
+    ObjectsPtr outEdges( sparksee::gdb::oid_t root );
+    ObjectsPtr inEdges( sparksee::gdb::oid_t root );
     /**
      * @brief inOrOutEdges, retrieve all edges within 1hop radius or all out edges from 1 hop
      * radius
@@ -85,14 +53,14 @@ public:
      * @param dao
      * @return edge set
      */
-    ObjectsPtr inOrOutEdges( bool inEdges, sparksee::gdb::oid_t root, bool withFlagged );
+    ObjectsPtr inOrOutEdges( bool inEdges, sparksee::gdb::oid_t root );
     void edgeRetriever( ObjectsPtr& edgeSet, sparksee::gdb::oid_t source, const ObjectsPtr& targetSet );
 
 protected:
-    sparksee::gdb::oid_t m_lid;
-    ObjectsPtr m_flagged;
-    ObjectsPtr m_rootNodes;
-    mutable_priority_queue<double, sparksee::gdb::oid_t> m_scores;
+    /**
+     * @brief Set current Neighbor with the heaviest HLink endpoint
+     */
+    virtual void setCurrentBestNeighbors() override;
 };
 
 } // end namespace mld

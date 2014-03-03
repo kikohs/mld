@@ -31,12 +31,8 @@ namespace gdb {
 
 namespace mld {
 
-class AbstractSingleSelector;
-class AbstractSingleMerger;
-
-class AbstractMultiSelector;
-class AbstractNeighborMerger;
-
+class NeighborMerger;
+class NeighborSelector;
 class MLGDao;
 
 class MLD_API AbstractCoarsener : public AbstractOperator
@@ -66,22 +62,6 @@ public:
 protected:
     std::unique_ptr<MLGDao> m_dao;
     float m_reductionFac;
-};
-
-class MLD_API AbstractSingleCoarsener : public AbstractCoarsener
-{
-public:
-    AbstractSingleCoarsener( sparksee::gdb::Graph* g );
-    virtual ~AbstractSingleCoarsener() = 0;
-
-protected:
-    virtual bool preExec() override;
-    virtual bool exec() override;
-    virtual bool postExec() override;
-
-protected:
-    std::unique_ptr<AbstractSingleSelector> m_sel;
-    std::unique_ptr<AbstractSingleMerger> m_merger;
 };
 
 } // end namespace mld

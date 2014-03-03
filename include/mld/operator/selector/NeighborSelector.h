@@ -20,18 +20,21 @@
 #define MLD_NEIGHBORSELECTOR_H
 
 #include "mld/operator/selector/AbstractSelector.h"
+#include "mld/utils/mutable_priority_queue.h"
 
 namespace mld {
 
 /**
  * @brief The NeighborSelector abstract class
  */
-class NeighborSelector : public AbstractSelector
+class MLD_API NeighborSelector : public AbstractSelector
 {
 public:
     NeighborSelector( sparksee::gdb::Graph* g );
     virtual ~NeighborSelector();
 
+    void setHasMemory( bool v ) { m_hasMemory = v; }
+    bool hasMemory() const { return m_hasMemory; }
     /**
      * @brief Give a score to each node for coarsening
      * @param layer input layer
@@ -58,18 +61,46 @@ public:
      */
     virtual double calcScore( sparksee::gdb::oid_t snid ) = 0;
 
+    /**
+     * @brief Get best neighbors for current selected node
+     * @return Best neighbors
+     */
+    virtual ObjectsPtr getCurrentBestNeighbors() const { return m_curNeighbors; }
+
+
 protected:
+    /**
+     * @brief Set current best neighbors pure function to reimplement
+     * m_current holds the current node, this function should set the
+     * m_curNeighbors variable with the proper node set
+     */
+    virtual void setCurrentBestNeighbors() = 0;
     /**
      * @brief Update node score from given input set
      * @param input set
      * @return success
      */
     virtual bool updateScore( const ObjectsPtr& input );
+    /**
+     * @brief Remove already merged nodes
+     * @param input shoudl be currentBestNeighbors
+     */
+    virtual void removeCandidates( const ObjectsPtr& input );
+
+    /**
+     * @brief Get neighbors for current node, with or without memory
+     * @param snid
+     * @return neighbors
+     */
+    ObjectsPtr getNeighbors( sparksee::gdb::oid_t snid );
 
 protected:
-    bool m_withMemory;
-    sparksee::gdb::oid_t m_current;
+    bool m_hasMemory;
+    sparksee::gdb::oid_t m_layerId;  // Layer id
+    sparksee::gdb::oid_t m_current;  // Current SuperNode id
+    ObjectsPtr m_flagged; // Flagged node if memory
     ObjectsPtr m_curNeighbors;
+    mutable_priority_queue<double, sparksee::gdb::oid_t> m_scores;
 };
 
 } // end namespace mld

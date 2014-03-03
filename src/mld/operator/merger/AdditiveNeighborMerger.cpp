@@ -31,7 +31,7 @@ using namespace mld;
 using namespace sparksee::gdb;
 
 AdditiveNeighborMerger::AdditiveNeighborMerger( Graph* g )
-    : AbstractNeighborMerger(g)
+    : NeighborMerger(g)
 {
 }
 

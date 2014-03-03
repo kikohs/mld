@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 EPFL-LTS2
+** Copyright (C) 2014 EPFL-LTS2
 ** Contact: Kirell Benzi (first.last@epfl.ch)
 **
 ** This file is part of MLD.
@@ -16,35 +16,16 @@
 **
 ****************************************************************************/
 
-#include "mld/operator/selectors.h"
-
-#include "mld/model/Layer.h"
-#include "mld/model/Link.h"
-#include "mld/dao/MLGDao.h"
-
-#include "mld/utils/Timer.h"
+#include "mld/operator/merger/NeighborMerger.h"
 
 using namespace mld;
 
-HeavyEdgeSelector::HeavyEdgeSelector( sparksee::gdb::Graph* g )
-    : AbstractSingleSelector(g)
+NeighborMerger::NeighborMerger( sparksee::gdb::Graph* g )
+    : AbstractMerger(g)
 {
 }
 
-HeavyEdgeSelector::~HeavyEdgeSelector()
+NeighborMerger::~NeighborMerger()
 {
 }
 
-
-HLink HeavyEdgeSelector::selectBestHLink( const Layer& layer )
-{
-#ifdef MLD_FINE_TIMER
-    std::unique_ptr<Timer> t(new Timer("HeavyEdgeSelector::selectBestHLink"));
-#endif
-#ifdef MLD_SAFE
-    return m_dao->getHeaviestHLink(layer);
-#else
-    UNUSED(layer);
-    return m_dao->getUnsafeHeaviestLink();
-#endif
-}

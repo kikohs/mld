@@ -65,8 +65,7 @@ public:
      */
     bool run();
 
-private:
-    CoarsenerPtr createCoarsener( sparksee::gdb::Graph* g, const std::string& name, float fac );
+    static CoarsenerPtr createCoarsener( sparksee::gdb::Graph* g, const std::string& name, float fac );
 
 private:
     std::deque<CoarsenerPtr> m_steps;

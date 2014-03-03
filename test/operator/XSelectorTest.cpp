@@ -18,6 +18,7 @@
 
 #include <gtest/gtest.h>
 
+#include <sparksee/gdb/Objects.h>
 #include <mld/config.h>
 #include <mld/SparkseeManager.h>
 
@@ -30,7 +31,6 @@ using namespace mld;
 // Local variable
 typedef std::map<int, sparksee::gdb::oid_t> NodeMap;
 NodeMap nMap;
-
 
 TEST( XSelectorTest, initScheme )
 {
@@ -80,45 +80,6 @@ TEST( XSelectorTest, initScheme )
     sess.reset();
 }
 
-TEST( XSelectorTest, Flagging )
-{
-    mld::SparkseeManager sparkseeManager(mld::kRESOURCES_DIR + L"mysparksee.cfg");
-    sparkseeManager.openDatabase(mld::kRESOURCES_DIR + L"MLDTest.sparksee", L"MLDTest");
-    SessionPtr sess = sparkseeManager.newSession();
-    sparksee::gdb::Graph* g = sess->GetGraph();
-    std::unique_ptr<MLGDao> dao( new MLGDao(g) );
-    std::unique_ptr<XSelector> sel( new XSelector(g) );
-
-    {
-        ObjectsPtr nodeSet;
-        nodeSet = sel->getUnflaggedNeighbors(nMap[3]);
-        EXPECT_EQ(1, nodeSet->Count());
-        nodeSet = sel->getUnflaggedNeighbors(nMap[0]);
-        EXPECT_EQ(3, nodeSet->Count());
-
-        ObjectsPtr nodeSet2 = sel->getUnflaggedNodesFrom(nodeSet);
-        EXPECT_TRUE(nodeSet->Equals(nodeSet2.get()));
-
-        // Add a node in flagged set
-        sel->flaggedNodes()->Add(nMap[0]);
-        EXPECT_TRUE(sel->isFlagged(nMap[0]));
-
-        nodeSet = sel->getUnflaggedNeighbors(nMap[3]);
-        EXPECT_EQ(0, nodeSet->Count());
-
-        nodeSet = sel->getUnflaggedNeighbors(nMap[1]);
-        EXPECT_EQ(2, nodeSet->Count()); // not n0 because it is flagged
-
-        nodeSet->Add(nMap[0]); // add a flagged node in set
-        nodeSet2 = sel->getFlaggedNodesFrom(nodeSet);
-        EXPECT_EQ(1, nodeSet2->Count());
-    }
-
-    sel.reset();
-    dao.reset();
-    sess.reset();
-}
-
 TEST( XSelectorTest, inOrOutEdges )
 {
     mld::SparkseeManager sparkseeManager(mld::kRESOURCES_DIR + L"mysparksee.cfg");
@@ -129,49 +90,58 @@ TEST( XSelectorTest, inOrOutEdges )
     std::unique_ptr<XSelector> sel( new XSelector(g) );
 
     // Flag n0
-    sel->flaggedNodes()->Add(nMap[0]);
+    sel->getFlaggedNodes()->Add(nMap[0]);
     // Test in-edges retrieval
     {
         ObjectsPtr edgeSet;
         // test in Edges account for flagged nodes
-        edgeSet = sel->inOrOutEdges(true, nMap[4], false);
+        edgeSet = sel->inOrOutEdges(true, nMap[4]);
         EXPECT_EQ(1, edgeSet->Count());
 
         // no flag nodes
-        edgeSet = sel->inOrOutEdges(true, nMap[3], false);
+        sel->setHasMemory(true);
+        edgeSet = sel->inOrOutEdges(true, nMap[3]);
         EXPECT_EQ(0, edgeSet->Count());
 
         // with flagged nodes
-        edgeSet = sel->inOrOutEdges(true, nMap[3], true);
+        sel->setHasMemory(false);
+        edgeSet = sel->inOrOutEdges(true, nMap[3]);
         EXPECT_EQ(1, edgeSet->Count());
 
         // n1 - n4 and n1 - n2, n0 is flagged
-        edgeSet = sel->inOrOutEdges(true, nMap[1], false);
+        sel->setHasMemory(true);
+        edgeSet = sel->inOrOutEdges(true, nMap[1]);
         EXPECT_EQ(2, edgeSet->Count());
 
         // All neighbors, n0 - n2 is in the 1 hop radius
-        edgeSet = sel->inOrOutEdges(true, nMap[1], true);
+        sel->setHasMemory(false);
+        edgeSet = sel->inOrOutEdges(true, nMap[1]);
         EXPECT_EQ(4, edgeSet->Count());
 
-        edgeSet = sel->inOrOutEdges(true, nMap[2], false);
+        sel->setHasMemory(true);
+        edgeSet = sel->inOrOutEdges(true, nMap[2]);
         EXPECT_EQ(1, edgeSet->Count());
     }
 
     // Test out-edges retrieval
     {
         ObjectsPtr edgeSet;
-        edgeSet = sel->inOrOutEdges(false, nMap[3], false);
+        sel->setHasMemory(true);
+        edgeSet = sel->inOrOutEdges(false, nMap[3]);
         EXPECT_EQ(0, edgeSet->Count());
 
-        edgeSet = sel->inOrOutEdges(false, nMap[3], true);
+        sel->setHasMemory(false);
+        edgeSet = sel->inOrOutEdges(false, nMap[3]);
         EXPECT_EQ(2, edgeSet->Count());
 
         // Only n1 - n2, n1 - n0 is flagged
-        edgeSet = sel->inOrOutEdges(false, nMap[4], false);
+        sel->setHasMemory(true);
+        edgeSet = sel->inOrOutEdges(false, nMap[4]);
         EXPECT_EQ(1, edgeSet->Count());
 
         // n1 - n2, n1 - n0
-        edgeSet = sel->inOrOutEdges(false, nMap[4], true);
+        sel->setHasMemory(false);
+        edgeSet = sel->inOrOutEdges(false, nMap[4]);
         EXPECT_EQ(2, edgeSet->Count());
     }
 
@@ -190,36 +160,39 @@ TEST( XSelectorTest, rootCentralityScore )
     std::unique_ptr<XSelector> sel( new XSelector(g) );
 
     // Flag n0
-    sel->flaggedNodes()->Add(nMap[0]);
+    sel->getFlaggedNodes()->Add(nMap[0]);
 
     double res = -1.0;
-    res = sel->rootCentralityScore(nMap[4], false);
+    sel->setHasMemory(true);
+    res = sel->rootCentralityScore(nMap[4]);
     EXPECT_DOUBLE_EQ(1.0, res);
 
     // Isolated node because n0 is flagged
-    res = sel->rootCentralityScore(nMap[3], false);
+    res = sel->rootCentralityScore(nMap[3]);
     EXPECT_DOUBLE_EQ(0.0, res);
 
-    // Use flagged
-    res = sel->rootCentralityScore(nMap[3], true);
+    res = sel->rootCentralityScore(nMap[1]);
     EXPECT_DOUBLE_EQ(1.0, res);
 
-    res = sel->rootCentralityScore(nMap[1], false);
+    sel->setHasMemory(false);
+    res = sel->rootCentralityScore(nMap[3]);
     EXPECT_DOUBLE_EQ(1.0, res);
+
 
     // Use flagged
     // traverse edges = 5 + 3 + 1
     // inEdges = traverse edges + n0 - n2 = 18
-    res = sel->rootCentralityScore(nMap[1], true);
+    res = sel->rootCentralityScore(nMap[1]);
     EXPECT_DOUBLE_EQ(0.5, res);
 
-    sel->flaggedNodes()->Remove(nMap[0]);
-    sel->flaggedNodes()->Add(nMap[4]);
+    sel->getFlaggedNodes()->Remove(nMap[0]);
+    sel->getFlaggedNodes()->Add(nMap[4]);
 
     // do not use flagged nodes
     // traverse edges = 5 + 1
     // inEdges = traverse edges + n0 - n2 = 6 + 9
-    res = sel->rootCentralityScore(nMap[1], false);
+    sel->setHasMemory(true);
+    res = sel->rootCentralityScore(nMap[1]);
     double t = 6 / 15.0;
     EXPECT_DOUBLE_EQ(t, res);
 
@@ -238,20 +211,23 @@ TEST( XSelectorTest, twoHubAffinityScore )
     std::unique_ptr<XSelector> sel( new XSelector(g) );
 
     // Flag n0
-    sel->flaggedNodes()->Add(nMap[0]);
+    sel->getFlaggedNodes()->Add(nMap[0]);
 
     double res = -1.0;
     // No out edges
-    res = sel->twoHopHubAffinityScore(nMap[3], false);
+    sel->setHasMemory(true);
+    res = sel->twoHopHubAffinityScore(nMap[3]);
+    EXPECT_DOUBLE_EQ(1.0, res);
+
+    res = sel->twoHopHubAffinityScore(nMap[0]);
     EXPECT_DOUBLE_EQ(1.0, res);
 
     // Count flagged n0
-    res = sel->twoHopHubAffinityScore(nMap[3], true);
+    sel->setHasMemory(false);
+    res = sel->twoHopHubAffinityScore(nMap[3]);
     EXPECT_DOUBLE_EQ(2.0, res);
 
-    res = sel->twoHopHubAffinityScore(nMap[0], false);
-    EXPECT_DOUBLE_EQ(1.0, res);
-    res = sel->twoHopHubAffinityScore(nMap[0], true);
+    res = sel->twoHopHubAffinityScore(nMap[0]);
     EXPECT_DOUBLE_EQ(1.0, res);
 
     sel.reset();
@@ -269,20 +245,22 @@ TEST( XSelectorTest, gravityScore )
     std::unique_ptr<XSelector> sel( new XSelector(g) );
 
     // Flag n0
-    sel->flaggedNodes()->Add(nMap[0]);
+    sel->getFlaggedNodes()->Add(nMap[0]);
 
     double res = -1.0;
+    sel->setHasMemory(true);
     // No out edges
-    res = sel->gravityScore(nMap[3], false);
+    res = sel->gravityScore(nMap[3]);
     EXPECT_DOUBLE_EQ(1.0, res);
+    res = sel->gravityScore(nMap[0]);
+    EXPECT_DOUBLE_EQ(103.0, res);
 
     // Count flagged n0
-    res = sel->gravityScore(nMap[3], true);
+    sel->setHasMemory(false);
+    res = sel->gravityScore(nMap[3]);
     EXPECT_DOUBLE_EQ(2.0, res);
 
-    res = sel->gravityScore(nMap[0], false);
-    EXPECT_DOUBLE_EQ(103.0, res);
-    res = sel->gravityScore(nMap[0], true);
+    res = sel->gravityScore(nMap[0]);
     EXPECT_DOUBLE_EQ(103.0, res);
 
     sel.reset();
@@ -300,23 +278,25 @@ TEST( XSelectorTest, calcScore )
     std::unique_ptr<XSelector> sel( new XSelector(g) );
 
     // Flag n0
-    sel->flaggedNodes()->Add(nMap[0]);
+    sel->getFlaggedNodes()->Add(nMap[0]);
 
     double res = -1.0;
+    sel->setHasMemory(true);
     // Root centrality is 0
-    res = sel->calcScore(nMap[3], false);
+    res = sel->calcScore(nMap[3]);
     EXPECT_DOUBLE_EQ(0.0, res);
 
-    // 1 / (2 * 2)
-    res = sel->calcScore(nMap[3], true);
-    EXPECT_DOUBLE_EQ(0.25, res);
-
     // 1 / (1 * 102)
-    res = sel->calcScore(nMap[1], false);
+    res = sel->calcScore(nMap[1]);
     EXPECT_DOUBLE_EQ(double(1/102.0), res);
 
+    sel->setHasMemory(false);
+    // 1 / (2 * 2)
+    res = sel->calcScore(nMap[3]);
+    EXPECT_DOUBLE_EQ(0.25, res);
+
     // 0.5 / (1 * 103)
-    res = sel->calcScore(nMap[1], true);
+    res = sel->calcScore(nMap[1]);
     EXPECT_DOUBLE_EQ(double(1/206.0), res);
 
     sel.reset();
@@ -332,9 +312,11 @@ TEST( XSelectorTest, rankNodes )
     sparksee::gdb::Graph* g = sess->GetGraph();
     std::unique_ptr<MLGDao> dao( new MLGDao(g) );
     std::unique_ptr<XSelector> sel( new XSelector(g) );
+    sel->setHasMemory(true);
 
     Layer base = dao->baseLayer();
     EXPECT_TRUE(sel->rankNodes(base));
+
 
     // Only 5 node in graph
     for( int i = 0; i < 5; i++ ) {
@@ -346,28 +328,6 @@ TEST( XSelectorTest, rankNodes )
     EXPECT_EQ(sparksee::gdb::Objects::InvalidOID, n.id());
 
     EXPECT_TRUE(sel->rankNodes(base));
-    // Flag n0
-    sel->flaggedNodes()->Add(nMap[0]);
-
-    // Simulate a flag and update score
-    {
-        ObjectsPtr nodeSet = dao->newObjectsPtr();
-        nodeSet->Add(nMap[3]);
-        EXPECT_TRUE(sel->updateScore(nodeSet, false));
-        for( int i = 0; i < 5; i++ ) {
-            SuperNode n = sel->next();
-            EXPECT_NE(sparksee::gdb::Objects::InvalidOID, n.id());
-        }
-    }
-
-    EXPECT_TRUE(sel->rankNodes(base));
-    // Simulate coarsening on n0
-    EXPECT_TRUE(sel->flagAndUpdateScore(nMap[0]));
-    // Only n4 left
-    EXPECT_EQ(nMap[4], sel->next().id());
-    // Invalid
-    EXPECT_EQ(sparksee::gdb::Objects::InvalidOID, sel->next().id());
-
     sel.reset();
     dao.reset();
     sess.reset();

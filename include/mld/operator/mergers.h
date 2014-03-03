@@ -33,6 +33,8 @@ public:
 
     virtual double computeWeight( const SuperNode& target, const SuperNode& source ) override;
     virtual bool merge( const HLink& hlink, const AbstractSingleSelector& selector ) override;
+
+    virtual std::string name() const override {  return "BasicAdditiveMerger"; }
 };
 
 } // end namespace mld
