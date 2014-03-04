@@ -53,17 +53,11 @@ double XSelector::calcScore( oid_t snid )
 
 void XSelector::setCurrentBestNeighbors()
 {
-//    LOG(logDEBUG) << "XSelector::setCurrentBestNeighbors";
     m_curNeighbors = getNeighbors(m_current);
     if( !m_curNeighbors ) {
         LOG(logERROR) << "XSelector::setCurrentBestNeighbors m_curNeighbors is null";
         return;
     }
-//    ObjectsIt it(m_curNeighbors->Iterator());
-//    while( it->HasNext() ) {
-//        LOG(logDEBUG) << it->Next();
-//    }
-//    LOG(logDEBUG) << "XSelector::setCurrentBestNeighbors end";
 }
 
 ObjectsPtr XSelector::inEdges( oid_t root )

@@ -110,7 +110,7 @@ bool NeighborCoarsener::exec()
             return false;
         }
 #endif
-//        LOG(logDEBUG) << "Root: " << root;
+        LOG(logDEBUG) << "Root: " << root;
         // Still node to collpase but selector has spent all his node
         if( !m_sel->hasNext() ) {
             LOG(logINFO) << "NeighborCoarsener::exec: selector is exhausted, re rank";

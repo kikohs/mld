@@ -70,7 +70,7 @@ bool NeighborSelector::rankNodes( const Layer& layer )
         m_scores.push(nid, calcScore(nid));
     }
     // Set m_current to a real value
-    m_current = m_scores.front_value();
+//    m_current = m_scores.front_value();
     return true;
 }
 
@@ -91,7 +91,8 @@ SuperNode NeighborSelector::next()
     removeCandidates();
     ObjectsPtr nodeSet(getNeighbors(m_current));
     if( nodeSet ) {
-        nodeSet->Add(m_current);
+        if( !m_hasMemory )
+            nodeSet->Add(m_current);
         updateScore(nodeSet);
     }
 
@@ -105,9 +106,6 @@ SuperNode NeighborSelector::next()
     // Copy m_curNeighbors ids to m_nodes2Remove
     setNodesToRemove();
 
-    if( m_hasMemory )
-        m_scores.pop();
-
     return m_dao->getNode(m_current);
 }
 
@@ -116,12 +114,13 @@ bool NeighborSelector::updateScore( const ObjectsPtr& input )
     if( !input ) {
         return false;
     }
-
+//    LOG(logDEBUG) << "NeighborSelector::updateScore start input size " << input->Count();
     ObjectsIt it(input->Iterator());
     while( it->HasNext() ) {
         auto id = it->Next();
         m_scores.update(id, calcScore(id));
     }
+//    LOG(logDEBUG) << "NeighborSelector::updateScore end";
     return true;
 }
 
@@ -136,14 +135,22 @@ void NeighborSelector::removeCandidates()
 void NeighborSelector::setNodesToRemove()
 {
     m_nodesToRemove.clear();
-    if( !m_curNeighbors )
-        return;
 
-    m_nodesToRemove.reserve(m_curNeighbors->Count());
+    if( !m_curNeighbors ) {
+        if( m_hasMemory ) {
+            m_nodesToRemove.push_back(m_current);
+        }
+        return;
+    }
+
+    m_nodesToRemove.reserve(m_curNeighbors->Count() + 1);
     ObjectsIt it(m_curNeighbors->Iterator());
     while( it->HasNext() ) {
         m_nodesToRemove.push_back(it->Next());
     }
+
+    if( m_hasMemory )
+        m_nodesToRemove.push_back(m_current);
 }
 
 ObjectsPtr NeighborSelector::getNeighbors( oid_t snid )
