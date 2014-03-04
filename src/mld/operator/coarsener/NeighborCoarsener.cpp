@@ -67,7 +67,6 @@ bool NeighborCoarsener::preExec()
     }
 
     std::unique_ptr<Timer> t(new Timer("NeighborCoarsener::preExec"));
-    LOG(logINFO) << "NeighborCoarsener::preExec";
     // Check current layer node count
     Layer current(m_dao->topLayer());
     if( m_dao->getNodeCount(current) < 2 ) {
@@ -75,29 +74,33 @@ bool NeighborCoarsener::preExec()
         return false;
     }
 
+    LOG(logINFO) << "NeighborCoarsener::preExec mirroring top layer start";
     Layer top = m_dao->mirrorTopLayer();
     if( top.id() == Objects::InvalidOID ) {
         LOG(logERROR) << "NeighborCoarsener::preExec: mirroring layer failed";
         return false;
     }
+    LOG(logINFO) << "NeighborCoarsener::preExec mirroring top layer end";
     return true;
 }
 
 bool NeighborCoarsener::exec()
 {
     std::unique_ptr<Timer> t(new Timer("NeighborCoarsener::exec"));
-    LOG(logINFO) << "NeighborCoarsener::exec";
+    Layer base(m_dao->baseLayer());
     Layer current(m_dao->topLayer());
 
-    int64_t numVertices = m_dao->getNodeCount(current);
-    auto mergeCount = computeMergeCount(numVertices);
+    int64_t numVertices = m_dao->getNodeCount(base);
+    int64_t mergeCount = computeMergeCount(numVertices);
 
+    LOG(logINFO) << "NeighborCoarsener::exec rank nodes start";
     if( !m_sel->rankNodes(current) ) { // Rank nodes
-        LOG(logERROR) << "NeighborCoarsener::exec: selector rank node failed";
+        LOG(logERROR) << "NeighborCoarsener::exec: selector rank nodes failed";
         return false;
     }
-
+    LOG(logINFO) << "NeighborCoarsener::exec rank nodes end";
     auto beforeMerge = mergeCount;
+    LOG(logINFO) << "NeighborCoarsener::exec start coarsening, " << mergeCount << " nodes to merge";
     while( mergeCount > 0 ) {
         // Get best node to coarsen
         SuperNode root(m_sel->next());
@@ -107,9 +110,10 @@ bool NeighborCoarsener::exec()
             return false;
         }
 #endif
-
+//        LOG(logDEBUG) << "Root: " << root;
         // Still node to collpase but selector has spent all his node
         if( !m_sel->hasNext() ) {
+            LOG(logINFO) << "NeighborCoarsener::exec: selector is exhausted, re rank";
             if( !m_sel->rankNodes(current) ) { // Rank nodes
                 LOG(logERROR) << "NeighborCoarsener::exec: 2nd selector rank node failed";
                 return false;
@@ -117,8 +121,11 @@ bool NeighborCoarsener::exec()
         }
 
         ObjectsPtr neighbors(m_sel->getCurrentBestNeighbors());
-        auto neighborsCount = neighbors->Count();
+        if( !neighbors ) {
+            return false;
+        }
 
+        auto neighborsCount = neighbors->Count();
         // Merge node and edges, re-route VLinks
         if( !m_merger->merge(root, neighbors) ) {
             LOG(logERROR) << "NeighborCoarsener::exec: Merger failed to collapse root and neighbors " << root;
@@ -126,8 +133,9 @@ bool NeighborCoarsener::exec()
         }
         // Decrease mergeCount number
         mergeCount -= std::max(int64_t(1), neighborsCount);
+        // LOG(logDEBUG) << mergeCount;
     }
-    LOG(logINFO) << "NeighborCoarsener::exec: merged " << beforeMerge << " nodes";
+    LOG(logINFO) << "NeighborCoarsener::exec coarsening ended, " << beforeMerge << " nodes merged";
     return true;
 }
 

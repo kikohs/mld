@@ -44,30 +44,24 @@ void AbstractCoarsener::setReductionFactor( float fac )
         m_reductionFac = fac;
 }
 
-uint64_t AbstractCoarsener::computeMergeCount( int64_t numVertices, bool willUseMirroring )
+int64_t AbstractCoarsener::computeMergeCount( int64_t numVertices )
 {
     if( numVertices < 2 ) {
         LOG(logWARNING) << "AbstractCoarsener::computeMergeCount: need at least 2 nodes";
         return 0;
     }
     // Set merge count
-    uint64_t mergeCount = 0;
+    int64_t mergeCount = 0;
     // Check scale factor
     if( m_reductionFac == 1.0 ) { // 100% reduction
-//        LOG(logWARNING) << "AbstractCoarsener::computeMergeCount: reduction factor is 100%, collapsing graph into 1 node";
-        mergeCount = numVertices;
+        mergeCount = numVertices - 1;
     }
     else if( m_reductionFac == 0.0 ) { // No reduction only 1 node
-//        LOG(logWARNING) << "AbstractCoarsener::computeMergeCount: reduction factor is 0%, coarsening only 1 node";
         mergeCount = 1;
     }
     else {
         mergeCount = m_reductionFac * numVertices + 1;
     }
-
-    if( willUseMirroring ) // multi pass has 1 mergeCount iteration for currentLayer pass
-        return std::min(mergeCount, uint64_t(numVertices - 1));
-
     return mergeCount;
 }
 

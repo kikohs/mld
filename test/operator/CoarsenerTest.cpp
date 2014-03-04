@@ -76,16 +76,16 @@ TEST( CoarsenerTest, HeavyHLinkCoarsenerTest )
     // Test merge count
     // Need 2 nodes
     auto r = coarsener->computeMergeCount(0);
-    EXPECT_EQ(r, uint64_t(0));
+    EXPECT_EQ(int64_t(0), r);
 
     // Minimum coarsening
     coarsener->setReductionFactor(0.0);
     r = coarsener->computeMergeCount(1000);
-    EXPECT_EQ(uint64_t(1), r);
+    EXPECT_EQ(int64_t(1), r);
     // Maximum coarsening
     coarsener->setReductionFactor(1.0);
     r = coarsener->computeMergeCount(1000);
-    EXPECT_EQ(uint64_t(999), r);
+    EXPECT_EQ(int64_t(999), r);
 
     // 10% reduction over 5 nodes is 0.5, so only 1 node should be merged
     coarsener->setReductionFactor(0.1);

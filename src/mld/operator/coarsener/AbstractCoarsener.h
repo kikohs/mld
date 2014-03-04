@@ -52,11 +52,10 @@ public:
     /**
      * @brief Return the number of nodes to merge
      * @param numVertices base layer num of vertices returned by sparksee as an int64_t
-     * @param willUseMirroring The count is a bit different is we add an extra pass
      * by default, all coarseners mirrors the last layer.
      * @return node count
      */
-    uint64_t computeMergeCount( int64_t numVertices, bool willUseMirroring=true );
+    int64_t computeMergeCount( int64_t numVertices );
     virtual std::string name() const;
 
 protected:

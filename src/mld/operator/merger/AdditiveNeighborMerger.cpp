@@ -60,12 +60,18 @@ bool AdditiveNeighborMerger::merge( SuperNode& target, const ObjectsPtr& neighbo
 #ifdef MLD_SAFE
     if( !neighbors ) {
         LOG(logERROR) << "AdditiveNeighborMerger::merge null Object";
+        return false;
     }
 #endif
     double total = target.weight();
     ObjectsIt it(neighbors->Iterator());
     while( it->HasNext() ) {
-        SuperNode src = m_dao->getNode(it->Next());
+        auto id = it->Next();
+        SuperNode src = m_dao->getNode(id);
+        if( src.id() == Objects::InvalidOID ) {
+            LOG(logERROR) << "AdditiveNeighborMerger::merge invalid node: " << id;
+            return false;
+        }
         // Create new VLINKS to children and parents of source
         if( !m_dao->horizontalCopyVLinks(src, target, false) ) {
             LOG(logERROR) << "AdditiveNeighborMerger::merge failed to copy and merge vlinks";

@@ -41,15 +41,20 @@ NeighborSelector::~NeighborSelector()
 {
 }
 
-bool NeighborSelector::rankNodes( const Layer& layer )
+void NeighborSelector::resetSelection()
 {
-    // Reset variables
     m_scores.clear();
     m_current = Objects::InvalidOID;
+    m_layerId = Objects::InvalidOID;
     m_curNeighbors = m_dao->newObjectsPtr();
+    m_nodesToRemove.clear();
     m_flagged = m_dao->newObjectsPtr();
-    m_layerId = layer.id();
+}
 
+bool NeighborSelector::rankNodes( const Layer& layer )
+{    
+    resetSelection();
+    m_layerId = layer.id();
     ObjectsPtr nodes(m_dao->getAllNodeIds(layer));
     // Iterate through each node and calculate score
     ObjectsIt it(nodes->Iterator());
@@ -64,6 +69,8 @@ bool NeighborSelector::rankNodes( const Layer& layer )
         // Add values in the mutable priority queue, no nodes are flagged
         m_scores.push(nid, calcScore(nid));
     }
+    // Set m_current to a real value
+    m_current = m_scores.front_value();
     return true;
 }
 
@@ -75,24 +82,28 @@ bool NeighborSelector::hasNext()
 SuperNode NeighborSelector::next()
 {
     if( m_scores.empty() ) {
-        m_current =  Objects::InvalidOID;
-        m_curNeighbors = m_dao->newObjectsPtr();
+        LOG(logWARNING) << "NeighborSelector::next empty scores";
+        resetSelection();
         return SuperNode();
     }
 
     // Clear previous node neighborhood
-    removeCandidates(m_curNeighbors);
+    removeCandidates();
     ObjectsPtr nodeSet(getNeighbors(m_current));
-    if( nodeSet )
+    if( nodeSet ) {
+        nodeSet->Add(m_current);
         updateScore(nodeSet);
+    }
 
     if( m_hasMemory )
         m_flagged->Add(m_current);
 
     m_current = m_scores.front_value();
     // Set the best neighbors for the merger, use m_current
-    // to set m_curNeighors
+    // to set m_curNeighors in child class
     setCurrentBestNeighbors();
+    // Copy m_curNeighbors ids to m_nodes2Remove
+    setNodesToRemove();
 
     if( m_hasMemory )
         m_scores.pop();
@@ -102,8 +113,9 @@ SuperNode NeighborSelector::next()
 
 bool NeighborSelector::updateScore( const ObjectsPtr& input )
 {
-    if( !input )
+    if( !input ) {
         return false;
+    }
 
     ObjectsIt it(input->Iterator());
     while( it->HasNext() ) {
@@ -113,21 +125,34 @@ bool NeighborSelector::updateScore( const ObjectsPtr& input )
     return true;
 }
 
-void NeighborSelector::removeCandidates( const ObjectsPtr& input )
+void NeighborSelector::removeCandidates()
 {
-    if( !input )
+    // Remove candidates nodes from selection queue
+    for( auto id: m_nodesToRemove) {
+        m_scores.erase(id);
+    }
+}
+
+void NeighborSelector::setNodesToRemove()
+{
+    m_nodesToRemove.clear();
+    if( !m_curNeighbors )
         return;
-    // Remove candidates nodes from selection
-    ObjectsIt it(input->Iterator());
+
+    m_nodesToRemove.reserve(m_curNeighbors->Count());
+    ObjectsIt it(m_curNeighbors->Iterator());
     while( it->HasNext() ) {
-        m_scores.erase(it->Next());
+        m_nodesToRemove.push_back(it->Next());
     }
 }
 
 ObjectsPtr NeighborSelector::getNeighbors( oid_t snid )
 {
-    if( snid == Objects::InvalidOID )
+#ifdef MLD_SAFE
+    if( snid == Objects::InvalidOID ) {
         return ObjectsPtr();
+    }
+#endif
 
     ObjectsPtr neighbors(m_dao->graph()->Neighbors(snid, m_dao->hlinkType(), Any));
     if( m_hasMemory ) {
@@ -135,4 +160,11 @@ ObjectsPtr NeighborSelector::getNeighbors( oid_t snid )
         neighbors->Difference(m_flagged.get());
     }
     return neighbors;
+}
+
+ObjectsPtr NeighborSelector::getCurrentBestNeighbors()
+{
+    if( m_curNeighbors )
+        return ObjectsPtr(m_curNeighbors->Copy());
+    return ObjectsPtr();
 }

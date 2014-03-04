@@ -41,6 +41,10 @@ XSelector::~XSelector()
 
 double XSelector::calcScore( oid_t snid )
 {
+    if( snid == Objects::InvalidOID ) {
+        LOG(logERROR) << "XSelector::calcScore invalid id";
+        return 0.0;
+    }
     double r = rootCentralityScore(snid);
     double h = twoHopHubAffinityScore(snid);
     double g = gravityScore(snid);
@@ -49,7 +53,17 @@ double XSelector::calcScore( oid_t snid )
 
 void XSelector::setCurrentBestNeighbors()
 {
+//    LOG(logDEBUG) << "XSelector::setCurrentBestNeighbors";
     m_curNeighbors = getNeighbors(m_current);
+    if( !m_curNeighbors ) {
+        LOG(logERROR) << "XSelector::setCurrentBestNeighbors m_curNeighbors is null";
+        return;
+    }
+//    ObjectsIt it(m_curNeighbors->Iterator());
+//    while( it->HasNext() ) {
+//        LOG(logDEBUG) << it->Next();
+//    }
+//    LOG(logDEBUG) << "XSelector::setCurrentBestNeighbors end";
 }
 
 ObjectsPtr XSelector::inEdges( oid_t root )
@@ -123,12 +137,12 @@ double XSelector::gravityScore( oid_t root )
 
 ObjectsPtr XSelector::inOrOutEdges( bool inEdges, oid_t root )
 {
+    ObjectsPtr edgeSet = m_dao->newObjectsPtr();
     ObjectsPtr neighbors = getNeighbors(root);
     // Root + neighbors
     ObjectsPtr rootSet(neighbors->Copy());
     rootSet->Add(root);
 
-    ObjectsPtr edgeSet = m_dao->newObjectsPtr();
 
     ObjectsIt it(neighbors->Iterator());
     while( it->HasNext() ) {

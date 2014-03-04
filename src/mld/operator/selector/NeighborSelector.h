@@ -65,13 +65,13 @@ public:
      * @brief Get best neighbors for current selected node
      * @return Best neighbors
      */
-    ObjectsPtr getCurrentBestNeighbors() const { return m_curNeighbors; }
+    ObjectsPtr getCurrentBestNeighbors();
 
     /**
      * @brief Get all flagged nodes by the selector
      * @return Flagged nodes
      */
-    ObjectsPtr getFlaggedNodes() const { return m_flagged; }
+    inline ObjectsPtr getFlaggedNodes() const { return m_flagged; }
 
 protected:
     /**
@@ -87,10 +87,23 @@ protected:
      */
     virtual bool updateScore( const ObjectsPtr& input );
     /**
-     * @brief Remove already merged nodes
-     * @param input shoudl be currentBestNeighbors
+     * @brief Remove already merged nodes from selector queue
      */
-    virtual void removeCandidates( const ObjectsPtr& input );
+    virtual void removeCandidates();
+    /**
+     * @brief Copy current best neighbors
+     * to an internal variable for further removal.
+     * It is needed because when a node is delete (in the merger)
+     * all the ObjectsPtr are modified accordingly.
+     * Otherwise, we would lose the nodes which have already been merged
+     * and couldn't remove them from the selector queue
+     */
+    virtual void setNodesToRemove();
+
+    /**
+     * @brief Reset internal variable related to the selection
+     */
+    virtual void resetSelection();
 
     /**
      * @brief Get neighbors for current node, with or without memory
@@ -106,6 +119,7 @@ protected:
     ObjectsPtr m_flagged; // Flagged node if memory
     ObjectsPtr m_curNeighbors;
     mutable_priority_queue<double, sparksee::gdb::oid_t> m_scores;
+    std::vector<sparksee::gdb::oid_t> m_nodesToRemove; // store ids to remove from scores
 };
 
 } // end namespace mld

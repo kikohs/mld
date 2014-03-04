@@ -65,8 +65,14 @@ public:
      */
     bool run();
 
+    /**
+     * @brief Coarsener factory method
+     * @param g Graph
+     * @param name Name of the coarsener
+     * @param fac Reduction factor
+     * @return Coarsener shared ptr
+     */
     static CoarsenerPtr createCoarsener( sparksee::gdb::Graph* g, const std::string& name, float fac );
-
 private:
     std::deque<CoarsenerPtr> m_steps;
 };

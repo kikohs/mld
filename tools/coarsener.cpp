@@ -49,7 +49,7 @@ bool parseOptions( int argc, char *argv[], InputContext& out )
         // Input plan
         ValueArg<std::string> inputArg("s", "steps",
                                        "Coarsening plan\n  \
-                                       e.g: H:[0.1,0.2,0.4] X:0.5 \n",
+                                       e.g: Hs:[0.1,0.2,0.4] Xm:0.5 \n",
                                        true, "", "string");
         cmd.add(inputArg);
         // Working dir
