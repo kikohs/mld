@@ -51,13 +51,39 @@ double XSelector::calcScore( oid_t snid )
     return r / (g * h);
 }
 
-void XSelector::setCurrentBestNeighbors()
+void XSelector::setNodesToMerge()
 {
-    m_curNeighbors = getNeighbors(m_current);
+    m_curNeighbors = getNeighbors(m_root);
+}
+
+void XSelector::setNodesToUpdate()
+{
     if( !m_curNeighbors ) {
-        LOG(logERROR) << "XSelector::setCurrentBestNeighbors m_curNeighbors is null";
+        LOG(logERROR) << "XSelector::setNodesToUpdate m_nodesToUpdate is null";
         return;
     }
+    m_nodesToUpdate = getNeighbors(m_curNeighbors);
+    m_nodesToUpdate->Difference(m_curNeighbors.get());
+}
+
+bool XSelector::updateScores()
+{
+    if( m_root == Objects::InvalidOID ) {
+        LOG(logERROR) << "XSelector::updateScores invalid root";
+        return false;
+    }
+
+    // Update root node, the merging already occured
+    if( !m_hasMemory )
+        m_scores.update(m_root, calcScore(m_root));
+    ObjectsIt it(m_nodesToUpdate->Iterator());
+    while( it->HasNext() ) {
+        auto id = it->Next();
+        // it would be much better if we could apply and partial update
+        // and not recompute the whole score ...
+        m_scores.update(id, calcScore(id));
+    }
+    return true;
 }
 
 ObjectsPtr XSelector::inEdges( oid_t root )

@@ -4,6 +4,7 @@ set( UTILS_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/mutable_priority_queue.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Timer.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ScopedTimer.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/ProgressDisplay.h
 )
 
 # Add to global variable
@@ -15,6 +16,7 @@ set( UTILS_PUBLIC_HDRS
     mutable_priority_queue.h
     Timer.h
     ScopedTimer.h
+    ProgressDisplay.h
 )
 
 set( UTILS_PUB_HDRS_DIR

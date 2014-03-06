@@ -31,13 +31,8 @@ namespace gdb {
 
 namespace mld {
 
-class AbstractSingleSelector;
-class AbstractSingleMerger;
-
-class AbstractMultiSelector;
 class NeighborMerger;
 class NeighborSelector;
-
 class MLGDao;
 
 class MLD_API AbstractCoarsener : public AbstractOperator
@@ -57,32 +52,15 @@ public:
     /**
      * @brief Return the number of nodes to merge
      * @param numVertices base layer num of vertices returned by sparksee as an int64_t
-     * @param willUseMirroring The count is a bit different is we add an extra pass
      * by default, all coarseners mirrors the last layer.
      * @return node count
      */
-    uint64_t computeMergeCount( int64_t numVertices, bool willUseMirroring=true );
+    int64_t computeMergeCount( int64_t numVertices );
     virtual std::string name() const;
 
 protected:
     std::unique_ptr<MLGDao> m_dao;
     float m_reductionFac;
-};
-
-class MLD_API AbstractSingleCoarsener : public AbstractCoarsener
-{
-public:
-    AbstractSingleCoarsener( sparksee::gdb::Graph* g );
-    virtual ~AbstractSingleCoarsener() = 0;
-
-protected:
-    virtual bool preExec() override;
-    virtual bool exec() override;
-    virtual bool postExec() override;
-
-protected:
-    std::unique_ptr<AbstractSingleSelector> m_sel;
-    std::unique_ptr<AbstractSingleMerger> m_merger;
 };
 
 } // end namespace mld

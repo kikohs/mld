@@ -65,7 +65,7 @@ public:
      * @brief Get best neighbors for current selected node
      * @return Best neighbors
      */
-    ObjectsPtr getCurrentBestNeighbors();
+    ObjectsPtr getNodesToMerge();
 
     /**
      * @brief Get all flagged nodes by the selector
@@ -79,27 +79,22 @@ protected:
      * m_current holds the current node, this function should set the
      * m_curNeighbors variable with the proper node set
      */
-    virtual void setCurrentBestNeighbors() = 0;
+    virtual void setNodesToMerge() = 0;
     /**
-     * @brief Update node score from given input set
-     * @param input set
+     * @brief The updateScore function will process nodes set by nodes
+     * to update in the next iteration
+     */
+    virtual void setNodesToUpdate() = 0;
+    /**
+     * @brief Update score form each node marked as to be updated
+     * in method setNodesToUpdate.
      * @return success
      */
-    virtual bool updateScore( const ObjectsPtr& input );
+    virtual bool updateScores() = 0;
     /**
      * @brief Remove already merged nodes from selector queue
      */
-    virtual void removeCandidates();
-    /**
-     * @brief Copy current best neighbors
-     * to an internal variable for further removal.
-     * It is needed because when a node is delete (in the merger)
-     * all the ObjectsPtr are modified accordingly.
-     * Otherwise, we would lose the nodes which have already been merged
-     * and couldn't remove them from the selector queue
-     */
-    virtual void setNodesToRemove();
-
+    virtual void delNodesToMergeFromQueue();
     /**
      * @brief Reset internal variable related to the selection
      */
@@ -111,15 +106,16 @@ protected:
      * @return neighbors
      */
     ObjectsPtr getNeighbors( sparksee::gdb::oid_t snid );
+    ObjectsPtr getNeighbors( const ObjectsPtr& input );
 
 protected:
     bool m_hasMemory;
     sparksee::gdb::oid_t m_layerId;  // Layer id
-    sparksee::gdb::oid_t m_current;  // Current SuperNode id
+    sparksee::gdb::oid_t m_root;  // Current SuperNode id
     ObjectsPtr m_flagged; // Flagged node if memory
     ObjectsPtr m_curNeighbors;
+    ObjectsPtr m_nodesToUpdate;
     mutable_priority_queue<double, sparksee::gdb::oid_t> m_scores;
-    std::vector<sparksee::gdb::oid_t> m_nodesToRemove; // store ids to remove from scores
 };
 
 } // end namespace mld

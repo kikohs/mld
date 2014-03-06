@@ -29,7 +29,6 @@ public:
     XSelector( sparksee::gdb::Graph* g );
     virtual ~XSelector() override;
 
-    virtual double calcScore( sparksee::gdb::oid_t snid ) override;
     virtual std::string name() const override { return "XSelector"; }
 
     /**
@@ -61,7 +60,9 @@ protected:
     /**
      * @brief Set current Neighbor with the heaviest HLink endpoint
      */
-    virtual void setCurrentBestNeighbors() override;
+    virtual void setNodesToMerge() override;
+    virtual void setNodesToUpdate() override;
+    virtual bool updateScores() override;
 };
 
 } // end namespace mld

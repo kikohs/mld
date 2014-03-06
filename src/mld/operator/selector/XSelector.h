@@ -60,7 +60,9 @@ protected:
     /**
      * @brief Set current Neighbor with the heaviest HLink endpoint
      */
-    virtual void setCurrentBestNeighbors() override;
+    virtual void setNodesToMerge() override;
+    virtual void setNodesToUpdate() override;
+    virtual bool updateScores() override;
 };
 
 } // end namespace mld

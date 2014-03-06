@@ -183,6 +183,21 @@ public:
 		return key2Val.size();
 	}
 
+    inline typename std::map<_Value, _Key, _ValueComp>::iterator findByVal( _Value k )
+    {
+        return val2Key.find(k);
+    }
+
+    inline typename std::map<_Value, _Key, _ValueComp>::iterator valEndIterator()
+    {
+        return val2Key.end();
+    }
+
+    inline typename std::multimap<_Key,_Value,_KeyComp>::iterator findByKey( _Key k )
+    {
+        return key2Val.find(k);
+    }
+
 private:
     inline void _erase( typename std::multimap<_Key,_Value,_KeyComp>::iterator it )
     {

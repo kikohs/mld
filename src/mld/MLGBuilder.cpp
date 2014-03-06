@@ -42,7 +42,7 @@ MLGBuilder::~MLGBuilder()
 
 bool MLGBuilder::run()
 {
-    LOG(logINFO) << "MLGBuilder::run";
+    LOG(logINFO) << "Start building multilayer graph";
     if( m_steps.empty() ) {
         LOG(logWARNING) << "MLGBuilder::run queue is empty";
         return false;
@@ -51,7 +51,7 @@ bool MLGBuilder::run()
     while( !m_steps.empty() ) {
         CoarsenerPtr& step = m_steps.front();
         std::unique_ptr<Timer> t(new Timer("MLGBuilder::run step"));
-        LOG(logINFO) << "MLGBuilder::run step " << *step;
+        LOG(logINFO) << "Applying operator: " << *step;
         if( !step->run() ) {
             LOG(logERROR) << "MLGBuilder::run: an operation failed, stop";
             clearSteps();
@@ -69,7 +69,7 @@ bool MLGBuilder::fromRawString( Graph* g, const std::string& input )
         return false;
     }
 
-    LOG(logINFO) << "MLGBuilder::fromRawString: " << input;
+    LOG(logINFO) << "Create coarsening plan from raw string: " << input;
     std::vector<std::string> tokens;
     ba::split(tokens, input, boost::is_any_of(" "));
 

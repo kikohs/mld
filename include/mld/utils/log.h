@@ -91,8 +91,6 @@ public:
     static void SetStream(FILE* pFile);
     static void Output(const std::string& msg);
     static FILE*& Stream();
-private:
-//    static QMutex mtx;
 };
 
 inline FILE*& Output2FILE::Stream()
@@ -103,13 +101,11 @@ inline FILE*& Output2FILE::Stream()
 
 inline void Output2FILE::SetStream(FILE* pFile)
 {
-//    QMutexLocker l(&mtx);
     Stream() = pFile;
 }
 
 inline void Output2FILE::Output(const std::string& msg)
 {
-//    QMutexLocker l(&Output2FILE::mtx);
     FILE* pStream = Stream();
     if (!pStream)
         return;

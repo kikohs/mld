@@ -177,6 +177,5 @@ int main(int argc, char *argv[])
     // Close the database
     //
     sess.reset();
-
     return 0;
 }

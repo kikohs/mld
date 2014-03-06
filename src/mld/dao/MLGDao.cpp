@@ -25,11 +25,11 @@
 #include <sparksee/gdb/ValuesIterator.h>
 
 #include "mld/GraphTypes.h"
-
 #include "mld/dao/MLGDao.h"
 #include "mld/dao/LayerDao.h"
 #include "mld/dao/SNodeDao.h"
 #include "mld/dao/LinkDao.h"
+#include "mld/utils/ProgressDisplay.h"
 
 using namespace mld;
 using namespace sparksee::gdb;
@@ -390,6 +390,9 @@ Layer MLGDao::mirrorLayerImpl( Direction dir )
         return newLayer;
     }
 
+    LOG(logINFO) << "Mirroring layer";
+    ProgressDisplay display(edges->Count());
+
     // Id map from previous node ids to top layer nodes, needed to add
     // corresponding edges
     NodeMap nodeMap;
@@ -397,6 +400,7 @@ Layer MLGDao::mirrorLayerImpl( Direction dir )
         // Get previous layer HLink
         HLink link = m_link->getHLink(edgesIt->Next());
         mirrorEdge(link, dir, newLayer, nodeMap);
+        ++display;
     }
     return newLayer;
 }
