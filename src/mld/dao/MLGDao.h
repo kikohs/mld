@@ -387,7 +387,7 @@ private:
     HLink mirrorEdge( const HLink& current, Direction dir, const Layer& newLayer, NodeMap& nodeMap );
     SuperNode mirrorNode( sparksee::gdb::oid_t current, Direction dir, const Layer& newLayer );
     ObjectsPtr getVLinkEndpoints( sparksee::gdb::oid_t current, Direction dir );
-    bool horizontalCopyLinks(sparksee::gdb::type_t linkType,
+    bool horizontalCopyLinks( sparksee::gdb::type_t linkType,
                               const SuperNode& source,
                               const SuperNode& target,
                               bool safe,

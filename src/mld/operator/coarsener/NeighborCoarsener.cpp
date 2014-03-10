@@ -100,7 +100,6 @@ bool NeighborCoarsener::exec()
         return false;
     }
 
-//    auto beforeMerge = mergeCount;
     LOG(logINFO) << "Start coarsening, " << mergeCount << " nodes to merge";
     ProgressDisplay display(mergeCount);
 
@@ -113,7 +112,7 @@ bool NeighborCoarsener::exec()
             return false;
         }
 #endif
-//        LOG(logDEBUG) << "Root: " << root;
+        // LOG(logDEBUG) << "Root: " << root;
         // Still node to collpase but selector has spent all his node
         if( !m_sel->hasNext() ) {
             LOG(logINFO) << "Selector is exhausted, rerank";

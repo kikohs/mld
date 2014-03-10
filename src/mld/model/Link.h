@@ -31,7 +31,6 @@ class MLD_API Link
 {
 public:
     virtual ~Link() = 0;
-
     sparksee::gdb::oid_t id() const { return m_id; }
     sparksee::gdb::oid_t source() const { return m_src; }
     sparksee::gdb::oid_t target() const { return m_tgt; }
@@ -39,7 +38,6 @@ public:
 protected:
     Link();
     Link( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
-
     void setId( sparksee::gdb::oid_t id ) { m_id = id; }
     void setSource( sparksee::gdb::oid_t src ) { m_src = src; }
     void setTarget( sparksee::gdb::oid_t tgt ) { m_tgt = tgt; }
