@@ -20,6 +20,7 @@
 #define MLD_GRAPHTYPES_H
 
 #include <string>
+#include <vector>
 #include "mld/common.h"
 /**
  * \addtogroup mld
@@ -32,6 +33,8 @@
  */
 
 namespace mld {
+
+typedef std::vector<std::wstring> AttrVec;
 
 /**
  * @brief Defines node types
@@ -77,10 +80,11 @@ struct MLD_API SNAttr
 {
     static const std::wstring WEIGHT;
     static const std::wstring LABEL;
-    static const std::wstring IS_ROOT;
+    static const AttrVec ATTRS;
 };
 
-struct MLD_API LayerAttr {
+struct MLD_API LayerAttr
+{
     static const std::wstring IS_BASE;
     static const std::wstring DESCRIPTION;
 };
@@ -89,11 +93,13 @@ struct MLD_API LayerAttr {
 struct MLD_API H_LinkAttr
 {
     static const std::wstring WEIGHT;
+    static const AttrVec ATTRS;
 };
 
 struct MLD_API V_LinkAttr
 {
     static const std::wstring WEIGHT;
+    static const AttrVec ATTRS;
 };
 
 

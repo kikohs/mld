@@ -20,7 +20,6 @@
 #include <sparksee/gdb/ObjectsIterator.h>
 
 #include "mld/operator/selector/HeavyHLinkSelector.h"
-
 #include "mld/dao/MLGDao.h"
 
 using namespace mld;

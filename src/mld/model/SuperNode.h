@@ -33,7 +33,7 @@ public:
     virtual ~Node() = 0;
 
     void setId( sparksee::gdb::oid_t id ) { m_id = id; }
-    sparksee::gdb::oid_t id() const { return m_id; }
+    inline sparksee::gdb::oid_t id() const { return m_id; }
 
 protected:
     Node();
@@ -51,7 +51,7 @@ class MLD_API SuperNode: public Node
 public:
     SuperNode();
     SuperNode( sparksee::gdb::oid_t id );
-    SuperNode( sparksee::gdb::oid_t id, const std::wstring& label, double weight, bool isRoot=false );
+    SuperNode( sparksee::gdb::oid_t id, const std::wstring& label, double weight );
 
     virtual ~SuperNode() override;
 
@@ -60,21 +60,17 @@ public:
         return ( (m_id == rhs.id())
                  && (m_weight == rhs.m_weight)
                  && (m_label == rhs.m_label)
-                 && (m_isRoot == rhs.m_isRoot)
                  ? true : false );
     }
 
-    double weight() const { return m_weight; }
+    inline double weight() const { return m_weight; }
     void setWeight( double v ) { m_weight = v; }
-    std::wstring label() const { return m_label; }
+    inline std::wstring label() const { return m_label; }
     void setLabel( const std::wstring& label ) { m_label = label; }
-    bool isRoot() const { return m_isRoot; }
-    void setRoot( bool v ) { m_isRoot = v; }
 
 private:
     double m_weight;
     std::wstring m_label;
-    bool m_isRoot;
 };
 
 } // end namespace mld

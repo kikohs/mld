@@ -48,7 +48,6 @@ TEST( SNodeDaoTest, CRUD )
 
     n1.setWeight(15);
     n1.setLabel(L"test");
-    n1.setRoot(true);
     // Update node content
     dao->updateNode(n1);
     // Get
@@ -57,7 +56,6 @@ TEST( SNodeDaoTest, CRUD )
     EXPECT_EQ(n1.id(), n1_update.id());
     EXPECT_EQ(n1_update.weight(), 15);
     EXPECT_EQ(n1_update.label(), L"test");
-    EXPECT_EQ(n1_update.isRoot(), true);
     EXPECT_EQ(n1_update, n1);
 
 

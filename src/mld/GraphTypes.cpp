@@ -35,13 +35,15 @@ const std::wstring EdgeType::CHILD_OF(L"MLD_CHILD_OF");
 // SuperNode
 const std::wstring SNAttr::WEIGHT(L"MLD_SN_WEIGHT");
 const std::wstring SNAttr::LABEL(L"MLD_SN_LABEL");
-const std::wstring SNAttr::IS_ROOT(L"MLD_SN_IS_ROOT");
+const AttrVec SNAttr::ATTRS{ SNAttr::WEIGHT, SNAttr::LABEL };
 // Layer
 const std::wstring LayerAttr::IS_BASE(L"MLD_LAYER_IS_BASE");
 const std::wstring LayerAttr::DESCRIPTION(L"MLD_LAYER_DESCRIPTION");
 
 // Edge Attributes
 const std::wstring H_LinkAttr::WEIGHT(L"MLD_H_LINK_WEIGHT");
+const AttrVec H_LinkAttr::ATTRS{ H_LinkAttr::WEIGHT };
 const std::wstring V_LinkAttr::WEIGHT(L"MLD_V_LINK_WEIGHT");
+const AttrVec V_LinkAttr::ATTRS{ V_LinkAttr::WEIGHT };
 
 } // end namespace mld

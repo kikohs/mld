@@ -28,16 +28,16 @@
 using namespace mld;
 using namespace sparksee::gdb;
 
-SparkseeManager::SparkseeManager( const sparksee::gdb::SparkseeConfig& conf )
-    : m_sparksee( new sparksee::gdb::Sparksee(conf) )
+SparkseeManager::SparkseeManager( const SparkseeConfig& conf )
+    : m_sparksee( new Sparksee(conf) )
 {
 }
 
 SparkseeManager::SparkseeManager( const std::wstring& configFile )
 {
-    sparksee::gdb::SparkseeProperties::Load(configFile);
-    sparksee::gdb::SparkseeConfig cfg;
-    m_sparksee.reset( new sparksee::gdb::Sparksee(cfg) );
+    SparkseeProperties::Load(configFile);
+    SparkseeConfig cfg;
+    m_sparksee.reset( new Sparksee(cfg) );
 }
 
 SparkseeManager::~SparkseeManager()
@@ -73,9 +73,50 @@ void SparkseeManager::createScheme( Graph* g )
     createEdgeTypes(g);
 }
 
+bool SparkseeManager::addUserAttrToSuperNode( Graph* g,
+                                              const std::wstring& key,
+                                              DataType dtype,
+                                              AttributeKind aKind,
+                                              Value& defaultValue )
+{
+    bool ok = addUserAttr(g, NodeType::SUPERNODE, key, dtype, aKind, defaultValue);
+    if( !ok ) {
+        LOG(logERROR) << "SparkseeManager::addUserAttrToSuperNode SuperNode nodeType not created";
+    }
+    return ok;
+}
+
+bool SparkseeManager::addUserAttrToHLink( Graph* g,
+                                          const std::wstring& key,
+                                          DataType dtype,
+                                          AttributeKind aKind,
+                                          Value& defaultValue )
+{
+    bool ok = addUserAttr(g, EdgeType::H_LINK, key, dtype, aKind, defaultValue);
+    if( !ok ) {
+        LOG(logERROR) << "SparkseeManager::addUserAttrToHLink HLink edgeType not created";
+    }
+    return ok;
+}
+
+bool SparkseeManager::addUserAttrToVLink( Graph* g,
+                                          const std::wstring& key,
+                                          DataType dtype,
+                                          AttributeKind aKind,
+                                          Value& defaultValue )
+{
+    bool ok = addUserAttr(g, EdgeType::V_LINK, key, dtype, aKind, defaultValue);
+    if( !ok ) {
+        LOG(logERROR) << "SparkseeManager::addUserAttrToVLink HLink edgeType not created";
+    }
+    return ok;
+}
+
+// Private
+
 void SparkseeManager::createNodeTypes( Graph* g )
 {
-    sparksee::gdb::Value val;
+    Value val;
     attr_t attr;
     // Create SuperNode type
     type_t nType = g->FindType(NodeType::SUPERNODE);
@@ -87,9 +128,6 @@ void SparkseeManager::createNodeTypes( Graph* g )
         // LABEL
         attr = g->NewAttribute(nType, SNAttr::LABEL, String, Indexed);
         g->SetAttributeDefaultValue(attr, val.SetString(L""));
-        // IS_ROOT
-        attr = g->NewAttribute(nType, SNAttr::IS_ROOT, Boolean, Indexed);
-        g->SetAttributeDefaultValue(attr, val.SetBoolean(false));
     }
 
     // Create Layer type
@@ -105,7 +143,7 @@ void SparkseeManager::createNodeTypes( Graph* g )
 
 void SparkseeManager::createEdgeTypes( Graph* g )
 {
-    sparksee::gdb::Value val;
+    Value val;
     attr_t attr;
     // Create H_LINK type
     type_t eType = g->FindType(EdgeType::H_LINK);
@@ -140,4 +178,19 @@ void SparkseeManager::createEdgeTypes( Graph* g )
     }
 }
 
+bool SparkseeManager::addUserAttr( Graph* g,
+                                   const std::wstring& ObjectKey,
+                                   const std::wstring& key,
+                                   DataType dtype,
+                                   AttributeKind aKind,
+                                   Value& defaultValue )
+{
+    type_t nType = g->FindType(ObjectKey);
+    if( nType == Type::InvalidType ) {
+        return false;
+    }
+    auto attr = g->NewAttribute(nType, key, dtype, aKind);
+    g->SetAttributeDefaultValue(attr, defaultValue);
+    return true;
+}
 

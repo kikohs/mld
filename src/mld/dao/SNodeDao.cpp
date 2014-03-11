@@ -84,10 +84,10 @@ void SNodeDao::updateNode( const SuperNode& n )
     att = m_g->FindAttribute(m_snType, SNAttr::LABEL);
     m_v->SetStringVoid(n.label());
     m_g->SetAttribute(n.id(), att, *m_v);
-    // IS_ROOT
-    att = m_g->FindAttribute(m_snType, SNAttr::IS_ROOT);
-    m_v->SetBooleanVoid(n.isRoot());
-    m_g->SetAttribute(n.id(), att, *m_v);
+//    // IS_ROOT
+//    att = m_g->FindAttribute(m_snType, SNAttr::IS_ROOT);
+//    m_v->SetBooleanVoid(n.isRoot());
+//    m_g->SetAttribute(n.id(), att, *m_v);
 }
 
 SuperNode SNodeDao::getNode( oid_t id )
@@ -99,7 +99,6 @@ SuperNode SNodeDao::getNode( oid_t id )
 
     double w = 0.0;
     std::wstring lab = L"";
-    bool isRoot = false;
 #ifdef MLD_SAFE
     try {
 #endif
@@ -109,16 +108,16 @@ SuperNode SNodeDao::getNode( oid_t id )
         // LABEL
         m_g->GetAttribute(id, m_g->FindAttribute(m_snType, SNAttr::LABEL), *m_v);
         lab = m_v->GetString();
-        // IS_ROOT
-        m_g->GetAttribute(id, m_g->FindAttribute(m_snType, SNAttr::IS_ROOT), *m_v);
-        isRoot = m_v->GetBoolean();
+//        // IS_ROOT
+//        m_g->GetAttribute(id, m_g->FindAttribute(m_snType, SNAttr::IS_ROOT), *m_v);
+//        isRoot = m_v->GetBoolean();
 #ifdef MLD_SAFE
     } catch( Error& e ) {
         LOG(logERROR) << "SNodeDao::getNode: " << e.Message();
         return SuperNode();
     }
 #endif
-    return SuperNode(id, lab, w, isRoot);
+    return SuperNode(id, lab, w);
 }
 
 

@@ -28,6 +28,7 @@
  *
  * @author Kirell
  */
+
 #include "mld/common.h"
 #include "mld/Session.h"
 
@@ -36,6 +37,7 @@ namespace gdb {
     class Sparksee;
     class Database;
     class SparkseeConfig;
+    class Value;
 }}
 
 namespace mld {
@@ -62,7 +64,8 @@ public:
     SparkseeManager( const std::wstring& configFile );
 
     /**
-     * Destructor, Sparksee manager should be deleted last when all the SessionPtr are deleted (reset)
+     * Destructor, Sparksee manager should be deleted last
+     * when all the SessionPtr are deleted (reset)
      */
     ~SparkseeManager();
 
@@ -70,7 +73,8 @@ public:
      * @brief Creates a new Database instance.
      * @param path [in] Database storage file.
      * @param alias [in] Database alias name.
-     * @exception sparksee::gdb::FileNotFounsparkseeception If the given file cannot be created.
+     * @exception sparksee::gdb::FileNotFounsparkseeception
+     * If the given file cannot be created.
      */
     void createDatabase( const std::wstring& path, const std::wstring& alias );
 
@@ -86,7 +90,8 @@ public:
      * @brief Restores a Database from a backup file. See Graph::Backup.
      * @param path [in] Database storage file.
      * @param backupFile [in] The Backup file to be restored.
-     * @exception sparksee::gdb::FileNotFounsparkseeception If the given file cannot be created, or the exported data file does not exists.
+     * @exception sparksee::gdb::FileNotFounsparkseeception
+     * If the given file cannot be created, or the exported data file does not exists.
      */
     void restoreDatabase( const std::wstring& path, const std::wstring& backupFile );
 
@@ -106,6 +111,51 @@ public:
      */
     void createScheme( sparksee::gdb::Graph* g );
 
+    /**
+     * @brief Add a user attribute to the SuperNode type
+     * @param g Graph
+     * @param key Key to retrieve the attribute
+     * @param dtype Type of the attribute
+     * @param aKind Index or Basic
+     * @param defaultValue
+     * @return success
+     */
+    bool addUserAttrToSuperNode( sparksee::gdb::Graph* g,
+                                 const std::wstring& key,
+                                 sparksee::gdb::DataType dtype,
+                                 sparksee::gdb::AttributeKind aKind,
+                                 sparksee::gdb::Value& defaultValue );
+
+    /**
+     * @brief Add a user attribute to the HLink type
+     * @param g Graph
+     * @param key Key to retrieve the attribute
+     * @param dtype Type of the attribute
+     * @param aKind Index or Basic
+     * @param defaultValue
+     * @return success
+     */
+    bool addUserAttrToHLink( sparksee::gdb::Graph* g,
+                             const std::wstring& key,
+                             sparksee::gdb::DataType dtype,
+                             sparksee::gdb::AttributeKind aKind,
+                             sparksee::gdb::Value& defaultValue );
+
+    /**
+     * @brief Add a user attribute to the VLink type
+     * @param g Graph
+     * @param key Key to retrieve the attribute
+     * @param dtype Type of the attribute
+     * @param aKind Index or Basic
+     * @param defaultValue
+     * @return success
+     */
+    bool addUserAttrToVLink( sparksee::gdb::Graph* g,
+                             const std::wstring& key,
+                             sparksee::gdb::DataType dtype,
+                             sparksee::gdb::AttributeKind aKind,
+                             sparksee::gdb::Value& defaultValue );
+
 private:
     /**
      * @brief Create NodeType if not already in the db
@@ -113,6 +163,13 @@ private:
      */
     void createNodeTypes( sparksee::gdb::Graph *g );
     void createEdgeTypes( sparksee::gdb::Graph* g );
+
+    bool addUserAttr(sparksee::gdb::Graph* g,
+                      const std::wstring& ObjectKey,
+                      const std::wstring& key,
+                      sparksee::gdb::DataType dtype,
+                      sparksee::gdb::AttributeKind aKind,
+                      sparksee::gdb::Value& defaultValue );
 
 private:
     SparkseePtr m_sparksee;

@@ -100,7 +100,7 @@ double XSelector::getEdgeWeight( const ObjectsPtr& edgeOids )
 {
     std::vector<HLink> hlinks = m_dao->getHLink(edgeOids);
     if( hlinks.empty() ) {
-        LOG(logERROR) << "XSelector::edgeWeight << cannot retrieve hlinks";
+        LOG(logERROR) << "XSelector::edgeWeight cannot retrieve hlinks";
         return 0.0;
     }
     double total = 0.0;
