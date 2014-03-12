@@ -48,8 +48,8 @@ TEST( MLGDaoTest, CRUD )
     bool success = false;
     Layer base = dao->addBaseLayer();
 
-    SuperNode n1 = dao->addNodeToLayer(base);
-    SuperNode n2 = dao->addNodeToLayer(base);
+    mld::Node n1 = dao->addNodeToLayer(base);
+    mld::Node n2 = dao->addNodeToLayer(base);
     // Check node ownership
     ObjectsPtr neighbors(g->Neighbors(base.id(), g->FindType(EdgeType::OWNS), Outgoing));
     success = neighbors->Exists(n1.id());
@@ -64,7 +64,7 @@ TEST( MLGDaoTest, CRUD )
 
     // Add a top layer
     Layer top = dao->addLayerOnTop();
-    SuperNode n3 = dao->addNodeToLayer(top);
+    mld::Node n3 = dao->addNodeToLayer(top);
     // Check node count
     EXPECT_EQ(dao->getNodeCount(top), 1);
 
@@ -83,7 +83,7 @@ TEST( MLGDaoTest, CRUD )
     EXPECT_EQ(vl12.id(), Objects::InvalidOID);
 
     Layer bot = dao->addLayerOnBottom();
-    SuperNode n4 = dao->addNodeToLayer(bot);
+    mld::Node n4 = dao->addNodeToLayer(bot);
 
     // Node are not a consecutive layer, invalid
     VLink vl34 = dao->addVLink(n3, n4);
@@ -148,11 +148,11 @@ TEST( MLGDaoTest, MirrorLayer )
     Layer base = dao->addBaseLayer();
 
     // Add nodes
-    SuperNode n1 = dao->addNodeToLayer(base);
+    mld::Node n1 = dao->addNodeToLayer(base);
     n1.setWeight(10);
     dao->updateNode(n1);
-    SuperNode n2 = dao->addNodeToLayer(base);
-    SuperNode n3 = dao->addNodeToLayer(base);
+    mld::Node n2 = dao->addNodeToLayer(base);
+    mld::Node n3 = dao->addNodeToLayer(base);
     n3.setWeight(20);
     dao->updateNode(n3);
 
@@ -173,13 +173,13 @@ TEST( MLGDaoTest, MirrorLayer )
     // Check parent node
     auto p = dao->getParentNodes(n1.id());
     EXPECT_EQ(p.size(), size_t(1));
-    SuperNode parentN1;
+    mld::Node parentN1;
     if( !p.empty() )
         parentN1 = p.at(0);
     EXPECT_EQ(parentN1.weight(), n1.weight());
 
     // Check child node
-    SuperNode n1_bis;
+    mld::Node n1_bis;
     auto n1_bisvec = dao->getChildNodes(parentN1.id());
     EXPECT_EQ(n1_bisvec.empty(), false);
     if( !n1_bisvec.empty() )
@@ -210,11 +210,11 @@ TEST( MLGDaoTest, GetHeaviestHLink )
     Layer base = dao->addBaseLayer();
 
     // Add nodes
-    SuperNode n1 = dao->addNodeToLayer(base);
+    mld::Node n1 = dao->addNodeToLayer(base);
     n1.setWeight(10);
     dao->updateNode(n1);
-    SuperNode n2 = dao->addNodeToLayer(base);
-    SuperNode n3 = dao->addNodeToLayer(base);
+    mld::Node n2 = dao->addNodeToLayer(base);
+    mld::Node n3 = dao->addNodeToLayer(base);
     n3.setWeight(20);
     dao->updateNode(n3);
 
@@ -238,7 +238,7 @@ TEST( MLGDaoTest, GetHeaviestHLink )
     EXPECT_FLOAT_EQ(maxHlink.weight(), maxHlink2.weight());
 
     // Add new hlink in base layer with the highest value
-    SuperNode n4 = dao->addNodeToLayer(base);
+    mld::Node n4 = dao->addNodeToLayer(base);
     HLink hl41 = dao->addHLink(n4, n1, 50);
 
     // It should fail, the return maxlink is not in the top layer
@@ -271,12 +271,12 @@ TEST( MLGDaoTest, copyAndMergeLinks )
     Layer base = dao->addBaseLayer();
 
     // Add nodes
-    SuperNode n1 = dao->addNodeToLayer(base);
+    mld::Node n1 = dao->addNodeToLayer(base);
     n1.setWeight(10);
     dao->updateNode(n1);
-    SuperNode n2 = dao->addNodeToLayer(base);
-    SuperNode n3 = dao->addNodeToLayer(base);
-    SuperNode n4 = dao->addNodeToLayer(base);
+    mld::Node n2 = dao->addNodeToLayer(base);
+    mld::Node n3 = dao->addNodeToLayer(base);
+    mld::Node n4 = dao->addNodeToLayer(base);
     n3.setWeight(20);
     dao->updateNode(n3);
 
@@ -288,10 +288,10 @@ TEST( MLGDaoTest, copyAndMergeLinks )
 
     // Mirror by hand
     Layer current = dao->addLayerOnTop();
-    SuperNode n1c = dao->addNodeToLayer(current);
-    SuperNode n2c = dao->addNodeToLayer(current);
-    SuperNode n3c = dao->addNodeToLayer(current);
-    SuperNode n4c = dao->addNodeToLayer(current);
+    mld::Node n1c = dao->addNodeToLayer(current);
+    mld::Node n2c = dao->addNodeToLayer(current);
+    mld::Node n3c = dao->addNodeToLayer(current);
+    mld::Node n4c = dao->addNodeToLayer(current);
     dao->addVLink(n1, n1c);
     dao->addVLink(n2, n2c);
     dao->addVLink(n2, n1c);
@@ -304,9 +304,9 @@ TEST( MLGDaoTest, copyAndMergeLinks )
 
     // Mirror again, we have 3 layers
     Layer top = dao->addLayerOnTop();
-    SuperNode n1t = dao->addNodeToLayer(top);
-    SuperNode n2t = dao->addNodeToLayer(top);
-    SuperNode n3t = dao->addNodeToLayer(top);
+    mld::Node n1t = dao->addNodeToLayer(top);
+    mld::Node n2t = dao->addNodeToLayer(top);
+    mld::Node n3t = dao->addNodeToLayer(top);
     dao->addVLink(n1c, n1t);
     dao->addVLink(n2c, n2t);
     dao->addVLink(n3c, n3t);

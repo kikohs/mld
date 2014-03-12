@@ -52,7 +52,7 @@ public:
      * @brief Get best node according to score, consume node
      * @return Best supernode
      */
-    virtual SuperNode next();
+    virtual Node next();
 
     /**
      * @brief Score function, must be reimplemented in child classes

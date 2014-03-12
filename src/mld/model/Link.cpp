@@ -20,94 +20,124 @@
 
 #include "mld/model/Link.h"
 
+using namespace sparksee::gdb;
 using namespace mld;
 
 // ****** LINK ****** //
 
 Link::Link()
-    : m_id(sparksee::gdb::Objects::InvalidOID)
-    , m_src(sparksee::gdb::Objects::InvalidOID)
-    , m_tgt(sparksee::gdb::Objects::InvalidOID)
+    : GraphObject()
+    , m_src(Objects::InvalidOID)
+    , m_tgt(Objects::InvalidOID)
 {
 }
 
-Link::Link( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt )
-    : m_id(sparksee::gdb::Objects::InvalidOID)
+Link::Link( oid_t eid, oid_t src, oid_t tgt )
+    : GraphObject(eid)
     , m_src(src)
     , m_tgt(tgt)
 {
 }
 
-Link::~Link()
+Link::Link( oid_t eid, oid_t src, oid_t tgt, const AttrMap& data )
+    : GraphObject(eid, data)
+    , m_src(src)
+    , m_tgt(tgt)
 {
 }
 
+void Link::print( std::ostream& out ) const
+{
+    out << "src: " << m_src << " ";
+    out << "tgt: " << m_tgt << " ";
+    GraphObject::print(out);
+}
 
 // ****** HLINK ****** //
 
 HLink::HLink()
-    : Link()
-    , m_weight(kHLINK_DEF_VALUE)
+    : HLink(Objects::InvalidOID,
+            Objects::InvalidOID,
+            Objects::InvalidOID)
 {
 }
 
-HLink::HLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt )
-    : Link(src, tgt)
-    , m_weight(kHLINK_DEF_VALUE)
+HLink::HLink( oid_t eid, oid_t src, oid_t tgt )
+    : HLink(eid, src, tgt, kHLINK_DEF_VALUE)
 {
 }
 
-HLink::HLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt, double weight )
-    : Link(src, tgt)
-    , m_weight(weight)
+HLink::HLink( oid_t eid, oid_t src, oid_t tgt, double weight )
+    : Link(eid, src, tgt)
 {
+    m_data[H_LinkAttr::WEIGHT].SetDoubleVoid(weight);
+}
+
+HLink::HLink( oid_t eid, oid_t src, oid_t tgt, const AttrMap& data )
+    : Link(eid, src, tgt, data)
+{
+    auto it = m_data.find(H_LinkAttr::WEIGHT);
+    if( it == m_data.end() )
+        m_data[H_LinkAttr::WEIGHT].SetDoubleVoid(kHLINK_DEF_VALUE);
 }
 
 HLink::~HLink()
 {
 }
 
+void HLink::setWeight( double v )
+{
+    m_data[H_LinkAttr::WEIGHT].SetDoubleVoid(v);
+}
+
 // ****** VLINK ****** //
 
 VLink::VLink()
-    : Link()
-    , m_weight(kVLINK_DEF_VALUE)
+    : VLink(Objects::InvalidOID,
+            Objects::InvalidOID,
+            Objects::InvalidOID)
 {
 }
 
-VLink::VLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt )
-    : Link(src, tgt)
-    , m_weight(kVLINK_DEF_VALUE)
+VLink::VLink( oid_t eid, oid_t src, oid_t tgt )
+    : VLink(eid, src, tgt, kVLINK_DEF_VALUE)
 {
 }
 
-VLink::VLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt, double weight )
-    : Link(src, tgt)
-    , m_weight(weight)
+VLink::VLink( oid_t eid, oid_t src, oid_t tgt, double weight )
+    : Link(eid, src, tgt)
 {
+    m_data[V_LinkAttr::WEIGHT].SetDoubleVoid(weight);
+}
+
+VLink::VLink( oid_t eid, oid_t src, oid_t tgt, const AttrMap& data )
+    : Link(eid, src, tgt, data)
+{
+    auto it = m_data.find(V_LinkAttr::WEIGHT);
+    if( it == m_data.end() )
+        m_data[V_LinkAttr::WEIGHT].SetDoubleVoid(kVLINK_DEF_VALUE);
 }
 
 VLink::~VLink()
 {
 }
 
+void VLink::setWeight( double v )
+{
+    m_data[V_LinkAttr::WEIGHT].SetDoubleVoid(v);
+}
+
 std::ostream& operator<<( std::ostream& out, const mld::HLink& hlink )
 {
-    out << "hlink id: " << hlink.id() << " "
-        << "src: " << hlink.source() << " "
-        << "tgt: " << hlink.target() << " "
-        << "w: " << hlink.weight()
-          ;
+    out << "hlink ";
+    hlink.print(out);
     return out;
 }
 
 std::ostream& operator<<( std::ostream& out, const mld::VLink& vlink )
 {
-    out << "vlink id: " << vlink.id() << " "
-        << "src: " << vlink.source() << " "
-        << "tgt: " << vlink.target() << " "
-        << "w: " << vlink.weight()
-          ;
+    out << "vlink ";
+    vlink.print(out);
     return out;
 }
 

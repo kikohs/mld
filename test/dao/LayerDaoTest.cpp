@@ -211,8 +211,7 @@ TEST( LayerDaoTest, GetUpdateLayer )
 
     auto base = dao->addBaseLayer();
     base.setDescription(L"Base layer blabla");
-    bool success = dao->updateLayer(base);
-    EXPECT_EQ(success, true);
+    dao->updateLayer(base);
 
     auto base_get = dao->getLayer(base.id());
     EXPECT_EQ(base_get.id(), base.id());

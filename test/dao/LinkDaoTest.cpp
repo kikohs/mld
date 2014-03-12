@@ -27,7 +27,7 @@
 #include <mld/SparkseeManager.h>
 
 #include <mld/dao/LinkDao.h>
-#include <mld/dao/SNodeDao.h>
+#include <mld/dao/NodeDao.h>
 
 using namespace mld;
 using namespace sparksee::gdb;
@@ -43,7 +43,7 @@ TEST( LinkDaoTest, H_LINK_add )
     sparkseeManager.createScheme(g);
 
     std::unique_ptr<LinkDao> lkDao( new LinkDao(g) );
-    std::unique_ptr<SNodeDao> snDao( new SNodeDao(g) );
+    std::unique_ptr<NodeDao> snDao( new NodeDao(g) );
 
 #ifdef MLD_SAFE
     // No nodes in db
@@ -68,9 +68,9 @@ TEST( LinkDaoTest, H_LINK_add )
 #endif
 
     // Add some nodes to create H_Links
-    SuperNode n1 = snDao->addNode();
-    SuperNode n2 = snDao->addNode();
-    SuperNode n3 = snDao->addNode();
+    mld::Node n1 = snDao->addNode();
+    mld::Node n2 = snDao->addNode();
+    mld::Node n3 = snDao->addNode();
 
     // Add link default weight
     HLink res = lkDao->addHLink(n1.id(), n2.id());
@@ -85,10 +85,6 @@ TEST( LinkDaoTest, H_LINK_add )
     EXPECT_EQ(res2.source(), n2.id());
     EXPECT_EQ(res2.target(), n3.id());
     EXPECT_EQ(res2.weight(), 15.0);
-
-    // Invalid weight
-    HLink res3 = lkDao->addHLink(n3.id(), n1.id(), -415.0);
-    EXPECT_EQ(res3.id(), Objects::InvalidOID);
 
     snDao.reset();
     lkDao.reset();
@@ -106,7 +102,7 @@ TEST( LinkDaoTest, V_LINK_add )
     sparkseeManager.createScheme(g);
 
     std::unique_ptr<LinkDao> lkDao( new LinkDao(g) );
-    std::unique_ptr<SNodeDao> snDao( new SNodeDao(g) );
+    std::unique_ptr<NodeDao> snDao( new NodeDao(g) );
 
 #ifdef MLD_SAFE
     // No nodes in db
@@ -130,9 +126,9 @@ TEST( LinkDaoTest, V_LINK_add )
 #endif
 
     // Add some nodes to create H_Links
-    SuperNode n1 = snDao->addNode();
-    SuperNode n2 = snDao->addNode();
-    SuperNode n3 = snDao->addNode();
+    mld::Node n1 = snDao->addNode();
+    mld::Node n2 = snDao->addNode();
+    mld::Node n3 = snDao->addNode();
 
     // Add link default weight
     VLink res = lkDao->addVLink(n1.id(), n2.id());
@@ -147,10 +143,6 @@ TEST( LinkDaoTest, V_LINK_add )
     EXPECT_EQ(res2.source(), n2.id());
     EXPECT_EQ(res2.target(), n3.id());
     EXPECT_EQ(res2.weight(), 15.0);
-
-    // Invalid weight
-    VLink res3 = lkDao->addVLink(n3.id(), n1.id(), -415.0);
-    EXPECT_EQ(res3.id(), Objects::InvalidOID);
 
     snDao.reset();
     lkDao.reset();
@@ -168,7 +160,7 @@ TEST( LinkDaoTest, H_LINK_get )
     sparkseeManager.createScheme(g);
 
     std::unique_ptr<LinkDao> lkDao( new LinkDao(g) );
-    std::unique_ptr<SNodeDao> snDao( new SNodeDao(g) );
+    std::unique_ptr<NodeDao> snDao( new NodeDao(g) );
 
 #ifdef MLD_SAFE
     // Invalid ids
@@ -179,9 +171,9 @@ TEST( LinkDaoTest, H_LINK_get )
 #endif
 
     // Add node first
-    SuperNode n1 = snDao->addNode();
-    SuperNode n2 = snDao->addNode();
-    SuperNode n3 = snDao->addNode();
+    mld::Node n1 = snDao->addNode();
+    mld::Node n2 = snDao->addNode();
+    mld::Node n3 = snDao->addNode();
 
     // Add HLink
     HLink res = lkDao->addHLink(n1.id(), n2.id());
@@ -231,7 +223,7 @@ TEST( LinkDaoTest, V_LINK_get )
     sparkseeManager.createScheme(g);
 
     std::unique_ptr<LinkDao> lkDao( new LinkDao(g) );
-    std::unique_ptr<SNodeDao> snDao( new SNodeDao(g) );
+    std::unique_ptr<NodeDao> snDao( new NodeDao(g) );
 
 #ifdef MLD_SAFE
     // Invalid ids
@@ -242,9 +234,9 @@ TEST( LinkDaoTest, V_LINK_get )
     EXPECT_EQ(r2.id(), sparksee::gdb::Objects::InvalidOID);
 #endif
     // Add node first
-    SuperNode n1 = snDao->addNode();
-    SuperNode n2 = snDao->addNode();
-    SuperNode n3 = snDao->addNode();
+    mld::Node n1 = snDao->addNode();
+    mld::Node n2 = snDao->addNode();
+    mld::Node n3 = snDao->addNode();
 
     // Add VLink
     VLink res = lkDao->addVLink(n1.id(), n2.id());
@@ -295,7 +287,7 @@ TEST( LinkDaoTest, H_LINK_remove )
     sparkseeManager.createScheme(g);
 
     std::unique_ptr<LinkDao> lkDao( new LinkDao(g) );
-    std::unique_ptr<SNodeDao> snDao( new SNodeDao(g) );
+    std::unique_ptr<NodeDao> snDao( new NodeDao(g) );
 
     bool success = false;
 #ifdef MLD_SAFE
@@ -307,9 +299,9 @@ TEST( LinkDaoTest, H_LINK_remove )
 #endif
 
     // Add node first
-    SuperNode n1 = snDao->addNode();
-    SuperNode n2 = snDao->addNode();
-    SuperNode n3 = snDao->addNode();
+    mld::Node n1 = snDao->addNode();
+    mld::Node n2 = snDao->addNode();
+    mld::Node n3 = snDao->addNode();
 
     // Add HLinks
     auto hl1 = lkDao->addHLink(n1.id(), n2.id());
@@ -351,7 +343,7 @@ TEST( LinkDaoTest, V_LINK_remove )
     sparkseeManager.createScheme(g);
 
     std::unique_ptr<LinkDao> lkDao( new LinkDao(g) );
-    std::unique_ptr<SNodeDao> snDao( new SNodeDao(g) );
+    std::unique_ptr<NodeDao> snDao( new NodeDao(g) );
 
     bool success = false;
 #ifdef MLD_SAFE
@@ -363,9 +355,9 @@ TEST( LinkDaoTest, V_LINK_remove )
 #endif
 
     // Add node first
-    SuperNode n1 = snDao->addNode();
-    SuperNode n2 = snDao->addNode();
-    SuperNode n3 = snDao->addNode();
+    mld::Node n1 = snDao->addNode();
+    mld::Node n2 = snDao->addNode();
+    mld::Node n3 = snDao->addNode();
 
     // Add VLinks
     auto hl1 = lkDao->addVLink(n1.id(), n2.id());
@@ -407,7 +399,7 @@ TEST( LinkDaoTest, H_LINK_update )
     sparkseeManager.createScheme(g);
 
     std::unique_ptr<LinkDao> lkDao( new LinkDao(g) );
-    std::unique_ptr<SNodeDao> snDao( new SNodeDao(g) );
+    std::unique_ptr<NodeDao> snDao( new NodeDao(g) );
 
     bool success = false;
 #ifdef MLD_SAFE
@@ -419,9 +411,9 @@ TEST( LinkDaoTest, H_LINK_update )
 #endif
 
     // Add node first
-    SuperNode n1 = snDao->addNode();
-    SuperNode n2 = snDao->addNode();
-    SuperNode n3 = snDao->addNode();
+    mld::Node n1 = snDao->addNode();
+    mld::Node n2 = snDao->addNode();
+    mld::Node n3 = snDao->addNode();
 
     // Add HLinks
     auto hl1 = lkDao->addHLink(n1.id(), n2.id());
@@ -459,7 +451,7 @@ TEST( LinkDaoTest, V_LINK_update )
     sparkseeManager.createScheme(g);
 
     std::unique_ptr<LinkDao> lkDao( new LinkDao(g) );
-    std::unique_ptr<SNodeDao> snDao( new SNodeDao(g) );
+    std::unique_ptr<NodeDao> snDao( new NodeDao(g) );
 
     bool success = false;
 #ifdef MLD_SAFE
@@ -471,9 +463,9 @@ TEST( LinkDaoTest, V_LINK_update )
 #endif
 
     // Add node first
-    SuperNode n1 = snDao->addNode();
-    SuperNode n2 = snDao->addNode();
-    SuperNode n3 = snDao->addNode();
+    mld::Node n1 = snDao->addNode();
+    mld::Node n2 = snDao->addNode();
+    mld::Node n3 = snDao->addNode();
 
     // Add VLinks
     auto vl1 = lkDao->addVLink(n1.id(), n2.id());

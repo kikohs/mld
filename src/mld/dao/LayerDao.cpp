@@ -84,20 +84,16 @@ Layer LayerDao::addLayerOnBottom()
     return res;
 }
 
-bool LayerDao::updateLayer( const Layer& layer )
+void LayerDao::updateLayer( Layer& layer )
 {
-    auto attrDes = m_g->FindAttribute(m_lType, LayerAttr::DESCRIPTION);
-#ifdef MLD_SAFE
-    try {
-#endif
-        m_g->SetAttribute(layer.id(), attrDes, m_v->SetString(layer.description()));
-#ifdef MLD_SAFE
-    } catch( Error& e ) {
-        LOG(logERROR) << "LayerDao::updateLayer: " << e.Message();
-        return false;
-    }
-#endif
-    return true;
+    // Remove the key isBaseLayer not to update this value
+    bool isBase = layer.isBaseLayer();
+    AttrMap& data = layer.data();
+    auto it = data.find(LayerAttr::IS_BASE);
+    data.erase(it);
+    updateAttrMap(m_lType, layer.id(), data);
+    // Add key to object
+    data[LayerAttr::IS_BASE].SetBooleanVoid(isBase);
 }
 
 Layer LayerDao::getLayer( oid_t id )
@@ -107,17 +103,18 @@ Layer LayerDao::getLayer( oid_t id )
         return Layer();
     }
 
-    Layer res;
-    res.m_id = id;
-    auto attrDes = m_g->FindAttribute(m_lType, LayerAttr::DESCRIPTION);
-    m_g->GetAttribute(id, attrDes, *m_v);
-    res.setDescription(m_v->GetString());
-
-    auto attrIsBase = m_g->FindAttribute(m_lType, LayerAttr::IS_BASE);
-    m_g->GetAttribute(id, attrIsBase, *m_v);
-    res.m_isBase = m_v->GetBoolean();
-
-    return res;
+    AttrMap data;
+#ifdef MLD_SAFE
+    try {
+#endif
+        data = readAttrMap(id);
+#ifdef MLD_SAFE
+    } catch( Error& e ) {
+        LOG(logERROR) << "LayerDao::getLayer: " << e.Message();
+        return Layer();
+    }
+#endif
+    return Layer(id, data);
 }
 
 bool LayerDao::removeTopLayer()
@@ -146,7 +143,7 @@ void LayerDao::setAsBaseLayer( Layer& layer )
 {
     setAsBaseLayerImpl(layer.id());
     // Set private member variable
-    layer.m_isBase = true;
+    layer.setIsBaseLayer(true);
 }
 
 Layer LayerDao::bottomLayer()

@@ -16,14 +16,14 @@
 **
 ****************************************************************************/
 
-#ifndef MLD_SNODEDAO_H
-#define MLD_SNODEDAO_H
+#ifndef MLD_NODEDAO_H
+#define MLD_NODEDAO_H
 
 #include <vector>
 
 #include "mld/common.h"
 #include "mld/dao/AbstractDao.h"
-#include "mld/model/SuperNode.h"
+#include "mld/model/Node.h"
 
 namespace sparksee {
 namespace gdb {
@@ -33,23 +33,23 @@ namespace gdb {
 
 namespace mld {
 
-class MLD_API SNodeDao : public AbstractDao
+class MLD_API NodeDao : public AbstractDao
 {
 public:
-    SNodeDao( sparksee::gdb::Graph* g );
-    ~SNodeDao();
+    NodeDao( sparksee::gdb::Graph* g );
+    ~NodeDao();
     virtual void setGraph( sparksee::gdb::Graph* g ) override;
-    SuperNode addNode();
+    Node addNode();
     void removeNode( sparksee::gdb::oid_t id );
-    void updateNode( const SuperNode& n );
-    SuperNode getNode( sparksee::gdb::oid_t id );
-    std::vector<SuperNode> getNode( const ObjectsPtr& objs );
-    sparksee::gdb::type_t superNodeType() const { return m_snType; }
+    void updateNode( Node& n );
+    Node getNode( sparksee::gdb::oid_t id );
+    std::vector<Node> getNode( const ObjectsPtr& objs );
+    sparksee::gdb::type_t superNodeType() const { return m_nType; }
 
 private:
-    sparksee::gdb::type_t m_snType;
+    sparksee::gdb::type_t m_nType;
 };
 
 } // end namespace mld
 
-#endif // MLD_SNODEDAO_H
+#endif // MLD_NODEDAO_H

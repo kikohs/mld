@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 EPFL-LTS2
+** Copyright (C) 2013 EPFL-LTS2
 ** Contact: Kirell Benzi (first.last@epfl.ch)
 **
 ** This file is part of MLD.
@@ -16,27 +16,31 @@
 **
 ****************************************************************************/
 
-#ifndef MLD_ADDITIVENEIGHBORMERGER_H
-#define MLD_ADDITIVENEIGHBORMERGER_H
+#ifndef MLD_SUPERNODE_H
+#define MLD_SUPERNODE_H
 
-#include "mld/operator/merger/NeighborMerger.h"
+#include "mld/model/GraphObject.h"
 
 namespace mld {
-
 /**
- * @brief The AdditiveNeighborMerger class
- * Add weights for common edges
+ * @brief The Node concrete class
  */
-class MLD_API AdditiveNeighborMerger : public NeighborMerger
+class MLD_API Node: public GraphObject
 {
 public:
-    AdditiveNeighborMerger( sparksee::gdb::Graph* g );
-    virtual ~AdditiveNeighborMerger() override;
-    virtual bool merge( Node& target, const ObjectsPtr& neighbors ) override;
-    virtual double computeWeight( const Node& target, const ObjectsPtr& neighbors ) override;
-    virtual std::string name() const override { return "AdditiveNeighborMerger"; }
+    Node();
+    Node( sparksee::gdb::oid_t id );
+    Node( sparksee::gdb::oid_t id, const std::wstring& label, double weight );
+    Node( sparksee::gdb::oid_t id, const AttrMap& data );
+
+    virtual ~Node() override;
+
+    inline double weight() const { return m_data[NodeAttr::WEIGHT].GetDouble(); }
+    void setWeight( double v );
+    inline std::wstring label() const { return m_data[NodeAttr::LABEL].GetString(); }
+    void setLabel( const std::wstring& label );
 };
 
 } // end namespace mld
 
-#endif // MLD_ADDITIVENEIGHBORMERGER_H
+#endif // MLD_SUPERNODE_H

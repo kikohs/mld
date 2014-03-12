@@ -1,7 +1,8 @@
 # MODEL SRCS
 set( MODEL_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/GraphObject.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Layer.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/SuperNode.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Node.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Link.cpp
 )
 
@@ -10,8 +11,9 @@ set( PROJECT_SRCS ${PROJECT_SRCS} ${MODEL_SRCS} CACHE STRING "Sources Files" FOR
 
 # Public headers
 set( MODEL_PUBLIC_HDRS
+    GraphObject.h
     Layer.h
-    SuperNode.h
+    Node.h
     Link.h
 )
 

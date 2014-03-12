@@ -32,8 +32,8 @@ class MLD_API AdditiveNeighborMerger : public NeighborMerger
 public:
     AdditiveNeighborMerger( sparksee::gdb::Graph* g );
     virtual ~AdditiveNeighborMerger() override;
-    virtual bool merge( SuperNode& target, const ObjectsPtr& neighbors ) override;
-    virtual double computeWeight( const SuperNode& target, const ObjectsPtr& neighbors ) override;
+    virtual bool merge( Node& target, const ObjectsPtr& neighbors ) override;
+    virtual double computeWeight( const Node& target, const ObjectsPtr& neighbors ) override;
     virtual std::string name() const override { return "AdditiveNeighborMerger"; }
 };
 

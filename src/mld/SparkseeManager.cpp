@@ -79,7 +79,7 @@ bool SparkseeManager::addUserAttrToSuperNode( Graph* g,
                                               AttributeKind aKind,
                                               Value& defaultValue )
 {
-    bool ok = addUserAttr(g, NodeType::SUPERNODE, key, dtype, aKind, defaultValue);
+    bool ok = addUserAttr(g, NodeType::NODE, key, dtype, aKind, defaultValue);
     if( !ok ) {
         LOG(logERROR) << "SparkseeManager::addUserAttrToSuperNode SuperNode nodeType not created";
     }
@@ -119,14 +119,14 @@ void SparkseeManager::createNodeTypes( Graph* g )
     Value val;
     attr_t attr;
     // Create SuperNode type
-    type_t nType = g->FindType(NodeType::SUPERNODE);
+    type_t nType = g->FindType(NodeType::NODE);
     if( nType == Type::InvalidType ) {
-        nType = g->NewNodeType(NodeType::SUPERNODE);
+        nType = g->NewNodeType(NodeType::NODE);
         // WEIGHT
-        attr = g->NewAttribute(nType, SNAttr::WEIGHT, Double, Indexed);
+        attr = g->NewAttribute(nType, NodeAttr::WEIGHT, Double, Indexed);
         g->SetAttributeDefaultValue(attr, val.SetDouble(kSUPERNODE_DEF_VALUE));
         // LABEL
-        attr = g->NewAttribute(nType, SNAttr::LABEL, String, Indexed);
+        attr = g->NewAttribute(nType, NodeAttr::LABEL, String, Indexed);
         g->SetAttributeDefaultValue(attr, val.SetString(L""));
     }
 
@@ -190,7 +190,8 @@ bool SparkseeManager::addUserAttr( Graph* g,
         return false;
     }
     auto attr = g->NewAttribute(nType, key, dtype, aKind);
-    g->SetAttributeDefaultValue(attr, defaultValue);
+    if( !defaultValue.IsNull() )
+        g->SetAttributeDefaultValue(attr, defaultValue);
     return true;
 }
 

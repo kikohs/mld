@@ -34,17 +34,15 @@
 
 namespace mld {
 
-typedef std::vector<std::wstring> AttrVec;
+typedef std::vector<std::wstring> AttrNameVec;
 
 /**
  * @brief Defines node types
  */
 struct MLD_API NodeType
 {
-    // User oriented nodes
-    static const std::wstring SUPERNODE;
+    static const std::wstring NODE;
     static const std::wstring LAYER;
-//    static const std::wstring IDGENERATOR;
 };
 
 /**
@@ -74,13 +72,13 @@ struct MLD_API EdgeType
 
 // NODE ATTRIBUTES
 /**
- * @brief SuperNode attributes struct
+ * @brief Node attributes struct
  */
-struct MLD_API SNAttr
+struct MLD_API NodeAttr
 {
     static const std::wstring WEIGHT;
     static const std::wstring LABEL;
-    static const AttrVec ATTRS;
+    static const AttrNameVec ATTRS;
 };
 
 struct MLD_API LayerAttr
@@ -93,13 +91,13 @@ struct MLD_API LayerAttr
 struct MLD_API H_LinkAttr
 {
     static const std::wstring WEIGHT;
-    static const AttrVec ATTRS;
+    static const AttrNameVec ATTRS;
 };
 
 struct MLD_API V_LinkAttr
 {
     static const std::wstring WEIGHT;
-    static const AttrVec ATTRS;
+    static const AttrNameVec ATTRS;
 };
 
 

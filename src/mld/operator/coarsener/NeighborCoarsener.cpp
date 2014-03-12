@@ -105,7 +105,7 @@ bool NeighborCoarsener::exec()
 
     while( mergeCount > 0 ) {
         // Get best node to coarsen
-        SuperNode root(m_sel->next());
+        Node root(m_sel->next());
 #ifdef MLD_SAFE
         if( root.id() == Objects::InvalidOID ) {
             LOG(logERROR) << "NeighborCoarsener::exec: selectBestNode failed";

@@ -26,7 +26,7 @@
 #include <mld/config.h>
 #include <mld/SparkseeManager.h>
 
-#include <mld/dao/SNodeDao.h>
+#include <mld/dao/NodeDao.h>
 
 using namespace mld;
 using namespace sparksee::gdb;
@@ -41,9 +41,16 @@ TEST( SNodeDaoTest, CRUD )
     // Create Db scheme
     sparkseeManager.createScheme(g);
 
-    std::unique_ptr<SNodeDao> dao( new SNodeDao(g) );
+    std::unique_ptr<NodeDao> dao( new NodeDao(g) );
 
-    SuperNode n1 = dao->addNode();
+    mld::Node a, b;
+    EXPECT_EQ(a, b);
+
+    mld::Node a2(0, AttrMap());
+    EXPECT_EQ(a, a2);
+    EXPECT_DOUBLE_EQ(kSUPERNODE_DEF_VALUE, a2.weight());
+
+    mld::Node n1 = dao->addNode();
     EXPECT_EQ(n1.weight(), kSUPERNODE_DEF_VALUE);
 
     n1.setWeight(15);
@@ -51,21 +58,20 @@ TEST( SNodeDaoTest, CRUD )
     // Update node content
     dao->updateNode(n1);
     // Get
-    SuperNode n1_update = dao->getNode(n1.id());
+    mld::Node n1_update = dao->getNode(n1.id());
 
     EXPECT_EQ(n1.id(), n1_update.id());
     EXPECT_EQ(n1_update.weight(), 15);
     EXPECT_EQ(n1_update.label(), L"test");
     EXPECT_EQ(n1_update, n1);
 
-
     // GET invalid node
-    SuperNode u = dao->getNode(Objects::InvalidOID);
+    mld::Node u = dao->getNode(Objects::InvalidOID);
     EXPECT_EQ(u.id(), Objects::InvalidOID);
 
     // Invalid get node, exception is catched if MLD_SAFE flag is defined
 #ifdef MLD_SAFE
-    SuperNode t = dao->getNode(15434);
+    mld::Node t = dao->getNode(15434);
     EXPECT_EQ(t.id(), Objects::InvalidOID);
 
     // Invalid remove node, exception is catched if MLD_SAFE flag is defined
@@ -85,7 +91,7 @@ TEST( SNodeDaoTest, CRUD )
     // Get from Objets
     ObjectsPtr all(g->Select(dao->superNodeType()));
     EXPECT_EQ(all->Count(), 2);
-    std::vector<SuperNode> allVec = dao->getNode(all);
+    std::vector<mld::Node> allVec = dao->getNode(all);
     EXPECT_EQ(allVec.size(), size_t(2));
 
     all.reset();

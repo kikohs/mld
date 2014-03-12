@@ -46,11 +46,11 @@ TEST( XSelectorTest, initScheme )
     Layer base = dao->addBaseLayer();
 
     // Create nodes
-    SuperNode n0 = dao->addNodeToLayer(base);
-    SuperNode n1 = dao->addNodeToLayer(base);
-    SuperNode n2 = dao->addNodeToLayer(base);
-    SuperNode n3 = dao->addNodeToLayer(base);
-    SuperNode n4 = dao->addNodeToLayer(base);
+    Node n0 = dao->addNodeToLayer(base);
+    Node n1 = dao->addNodeToLayer(base);
+    Node n2 = dao->addNodeToLayer(base);
+    Node n3 = dao->addNodeToLayer(base);
+    Node n4 = dao->addNodeToLayer(base);
     // Node 2 is the heaviest
     n1.setWeight(100);
     dao->updateNode(n1);
@@ -320,11 +320,11 @@ TEST( XSelectorTest, rankNodes )
 
     // Only 5 node in graph
     for( int i = 0; i < 5; i++ ) {
-        SuperNode n = sel->next();
+        Node n = sel->next();
         EXPECT_NE(sparksee::gdb::Objects::InvalidOID, n.id());
     }
     // Invalid node
-    SuperNode n = sel->next();
+    Node n = sel->next();
     EXPECT_EQ(sparksee::gdb::Objects::InvalidOID, n.id());
 
     EXPECT_TRUE(sel->rankNodes(base));

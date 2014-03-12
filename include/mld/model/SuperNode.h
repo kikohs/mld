@@ -19,66 +19,41 @@
 #ifndef MLD_SUPERNODE_H
 #define MLD_SUPERNODE_H
 
-#include <sparksee/gdb/common.h>
-#include "mld/common.h"
+#include "mld/model/GraphObject.h"
 
 namespace mld {
-
 /**
- * @brief Node abstract class
+ * @brief The Node concrete class
  */
-class MLD_API Node
+class MLD_API Node: public GraphObject
 {
 public:
-    virtual ~Node() = 0;
-
-    void setId( sparksee::gdb::oid_t id ) { m_id = id; }
-    sparksee::gdb::oid_t id() const { return m_id; }
-
-protected:
     Node();
     Node( sparksee::gdb::oid_t id );
+    Node( sparksee::gdb::oid_t id, const std::wstring& label, double weight );
 
-protected:
-    sparksee::gdb::oid_t m_id;
-};
+    virtual ~Node() override;
 
-/**
- * @brief The SuperNode concrete class
- */
-class MLD_API SuperNode: public Node
-{
-public:
-    SuperNode();
-    SuperNode( sparksee::gdb::oid_t id );
-    SuperNode( sparksee::gdb::oid_t id, const std::wstring& label, double weight, bool isRoot=false );
-
-    virtual ~SuperNode() override;
-
-    inline bool operator==( const SuperNode& rhs ) const
+    inline bool operator==( const Node& rhs ) const
     {
         return ( (m_id == rhs.id())
                  && (m_weight == rhs.m_weight)
                  && (m_label == rhs.m_label)
-                 && (m_isRoot == rhs.m_isRoot)
                  ? true : false );
     }
 
-    double weight() const { return m_weight; }
+    inline double weight() const { return m_weight; }
     void setWeight( double v ) { m_weight = v; }
-    std::wstring label() const { return m_label; }
+    inline std::wstring label() const { return m_label; }
     void setLabel( const std::wstring& label ) { m_label = label; }
-    bool isRoot() const { return m_isRoot; }
-    void setRoot( bool v ) { m_isRoot = v; }
 
 private:
     double m_weight;
     std::wstring m_label;
-    bool m_isRoot;
 };
 
 } // end namespace mld
 
-std::ostream& operator<<( std::ostream& out, const mld::SuperNode& sn );
+std::ostream& operator<<( std::ostream& out, const mld::Node& sn );
 
 #endif // MLD_SUPERNODE_H

@@ -23,17 +23,40 @@
 using namespace mld;
 
 Layer::Layer()
-    : m_id(sparksee::gdb::Objects::InvalidOID)
-    , m_isBase(false)
+    : Layer(sparksee::gdb::Objects::InvalidOID)
 {
 }
 
 Layer::Layer( sparksee::gdb::oid_t id )
-    : m_id(id)
-    , m_isBase(false)
+    : GraphObject(id)
 {
+    // Default construct a Value and set content
+    m_data[LayerAttr::IS_BASE].SetBooleanVoid(false);
+    m_data[LayerAttr::DESCRIPTION].SetStringVoid(L"");
+}
+
+Layer::Layer( sparksee::gdb::oid_t id, const AttrMap& data )
+    : GraphObject(id, data)
+{
+    auto it = m_data.find(LayerAttr::IS_BASE);
+    if( it == m_data.end() )
+        m_data[LayerAttr::IS_BASE].SetBooleanVoid(false);
+
+    it = m_data.find(LayerAttr::DESCRIPTION);
+    if( it == m_data.end() )
+        m_data[LayerAttr::DESCRIPTION].SetStringVoid(L"");
 }
 
 Layer::~Layer()
 {
+}
+
+void Layer::setIsBaseLayer( bool v )
+{
+    m_data[LayerAttr::IS_BASE].SetBooleanVoid(v);
+}
+
+void Layer::setDescription( const std::wstring& des )
+{
+    m_data[LayerAttr::DESCRIPTION].SetStringVoid(des);
 }

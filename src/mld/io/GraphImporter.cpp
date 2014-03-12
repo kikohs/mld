@@ -42,7 +42,7 @@ oid_t addOrGetFromInsparkseeMap( uint64_t node, std::map<uint64_t, oid_t>& inspa
     }
     else {  // Not in map
         // Add to graph
-        SuperNode n = dao.addNodeToLayer(base);
+        mld::Node n = dao.addNodeToLayer(base);
         std::wstringstream stream;
         stream << node;
         n.setLabel(stream.str());

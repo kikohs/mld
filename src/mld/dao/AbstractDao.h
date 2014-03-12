@@ -20,12 +20,7 @@
 #define MLD_ABSTRACTDAO_H
 
 #include "mld/common.h"
-
-namespace sparksee {
-namespace gdb {
-    class Graph;
-    class Value;
-}}
+#include "mld/model/GraphObject.h"
 
 namespace mld {
 /**
@@ -44,6 +39,22 @@ public:
      * @return Graph
      */
     sparksee::gdb::Graph* graph() const { return m_g; }
+
+    /**
+     * @brief Read the attribute map of a GraphObject
+     * @param id
+     * @return Attribute map
+     */
+    AttrMap readAttrMap( sparksee::gdb::oid_t id );
+    /**
+     * @brief Persist the attribute map of a graph Object
+     * only the valid attributes are commited in the database
+     * @param objType Object Type (node or edge)
+     * @param id GraphObject id
+     * @param data data to update
+     * @return success
+     */
+    bool updateAttrMap( sparksee::gdb::type_t objType, sparksee::gdb::oid_t id, AttrMap& data );
 
 protected:
     AbstractDao( sparksee::gdb::Graph* g );

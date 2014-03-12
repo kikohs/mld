@@ -20,7 +20,7 @@
 #include <sparksee/gdb/ObjectsIterator.h>
 
 #include "mld/operator/merger/AdditiveNeighborMerger.h"
-#include "mld/model/SuperNode.h"
+#include "mld/model/Node.h"
 #include "mld/dao/MLGDao.h"
 
 #ifdef MLD_FINE_TIMER
@@ -39,11 +39,11 @@ AdditiveNeighborMerger::~AdditiveNeighborMerger()
 {
 }
 
-double AdditiveNeighborMerger::computeWeight( const SuperNode& target,
+double AdditiveNeighborMerger::computeWeight( const Node& target,
                                       const ObjectsPtr& neighbors
                                     )
 {
-    std::vector<SuperNode> nodes = m_dao->getNode(neighbors);
+    std::vector<Node> nodes = m_dao->getNode(neighbors);
     double total = target.weight();
     for( auto& source: nodes ) {
         total += source.weight();
@@ -51,7 +51,7 @@ double AdditiveNeighborMerger::computeWeight( const SuperNode& target,
     return total;
 }
 
-bool AdditiveNeighborMerger::merge( SuperNode& target, const ObjectsPtr& neighbors )
+bool AdditiveNeighborMerger::merge( Node& target, const ObjectsPtr& neighbors )
 {
 #ifdef MLD_FINE_TIMER
     std::unique_ptr<Timer> t(new Timer("AdditiveNeighborMerger::merge"));
@@ -67,7 +67,7 @@ bool AdditiveNeighborMerger::merge( SuperNode& target, const ObjectsPtr& neighbo
     ObjectsIt it(neighbors->Iterator());
     while( it->HasNext() ) {
         auto id = it->Next();
-        SuperNode src = m_dao->getNode(id);
+        Node src = m_dao->getNode(id);
         if( src.id() == Objects::InvalidOID ) {
             LOG(logERROR) << "AdditiveNeighborMerger::merge invalid node: " << id;
             return false;

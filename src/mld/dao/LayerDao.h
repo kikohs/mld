@@ -30,7 +30,7 @@ namespace gdb {
 }}
 
 namespace mld {
-    class SNodeDao;
+    class NodeDao;
 }
 
 namespace mld {
@@ -65,7 +65,7 @@ public:
     Layer child( const Layer& layer );
 
     int64_t countLayers();
-    bool updateLayer( const Layer& layer );
+    void updateLayer( Layer& layer );
     Layer getLayer( sparksee::gdb::oid_t id );
     bool exists( const Layer& layer );
 

@@ -46,12 +46,12 @@ TEST( AdditiveMergerTest, Check )
     Layer base = dao->addBaseLayer();
 
     // Add nodes
-    SuperNode n1 = dao->addNodeToLayer(base);
+    mld::Node n1 = dao->addNodeToLayer(base);
     n1.setWeight(10);
     dao->updateNode(n1);
-    SuperNode n2 = dao->addNodeToLayer(base);
-    SuperNode n3 = dao->addNodeToLayer(base);
-    SuperNode n4 = dao->addNodeToLayer(base);
+    mld::Node n2 = dao->addNodeToLayer(base);
+    mld::Node n3 = dao->addNodeToLayer(base);
+    mld::Node n4 = dao->addNodeToLayer(base);
     n3.setWeight(20);
     dao->updateNode(n3);
 
@@ -63,9 +63,9 @@ TEST( AdditiveMergerTest, Check )
 
     // Mirror by hand
     Layer current = dao->addLayerOnTop();
-    SuperNode n1c = dao->addNodeToLayer(current);
-    SuperNode n2c = dao->addNodeToLayer(current);
-    SuperNode n3c = dao->addNodeToLayer(current);
+    mld::Node n1c = dao->addNodeToLayer(current);
+    mld::Node n2c = dao->addNodeToLayer(current);
+    mld::Node n3c = dao->addNodeToLayer(current);
     dao->addVLink(n1, n1c);
     dao->addVLink(n2, n2c);
     dao->addVLink(n2, n1c);
@@ -109,7 +109,7 @@ TEST( AdditiveMergerTest, Check )
     EXPECT_TRUE(ok);
 
     EXPECT_DOUBLE_EQ(32, n3.weight());
-    SuperNode newN3 = dao->getNode(n3.id());
+    mld::Node newN3 = dao->getNode(n3.id());
     EXPECT_EQ(n3, newN3);
 
     // Only one node left

@@ -27,7 +27,7 @@
 #include "mld/GraphTypes.h"
 #include "mld/dao/MLGDao.h"
 #include "mld/dao/LayerDao.h"
-#include "mld/dao/SNodeDao.h"
+#include "mld/dao/NodeDao.h"
 #include "mld/dao/LinkDao.h"
 #include "mld/utils/ProgressDisplay.h"
 
@@ -36,7 +36,7 @@ using namespace sparksee::gdb;
 
 MLGDao::MLGDao( Graph* g )
     : AbstractDao(g)
-    , m_sn( new SNodeDao(g) )
+    , m_sn( new NodeDao(g) )
     , m_layer( new LayerDao(g) )
     , m_link( new LinkDao(g) )
 {
@@ -68,21 +68,21 @@ ObjectsPtr MLGDao::newObjectsPtr() const
     return ptr;
 }
 
-SuperNode MLGDao::addNodeToLayer( const Layer& l )
+mld::Node MLGDao::addNodeToLayer( const Layer& l )
 {
 #ifdef MLD_SAFE
     if( !m_layer->exists(l) ) {
         LOG(logERROR) << "MLGDao::addNodeToLayer: Layer doesn't exist!";
-        return SuperNode();
+        return Node();
     }
 #endif
-    SuperNode res = m_sn->addNode();
+    Node res = m_sn->addNode();
     // New edge OWNS: Layer -> SuperNode
     m_g->NewEdge(m_ownsType, l.id(), res.id());
     return res;
 }
 
-HLink MLGDao::addHLink( const SuperNode& src, const SuperNode& tgt, double weight )
+HLink MLGDao::addHLink( const Node& src, const Node& tgt, double weight )
 {
 #ifdef MLD_SAFE
     auto srcLayer = getLayerIdForSuperNode(src.id());
@@ -100,7 +100,7 @@ HLink MLGDao::addHLink( const SuperNode& src, const SuperNode& tgt, double weigh
         return m_link->addHLink(src.id(), tgt.id(), weight);
 }
 
-VLink MLGDao::addVLink( const SuperNode& child, const SuperNode& parent, double weight )
+VLink MLGDao::addVLink( const Node& child, const Node& parent, double weight )
 {
 #ifdef MLD_SAFE
     auto srcLayer = getLayerIdForSuperNode(child.id());
@@ -148,11 +148,11 @@ ObjectsPtr MLGDao::getAllHLinkIds( const Layer& l )
     return res;
 }
 
-std::vector<SuperNode> MLGDao::getAllSuperNode( const Layer& l )
+std::vector<mld::Node> MLGDao::getAllSuperNode( const Layer& l )
 {
     ObjectsPtr nodes(getAllNodeIds(l));
     if( !nodes )
-        return std::vector<SuperNode>();
+        return std::vector<Node>();
     return m_sn->getNode(nodes);
 }
 
@@ -174,7 +174,7 @@ Layer MLGDao::mirrorBottomLayer()
     return mirrorLayerImpl(BOTTOM);
 }
 
-std::vector<SuperNode> MLGDao::getParentNodes( oid_t id )
+std::vector<mld::Node> MLGDao::getParentNodes( oid_t id )
 {
     return m_sn->getNode(getParentIds(id));
 }
@@ -269,8 +269,8 @@ HLink MLGDao::getUnsafeHeaviestHLink()
     return m_link->getHLink(hid);
 }
 
-bool MLGDao::horizontalCopyVLinks( const SuperNode& source,
-                                   const SuperNode& target,
+bool MLGDao::horizontalCopyVLinks( const Node& source,
+                                   const Node& target,
                                    bool safe,
                                    const ObjectsPtr& subset,
                                    const WeightMergerFunc& f )
@@ -278,8 +278,8 @@ bool MLGDao::horizontalCopyVLinks( const SuperNode& source,
     return horizontalCopyLinks(vlinkType(), source, target, safe, subset, f);
 }
 
-bool MLGDao::horizontalCopyHLinks( const SuperNode& source,
-                                   const SuperNode& target,
+bool MLGDao::horizontalCopyHLinks( const Node& source,
+                                   const Node& target,
                                    bool safe,
                                    const ObjectsPtr& subset,
                                    const WeightMergerFunc& f )
@@ -287,8 +287,8 @@ bool MLGDao::horizontalCopyHLinks( const SuperNode& source,
     return horizontalCopyLinks(hlinkType(), source, target, safe, subset, f);
 }
 
-bool MLGDao::verticalCopyHLinks( const SuperNode& source,
-                                 const SuperNode& target,
+bool MLGDao::verticalCopyHLinks( const Node& source,
+                                 const Node& target,
                                  Direction dir,
                                  bool safe,
                                  const ObjectsPtr& subset,
@@ -323,7 +323,7 @@ bool MLGDao::verticalCopyHLinks( const SuperNode& source,
 
         HLink currentLink = getHLink(source.id(), current);
         // For each child or parent
-        for( SuperNode& k: kin ) {
+        for( Node& k: kin ) {
             HLink link = getHLink(target.id(), k.id());
             if( link.id() == Objects::InvalidOID ) {  // Top HLink doesn't exist
                 addHLink(target.id(), k.id(), currentLink.weight());
@@ -408,7 +408,7 @@ Layer MLGDao::mirrorLayerImpl( Direction dir )
 HLink MLGDao::mirrorEdge(const HLink& current, Direction dir, const Layer& newLayer, NodeMap& nodeMap )
 {
     // Find equivalent in top layer
-    SuperNode topSrc;
+    Node topSrc;
     auto it = nodeMap.find(current.source());
     if( it != nodeMap.end() ) { // not found
         topSrc = it->second;
@@ -418,7 +418,7 @@ HLink MLGDao::mirrorEdge(const HLink& current, Direction dir, const Layer& newLa
         nodeMap[current.source()] = topSrc;
     }
 
-    SuperNode topTgt;
+    Node topTgt;
     it = nodeMap.find(current.target());
     if( it != nodeMap.end() ) { // not found
         topTgt = it->second;
@@ -432,12 +432,12 @@ HLink MLGDao::mirrorEdge(const HLink& current, Direction dir, const Layer& newLa
     return m_link->addHLink(topSrc.id(), topTgt.id(), current.weight());
 }
 
-SuperNode MLGDao::mirrorNode( oid_t current, Direction dir, const Layer& newLayer )
+mld::Node MLGDao::mirrorNode( oid_t current, Direction dir, const Layer& newLayer )
 {
     // Get each node on the previous layer
-    SuperNode prevNode = m_sn->getNode(current);
+    Node prevNode = m_sn->getNode(current);
     // Add node in top layer
-    SuperNode newNode = addNodeToLayer(newLayer);
+    Node newNode = addNodeToLayer(newLayer);
 
     // Link them
     if( dir == TOP )
@@ -472,8 +472,8 @@ ObjectsPtr MLGDao::getVLinkEndpoints( oid_t current, Direction dir )
 }
 
 bool MLGDao::horizontalCopyLinks( type_t linkType,
-                                const SuperNode& source,
-                                const SuperNode& target,
+                                const Node& source,
+                                const Node& target,
                                 bool safe,
                                 const ObjectsPtr& subset,
                                 const WeightMergerFunc& f )
@@ -546,7 +546,7 @@ bool MLGDao::horizontalCopyLinks( type_t linkType,
                 oid_t n = it->Next();
                 HLink sLink = getHLink(source.id(), n);
                 // Create new hlink
-                addHLink(target, SuperNode(n), sLink.weight());
+                addHLink(target, Node(n), sLink.weight());
             }
         }
         else {  // VLink
@@ -554,12 +554,12 @@ bool MLGDao::horizontalCopyLinks( type_t linkType,
                 oid_t n = it->Next();
                 VLink sLink = getVLink(n, source.id());
                 if( sLink.id() != Objects::InvalidOID ) { // VLink to lower layer
-                    addVLink(SuperNode(n), target, sLink.weight());
+                    addVLink(Node(n), target, sLink.weight());
                 }
                 else { // VLink to upper layer
                     sLink = getVLink(source.id(), n);
                     if( sLink.id() != Objects::InvalidOID ) {
-                        addVLink(target, SuperNode(n), sLink.weight());
+                        addVLink(target, Node(n), sLink.weight());
                     }
                     else {
                         LOG(logERROR) << "MLGDao::copyAndMergeLinks VLink from " << source << " to "
@@ -580,12 +580,12 @@ void MLGDao::removeNode( oid_t id )
     m_sn->removeNode(id);
 }
 
-void MLGDao::updateNode( const SuperNode& n )
+void MLGDao::updateNode( Node& n )
 {
     m_sn->updateNode(n);
 }
 
-SuperNode MLGDao::getNode( oid_t id )
+mld::Node MLGDao::getNode( oid_t id )
 {
     return m_sn->getNode(id);
 }
@@ -607,14 +607,9 @@ HLink MLGDao::getHLink( oid_t hid )
     return m_link->getHLink(hid);
 }
 
-bool MLGDao::updateHLink( const HLink& link )
+bool MLGDao::updateHLink( HLink& link )
 {
-    return m_link->updateHLink(link.id(), link.weight());
-}
-
-HLink MLGDao::getOrCreateHLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt, double weight )
-{
-    return m_link->getOrCreateHLink(src, tgt, weight);
+    return m_link->updateHLink(link.id(), link.data());
 }
 
 VLink MLGDao::getVLink( oid_t src, oid_t tgt )
@@ -632,9 +627,9 @@ std::vector<HLink> MLGDao::getHLink( const ObjectsPtr& objs )
     return m_link->getHLink(objs);
 }
 
-bool MLGDao::updateVLink( const VLink& link )
+bool MLGDao::updateVLink( VLink& link )
 {
-    return m_link->updateVLink(link.source(), link.target(), link.weight());
+    return m_link->updateVLink(link.id(), link.data());
 }
 
 // ****** FORWARD METHOD OF LAYER DAO ****** //
@@ -709,9 +704,9 @@ int64_t MLGDao::countLayers()
     return m_layer->countLayers();
 }
 
-bool MLGDao::updateLayer( const Layer& layer )
+void MLGDao::updateLayer( Layer& layer )
 {
-    return m_layer->updateLayer(layer);
+    m_layer->updateLayer(layer);
 }
 
 Layer MLGDao::getLayer( oid_t id )

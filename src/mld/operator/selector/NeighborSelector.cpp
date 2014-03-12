@@ -84,12 +84,12 @@ bool NeighborSelector::hasNext()
     return !m_scores.empty();
 }
 
-SuperNode NeighborSelector::next()
+mld::Node NeighborSelector::next()
 {
     if( m_scores.empty() ) {
         LOG(logWARNING) << "NeighborSelector::next empty scores";
         resetSelection();
-        return SuperNode();
+        return Node();
     }
 
     // Update score form each node marked as to be updated
@@ -97,7 +97,7 @@ SuperNode NeighborSelector::next()
     if( !updateScores() ) {
         resetSelection();
         LOG(logERROR) << "NeighborSelector::next updateScores failed";
-        return SuperNode();
+        return Node();
     }
 
     if( m_hasMemory )

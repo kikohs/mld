@@ -52,122 +52,78 @@ void LinkDao::setGraph( Graph* g )
 
 HLink LinkDao::addHLink( oid_t src, oid_t tgt )
 {
-#ifdef MLD_SAFE
-    if( src == tgt ) { // no self loop
-        LOG(logWARNING) << "LinkDao::addHLink: no self-loop allowed";
+    oid_t eid = addEdge(m_hType, src, tgt);
+    if( eid == Objects::InvalidOID )
         return HLink();
-    }
-
-    // no invalid edge
-    if( src == Objects::InvalidOID || tgt == Objects::InvalidOID ) {
-        LOG(logERROR) << "LinkDao::addHLink: source or target is invalid";
-        return HLink();
-    }
-#endif
-    oid_t hid = Objects::InvalidOID;
-#ifdef MLD_SAFE
-    try {
-#endif
-        hid = m_g->NewEdge(m_hType, src, tgt);
-#ifdef MLD_SAFE
-    } catch( Error& ) {
-        LOG(logERROR) << "LinkDao::addHLink: invalid src or tgt";
-        return HLink();
-    }
-#endif
-    HLink res(src, tgt);
-    res.setId(hid);
-    return res;
+    return HLink(eid, src, tgt);
 }
 
 HLink LinkDao::addHLink( oid_t src, oid_t tgt, double weight )
 {
-    HLink res = addHLink(src, tgt);
-
-#ifdef MLD_SAFE
-    if( res.id() == Objects::InvalidOID )
+    oid_t eid = addEdge(m_hType, src, tgt);
+    if( eid == Objects::InvalidOID )
         return HLink();
-
-    if( weight < 0.0 ) {
-        LOG(logERROR) << "LinkDao:addHLink: weight is < 0.0";
+    HLink res(eid, src, tgt, weight);
+    if( !updateAttrMap(m_hType, eid, res.data()) )
         return HLink();
-    }
-#endif
-    // Set weight attribute
-    m_g->SetAttribute(res.id(), m_g->FindAttribute(m_hType, H_LinkAttr::WEIGHT), m_v->SetDouble(weight));
-    res.setWeight(weight);
     return res;
+}
+
+HLink LinkDao::addHLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt, AttrMap& data )
+{
+    oid_t eid = addEdge(m_hType, src, tgt);
+    if( eid == Objects::InvalidOID )
+        return HLink();
+    if( !updateAttrMap(m_hType, eid, data) )
+        return HLink();
+    return HLink(eid, src, tgt, data);
 }
 
 VLink LinkDao::addVLink( oid_t child, oid_t parent )
 {
-#ifdef MLD_SAFE
-    if( child == parent ) { // no self loop
-        LOG(logWARNING) << "LinkDao::addVLink: no self-loop allowed";
+    oid_t eid = addEdge(m_vType, child, parent);
+    if( eid == Objects::InvalidOID )
         return VLink();
-    }
+    return VLink(eid, child, parent);
+}
 
-    // no invalid edge
-    if( child == Objects::InvalidOID || parent == Objects::InvalidOID ) {
-        LOG(logERROR) << "LinkDao::addVLink: source or target is invalid";
+VLink LinkDao::addVLink( oid_t child, oid_t parent, double weight )
+{
+    oid_t eid = addEdge(m_vType, child, parent);
+    if( eid == Objects::InvalidOID )
         return VLink();
-    }
-#endif
-    oid_t vid = Objects::InvalidOID;
-#ifdef MLD_SAFE
-    try {
-#endif
-        vid = m_g->NewEdge(m_vType, child, parent);
-#ifdef MLD_SAFE
-    } catch( Error& ) {
-        LOG(logERROR) << "LinkDao::addVLink: invalid src or tgt";
+    VLink res(eid, child, parent, weight);
+    if( !updateAttrMap(m_vType, eid, res.data()) )
         return VLink();
-    }
-#endif
-    VLink res(child, parent);
-    res.setId(vid);
     return res;
 }
 
-VLink LinkDao::addVLink( oid_t src, oid_t parent, double weight )
+VLink LinkDao::addVLink( oid_t child, oid_t parent, AttrMap& data )
 {
-    VLink res = addVLink(src, parent);
-#ifdef MLD_SAFE
-    if( res.id() == Objects::InvalidOID )
+    oid_t eid = addEdge(m_vType, child, parent);
+    if( eid == Objects::InvalidOID )
         return VLink();
-
-    if( weight < 0.0 ) {
-        LOG(logERROR) << "LinkDao:addVLink: weight is < 0.0";
+    if( !updateAttrMap(m_vType, eid, data) )
         return VLink();
-    }
-#endif
-    // Set weight attribute
-    m_g->SetAttribute(res.id(), m_g->FindAttribute(m_vType, V_LinkAttr::WEIGHT), m_v->SetDouble(weight));
-    res.setWeight(weight);
-    return res;
+    return VLink(eid, child, parent, data);
 }
 
 HLink LinkDao::getHLink( oid_t src, oid_t tgt )
 {
-    oid_t hid = Objects::InvalidOID;
+    oid_t eid = Objects::InvalidOID;
 #ifdef MLD_SAFE
     try {
 #endif
-        hid = m_g->FindEdge(m_hType, src, tgt);
+        eid = m_g->FindEdge(m_hType, src, tgt);
 #ifdef MLD_SAFE
     } catch( Error& e ) {
         LOG(logERROR) << "LinkDao::getHLink: " << e.Message();
         return HLink();
     }
 #endif
-    if( hid == Objects::InvalidOID ) {
+    if( eid == Objects::InvalidOID )
         return HLink();
-    }
-
-    HLink hlink(src, tgt);
-    hlink.setId(hid);
-    hlink.setWeight(getWeight(m_hType, hlink.id()));
-    return hlink;
+    return HLink(eid, src, tgt, readAttrMap(eid));
 }
 
 HLink LinkDao::getHLink( oid_t hid )
@@ -178,7 +134,7 @@ HLink LinkDao::getHLink( oid_t hid )
         return HLink();
     }
 #endif
-    std::unique_ptr<EdgeData> data;
+    std::unique_ptr<EdgeData> eData;
 #ifdef MLD_SAFE
     try {
         if( m_g->GetObjectType(hid) != m_hType ) {
@@ -186,17 +142,14 @@ HLink LinkDao::getHLink( oid_t hid )
             return HLink();
         }
 #endif
-        data.reset(m_g->GetEdgeData(hid));
+        eData.reset(m_g->GetEdgeData(hid));
 #ifdef MLD_SAFE
     } catch( Error& e ) {
         LOG(logERROR) << "LinkDao::getHLink: " << e.Message();
         return HLink();
     }
 #endif
-    HLink hlink(data->GetTail(), data->GetHead());
-    hlink.setId(hid);
-    hlink.setWeight(getWeight(m_hType, hid));
-    return hlink;
+    return HLink(hid, eData->GetTail(), eData->GetHead(), readAttrMap(hid));
 }
 
 std::vector<HLink> LinkDao::getHLink( const ObjectsPtr& objs )
@@ -215,35 +168,22 @@ std::vector<HLink> LinkDao::getHLink( const ObjectsPtr& objs )
     return res;
 }
 
-HLink LinkDao::getOrCreateHLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt, double weight )
-{
-    HLink l(getHLink(src, tgt));
-    if( l.id() == Objects::InvalidOID ) {
-        l = addHLink(src, tgt, weight);
-    }
-    return l;
-}
-
-VLink LinkDao::getVLink( oid_t src, oid_t tgt )
+VLink LinkDao::getVLink( oid_t child, oid_t parent )
 {
     oid_t vid = Objects::InvalidOID;
 #ifdef MLD_SAFE
     try {
 #endif
-    vid = m_g->FindEdge(m_vType, src, tgt);
+    vid = m_g->FindEdge(m_vType, child, parent);
 #ifdef MLD_SAFE
     } catch( Error& e ) {
         LOG(logERROR) << "LinkDao::getVLink: " << e.Message();
         return VLink();
     }
 #endif
-    if( vid == Objects::InvalidOID ) {
+    if( vid == Objects::InvalidOID )
         return VLink();
-    }
-    VLink vlink(src, tgt);
-    vlink.setId(vid);
-    vlink.setWeight(getWeight(m_vType, vlink.id()));
-    return vlink;
+    return VLink(vid, child, parent, readAttrMap(vid));;
 }
 
 VLink LinkDao::getVLink( oid_t vid )
@@ -254,7 +194,7 @@ VLink LinkDao::getVLink( oid_t vid )
         return VLink();
     }
 #endif
-    std::unique_ptr<EdgeData> data;
+    std::unique_ptr<EdgeData> eData;
 #ifdef MLD_SAFE
     try {
         if( m_g->GetObjectType(vid) != m_vType ) {
@@ -262,17 +202,14 @@ VLink LinkDao::getVLink( oid_t vid )
             return VLink();
         }
 #endif
-        data.reset(m_g->GetEdgeData(vid));
+        eData.reset(m_g->GetEdgeData(vid));
 #ifdef MLD_SAFE
     } catch( Error& e ) {
         LOG(logERROR) << "LinkDao::getVLink: " << e.Message();
         return VLink();
     }
 #endif
-    VLink vlink(data->GetTail(), data->GetHead());
-    vlink.setId(vid);
-    vlink.setWeight(getWeight(m_vType, vid));
-    return vlink;
+    return VLink(vid, eData->GetTail(), eData->GetHead(), readAttrMap(vid));
 }
 
 std::vector<VLink> LinkDao::getVLink( const ObjectsPtr& objs )
@@ -313,101 +250,76 @@ bool LinkDao::removeVLink( oid_t vid )
 
 bool LinkDao::updateHLink( oid_t src, oid_t tgt, double weight )
 {
-    oid_t hid = Objects::InvalidOID;
+    AttrMap data;
+    data[H_LinkAttr::WEIGHT].SetDoubleVoid(weight);
+    return updateHLink(src, tgt, data);
+}
+
+bool LinkDao::updateHLink( oid_t src, oid_t tgt, AttrMap& data )
+{
+    oid_t eid = Objects::InvalidOID;
 #ifdef MLD_SAFE
     try {
 #endif
-        hid = m_g->FindEdge(m_hType, src, tgt);
+        eid = m_g->FindEdge(m_hType, src, tgt);
 #ifdef MLD_SAFE
     } catch( Error& ) {
         LOG(logERROR) << "LinkDao::updateHLink: invalid src or tgt";
         return false;
     }
 #endif
-    return updateHLink(hid, weight);
+    return updateHLink(eid, data);
+}
+
+bool LinkDao::updateHLink( oid_t eid, AttrMap& data )
+{
+    return updateAttrMap(m_hType, eid, data);
 }
 
 bool LinkDao::updateHLink( oid_t hid, double weight )
 {
+    AttrMap data;
+    data[H_LinkAttr::WEIGHT].SetDoubleVoid(weight);
+    return updateHLink(hid, data);
+}
+
+bool LinkDao::updateVLink( oid_t child, oid_t parent, double weight )
+{
+    AttrMap data;
+    data[V_LinkAttr::WEIGHT].SetDoubleVoid(weight);
+    return updateVLink(child, parent, data);;
+}
+
+bool LinkDao::updateVLink( oid_t child, oid_t parent, AttrMap& data )
+{
+    oid_t eid = Objects::InvalidOID;
 #ifdef MLD_SAFE
-    if( hid == Objects::InvalidOID ) {
-        LOG(logERROR) << "LinkDao::getHLink: invalid oid";
+    try {
+#endif
+        eid = m_g->FindEdge(m_vType, child, parent);
+#ifdef MLD_SAFE
+    } catch( Error& ) {
+        LOG(logERROR) << "LinkDao::updateVLink: invalid child or parent";
         return false;
     }
 #endif
-    return setWeight(m_hType, hid, weight);
+    return updateVLink(eid, data);
 }
 
-bool LinkDao::updateVLink( oid_t src, oid_t tgt, double weight )
+bool LinkDao::updateVLink( oid_t eid, AttrMap& data )
 {
-    oid_t vid = Objects::InvalidOID;
- #ifdef MLD_SAFE
-     try {
- #endif
-         vid = m_g->FindEdge(m_vType, src, tgt);
- #ifdef MLD_SAFE
-     } catch( Error& ) {
-         LOG(logERROR) << "LinkDao::updateVLink: invalid src or tgt";
-     }
- #endif
-    return updateVLink(vid, weight);
+    return updateAttrMap(m_vType, eid, data);
 }
 
 bool LinkDao::updateVLink( oid_t vid, double weight )
 {
-#ifdef MLD_SAFE
-    if( vid == Objects::InvalidOID ) {
-        LOG(logERROR) << "LinkDao::getVLink: invalid oid";
-        return false;
-    }
-#endif
-    return setWeight(m_vType, vid, weight);
+    AttrMap data;
+    data[V_LinkAttr::WEIGHT].SetDoubleVoid(weight);
+    return updateVLink(vid, data);
 }
+
 
 // ****** PRIVATE METHODS ****** //
-
-double LinkDao::getWeight( type_t edgeType, oid_t id )
-{
-    double weight = 0;
-    attr_t attr;
-    if( edgeType == m_hType )
-        attr = m_g->FindAttribute(m_hType, H_LinkAttr::WEIGHT);
-    else
-        attr = m_g->FindAttribute(m_vType, V_LinkAttr::WEIGHT);
-
-#ifdef MLD_SAFE
-    try {
-#endif
-        weight = m_g->GetAttribute(id, attr)->GetDouble();
-#ifdef MLD_SAFE
-    } catch( Error& e ) {
-        LOG(logERROR) << "LinkDao::getWeight: " << e.Message();
-    }
-#endif
-    return weight;
-}
-
-bool LinkDao::setWeight( type_t edgeType, oid_t id , double weight )
-{
-    attr_t attr;
-    if( edgeType == m_hType )
-        attr = m_g->FindAttribute(m_hType, H_LinkAttr::WEIGHT);
-    else
-        attr = m_g->FindAttribute(m_vType, V_LinkAttr::WEIGHT);
-
-#ifdef MLD_SAFE
-    try {
-#endif
-        m_g->SetAttribute(id, attr, m_v->SetDouble(weight));
-#ifdef MLD_SAFE
-    } catch( Error& e ) {
-        LOG(logERROR) << "LinkDao::setWeight: " << e.Message();
-        return false;
-    }
-#endif
-    return true;
-}
-
 bool LinkDao::removeLinkImpl( type_t edgeType, oid_t src, oid_t tgt )
 {
     oid_t id = Objects::InvalidOID;
@@ -447,6 +359,34 @@ bool LinkDao::removeLinkImpl( type_t edgeType, oid_t id )
     }
 #endif
     return true;
+}
+
+oid_t LinkDao::addEdge( type_t lType, oid_t src, oid_t tgt )
+{
+    oid_t eid = Objects::InvalidOID;
+#ifdef MLD_SAFE
+    if( src == tgt ) { // no self loop
+        LOG(logWARNING) << "LinkDao::addEdge: no self-loop allowed";
+        return eid;
+    }
+
+    // no invalid edge
+    if( src == Objects::InvalidOID || tgt == Objects::InvalidOID ) {
+        LOG(logERROR) << "LinkDao::addEdge: source or target is invalid";
+        return eid;
+    }
+#endif
+#ifdef MLD_SAFE
+    try {
+#endif
+        eid = m_g->NewEdge(lType, src, tgt);
+#ifdef MLD_SAFE
+    } catch( Error& ) {
+        LOG(logERROR) << "LinkDao::addEdge: invalid src or tgt";
+        return Objects::InvalidOID;
+    }
+#endif
+    return eid;
 }
 
 

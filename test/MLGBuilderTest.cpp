@@ -119,11 +119,11 @@ TEST( MLGBuilderTest, runStepTest )
     Layer base = dao->addBaseLayer();
 
     // Create nodes
-    SuperNode n1 = dao->addNodeToLayer(base);
-    SuperNode n2 = dao->addNodeToLayer(base);
-    SuperNode n3 = dao->addNodeToLayer(base);
-    SuperNode n4 = dao->addNodeToLayer(base);
-    SuperNode n5 = dao->addNodeToLayer(base);
+    mld::Node n1 = dao->addNodeToLayer(base);
+    mld::Node n2 = dao->addNodeToLayer(base);
+    mld::Node n3 = dao->addNodeToLayer(base);
+    mld::Node n4 = dao->addNodeToLayer(base);
+    mld::Node n5 = dao->addNodeToLayer(base);
     // Node 2 is the heaviest
     n2.setWeight(100);
     dao->updateNode(n2);

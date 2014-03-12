@@ -30,7 +30,7 @@ namespace mld {
 // Forward declaration
 class MLGDao;
 class HLink;
-class SuperNode;
+class Node;
 class AbstractSingleSelector;
 class AbstractMultiSelector;
 
@@ -75,7 +75,7 @@ public:
      * @param source Source node
      * @return new weight
      */
-    virtual double computeWeight( const SuperNode& target, const SuperNode& source ) = 0;
+    virtual double computeWeight( const Node& target, const Node& source ) = 0;
 };
 
 } // end namespace mld

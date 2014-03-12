@@ -19,33 +19,28 @@
 #ifndef MLD_LAYER_H
 #define MLD_LAYER_H
 
-#include <sparksee/gdb/common.h>
-#include "mld/common.h"
+#include "mld/model/GraphObject.h"
 
 namespace mld {
 
-class MLD_API Layer
+class MLD_API Layer : public GraphObject
 {
-    // Access to private variables parent and child
     friend class LayerDao;
 public:
-    virtual ~Layer();
+    virtual ~Layer() override;
 
-    // Read only data
-    sparksee::gdb::oid_t id() const { return m_id; }
-    bool isBaseLayer() const { return m_isBase; }
-
-    void setDescription( const std::wstring& des ) { m_desc = des; }
-    std::wstring description() const { return m_desc; }
+    inline double isBaseLayer() const { return m_data[LayerAttr::IS_BASE].GetBoolean(); }
+    void setDescription( const std::wstring& des );
+    std::wstring description() const { return m_data[LayerAttr::DESCRIPTION].GetString(); }
 
 protected:
     Layer();
     Layer( sparksee::gdb::oid_t id );
+    Layer( sparksee::gdb::oid_t id, const AttrMap& data );
 
-protected:
-    sparksee::gdb::oid_t m_id;
-    bool m_isBase;
-    std::wstring m_desc;
+    void setIsBaseLayer( bool v );
+    // "Hide" the setId method
+    using GraphObject::setId;
 };
 
 } // end namespace mld

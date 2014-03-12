@@ -24,7 +24,7 @@
 
 #include "mld/common.h"
 #include "mld/dao/AbstractDao.h"
-#include "mld/model/SuperNode.h"
+#include "mld/model/Node.h"
 #include "mld/model/Layer.h"
 #include "mld/model/Link.h"
 
@@ -36,7 +36,7 @@ namespace gdb {
 }}
 
 namespace mld {
-    class SNodeDao;
+    class NodeDao;
     class LayerDao;
     class LinkDao;
 }
@@ -44,7 +44,7 @@ namespace mld {
 namespace mld {
 
 typedef std::function<double (double, double)>  WeightMergerFunc;
-typedef std::vector<SuperNode> SuperNodeVec;
+typedef std::vector<Node> SuperNodeVec;
 
 /**
  * @brief The MultiLayerGraph (MLG) dao
@@ -58,7 +58,7 @@ public:
         BOTTOM
     };
 
-typedef std::map<sparksee::gdb::oid_t, SuperNode> NodeMap;
+typedef std::map<sparksee::gdb::oid_t, Node> NodeMap;
 
     MLGDao( sparksee::gdb::Graph* g );
     virtual ~MLGDao() override;
@@ -75,7 +75,7 @@ typedef std::map<sparksee::gdb::oid_t, SuperNode> NodeMap;
      * @param if MLD_SAFE flag is set, it checks for the existence of the layer
      * @return
      */
-    SuperNode addNodeToLayer( const Layer& l );
+    Node addNodeToLayer( const Layer& l );
 
     /**
      * @brief Add HLink
@@ -85,7 +85,7 @@ typedef std::map<sparksee::gdb::oid_t, SuperNode> NodeMap;
      * @param weight
      * @return New created HLink
      */
-    HLink addHLink( const SuperNode& src, const SuperNode& tgt, double weight = kHLINK_DEF_VALUE );
+    HLink addHLink( const Node& src, const Node& tgt, double weight = kHLINK_DEF_VALUE );
 
     /**
      * @brief Add VLink
@@ -95,7 +95,7 @@ typedef std::map<sparksee::gdb::oid_t, SuperNode> NodeMap;
      * @param weight
      * @return New created VLink
      */
-    VLink addVLink( const SuperNode& child, const SuperNode& parent, double weight = kVLINK_DEF_VALUE );
+    VLink addVLink( const Node& child, const Node& parent, double weight = kVLINK_DEF_VALUE );
 
     /**
      * @brief Get all nodes ids belonging to input layer
@@ -205,8 +205,8 @@ typedef std::map<sparksee::gdb::oid_t, SuperNode> NodeMap;
      * @param f Merge function for common links
      * @return success
      */
-    bool horizontalCopyVLinks( const SuperNode& source,
-                               const SuperNode& target,
+    bool horizontalCopyVLinks( const Node& source,
+                               const Node& target,
                                bool safe=true,
                                const ObjectsPtr& subset=ObjectsPtr(),
                                const WeightMergerFunc& f=[](double a, double b) {return a + b;} );
@@ -221,8 +221,8 @@ typedef std::map<sparksee::gdb::oid_t, SuperNode> NodeMap;
      * @param f Merge function for common links
      * @return success
      */
-    bool horizontalCopyHLinks( const SuperNode& source,
-                               const SuperNode& target,
+    bool horizontalCopyHLinks( const Node& source,
+                               const Node& target,
                                bool safe=true,
                                const ObjectsPtr& subset=ObjectsPtr(),
                                const WeightMergerFunc& f=[](double a, double b) {return a + b;} );
@@ -238,8 +238,8 @@ typedef std::map<sparksee::gdb::oid_t, SuperNode> NodeMap;
      * @param f Merge function for common links
      * @return success
      */
-    bool verticalCopyHLinks( const SuperNode& source,
-                             const SuperNode& target,
+    bool verticalCopyHLinks( const Node& source,
+                             const Node& target,
                              Direction direction=TOP,
                              bool safe=true,
                              const ObjectsPtr& subset=ObjectsPtr(),
@@ -247,20 +247,19 @@ typedef std::map<sparksee::gdb::oid_t, SuperNode> NodeMap;
 
     // Forward to SNDao
     void removeNode( sparksee::gdb::oid_t id );
-    void updateNode( const SuperNode& n );
-    SuperNode getNode( sparksee::gdb::oid_t id );
+    void updateNode( Node& n );
+    Node getNode( sparksee::gdb::oid_t id );
     SuperNodeVec getNode( const ObjectsPtr& objs );
 
     // Forward to LinkDao
     HLink getHLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
     HLink getHLink( sparksee::gdb::oid_t hid );
-    HLink getOrCreateHLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt, double weight );
-    bool updateHLink( const HLink& link );
+    bool updateHLink( HLink& link );
     std::vector<HLink> getHLink( const ObjectsPtr& objs );
 
     VLink getVLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
     VLink getVLink( sparksee::gdb::oid_t vid );
-    bool updateVLink( const VLink& link );
+    bool updateVLink( VLink& link );
 
     // Forward to LayerDAO
     /**
@@ -360,9 +359,8 @@ typedef std::map<sparksee::gdb::oid_t, SuperNode> NodeMap;
     /**
      * @brief Update Layer attributes
      * @param layer Input layer
-     * @return success
      */
-    bool updateLayer( const Layer& layer );
+    void updateLayer( Layer& layer );
 
     /**
      * @brief Get layer by id
@@ -385,17 +383,17 @@ private:
     sparksee::gdb::oid_t getLayerIdForSuperNode( sparksee::gdb::oid_t nid );
     Layer mirrorLayerImpl( Direction dir );
     HLink mirrorEdge( const HLink& current, Direction dir, const Layer& newLayer, NodeMap& nodeMap );
-    SuperNode mirrorNode( sparksee::gdb::oid_t current, Direction dir, const Layer& newLayer );
+    Node mirrorNode( sparksee::gdb::oid_t current, Direction dir, const Layer& newLayer );
     ObjectsPtr getVLinkEndpoints( sparksee::gdb::oid_t current, Direction dir );
     bool horizontalCopyLinks( sparksee::gdb::type_t linkType,
-                              const SuperNode& source,
-                              const SuperNode& target,
+                              const Node& source,
+                              const Node& target,
                               bool safe,
                               const ObjectsPtr& subset,
                               const WeightMergerFunc& f );
 
 private:
-    std::unique_ptr<SNodeDao> m_sn;
+    std::unique_ptr<NodeDao> m_sn;
     std::unique_ptr<LayerDao> m_layer;
     std::unique_ptr<LinkDao> m_link;
     sparksee::gdb::type_t m_ownsType;

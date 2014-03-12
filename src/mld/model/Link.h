@@ -19,31 +19,32 @@
 #ifndef MLD_LINK_H
 #define MLD_LINK_H
 
-#include <sparksee/gdb/common.h>
-#include "mld/common.h"
+#include "mld/model/GraphObject.h"
 
 namespace mld {
 
 /**
  * @brief The Link abstract class, models an edge in the graph
  */
-class MLD_API Link
+class MLD_API Link : public GraphObject
 {
 public:
-    virtual ~Link() = 0;
-    sparksee::gdb::oid_t id() const { return m_id; }
-    sparksee::gdb::oid_t source() const { return m_src; }
-    sparksee::gdb::oid_t target() const { return m_tgt; }
+    inline sparksee::gdb::oid_t source() const { return m_src; }
+    inline sparksee::gdb::oid_t target() const { return m_tgt; }
 
+    virtual void print( std::ostream& out ) const override;
 protected:
     Link();
-    Link( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
-    void setId( sparksee::gdb::oid_t id ) { m_id = id; }
-    void setSource( sparksee::gdb::oid_t src ) { m_src = src; }
-    void setTarget( sparksee::gdb::oid_t tgt ) { m_tgt = tgt; }
+    Link( sparksee::gdb::oid_t eid, sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
+    Link( sparksee::gdb::oid_t eid, sparksee::gdb::oid_t src,
+          sparksee::gdb::oid_t tgt, const AttrMap& data );
+    // "Hide" setId method
+    using GraphObject::setId;
+
+    inline void setSource( sparksee::gdb::oid_t src ) { m_src = src; }
+    inline void setTarget( sparksee::gdb::oid_t tgt ) { m_tgt = tgt; }
 
 protected:
-    sparksee::gdb::oid_t m_id;
     sparksee::gdb::oid_t m_src;
     sparksee::gdb::oid_t m_tgt;
 };
@@ -51,7 +52,7 @@ protected:
 
 /**
  * @brief The HLink concrete class, represent a H_LINK relationship
- * It links a SuperNode to another in the same Layer
+ * It links a Node to another in the same Layer
  */
 class MLD_API HLink : public Link
 {
@@ -60,23 +61,26 @@ class MLD_API HLink : public Link
 public:
     virtual ~HLink() override;
 
-    double weight() const { return m_weight; }
-    void setWeight( double v ) { m_weight = v; }
+    inline double weight() const { return m_data[H_LinkAttr::WEIGHT].GetDouble(); }
+    void setWeight( double v );
 
 protected:
     HLink();
-    HLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
-    HLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt, double weight );
+    HLink( sparksee::gdb::oid_t eid, sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
+    HLink( sparksee::gdb::oid_t eid, sparksee::gdb::oid_t src,
+           sparksee::gdb::oid_t tgt, double weight );
+    HLink( sparksee::gdb::oid_t eid, sparksee::gdb::oid_t src,
+           sparksee::gdb::oid_t tgt, const AttrMap& data );
 
-private:
-    double m_weight;
+    // "Hide" setId method
+    using GraphObject::setId;
 };
 
 
 /**
  * @brief The VLink concrete class, represent a V_LINK relationship
  * It links a SuperNode to another in a consecutive Layer (above or under the current layer)
- * There are 2 different implementation because HLINK are different
+ * There are 2 different implementation because HLINKs are different
  * even if they look similar in the implementation
  */
 class MLD_API VLink : public Link
@@ -86,16 +90,20 @@ class MLD_API VLink : public Link
 public:
     virtual ~VLink() override;
 
-    double weight() const { return m_weight; }
-    void setWeight( double v ) { m_weight = v; }
+    inline double weight() const { return m_data[V_LinkAttr::WEIGHT].GetDouble(); }
+    void setWeight( double v );
 
-private:
+protected:
     VLink();
-    VLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
-    VLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt, double weight );
+    VLink( sparksee::gdb::oid_t eid, sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
+    VLink( sparksee::gdb::oid_t eid, sparksee::gdb::oid_t src,
+           sparksee::gdb::oid_t tgt, double weight );
+    VLink( sparksee::gdb::oid_t eid, sparksee::gdb::oid_t src,
+           sparksee::gdb::oid_t tgt, const AttrMap& data );
 
-private:
-    double m_weight;
+    // "Hide" setId method
+    using GraphObject::setId;
+
 };
 
 } // end namespace mld

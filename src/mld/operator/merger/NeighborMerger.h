@@ -36,7 +36,7 @@ public:
      * @param neighbors Available neighbors to collapse
      * @return success
      */
-    virtual bool merge( SuperNode& target, const ObjectsPtr& neighbors ) = 0;
+    virtual bool merge( Node& target, const ObjectsPtr& neighbors ) = 0;
 
     /**
      * @brief Compute weight for the future merged node
@@ -44,7 +44,7 @@ public:
      * @param neighbors Neighbors of root node
      * @return new weight
      */
-    virtual double computeWeight( const SuperNode& target, const ObjectsPtr& neighbors ) = 0;
+    virtual double computeWeight( const Node& target, const ObjectsPtr& neighbors ) = 0;
 };
 
 } // end namespace mld

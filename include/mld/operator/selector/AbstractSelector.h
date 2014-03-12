@@ -22,7 +22,7 @@
 #include "mld/common.h"
 #include "mld/model/Link.h"
 #include "mld/model/Layer.h"
-#include "mld/model/SuperNode.h"
+#include "mld/model/Node.h"
 
 namespace sparksee {
 namespace gdb {
@@ -91,7 +91,7 @@ public:
      * @param popNode remove node from selection queue
      * @return Best supernode
      */
-    virtual SuperNode next( bool popNode=true ) = 0;
+    virtual Node next( bool popNode=true ) = 0;
 
     /**
      * @brief Get neighborhood of input node which is not already marked as unavailable
@@ -107,7 +107,7 @@ public:
      * @param withFlagged Account for already flagged nodes in score
      * @return success
      */
-    virtual bool flagAndUpdateScore( const SuperNode& root, bool removeNeighbors=true, bool withFlagged=false ) = 0;
+    virtual bool flagAndUpdateScore( const Node& root, bool removeNeighbors=true, bool withFlagged=false ) = 0;
     /**
      * @brief Check if some input node oid is already in the flagged set
      * @param snid input
@@ -137,7 +137,7 @@ public:
      * @param oneHopOnly if true only the first hop will be retrieved
      * @return nodeSet
      */
-    virtual ObjectsPtr getHLinkEnpoints( const SuperNode& root, bool oneHopOnly ) = 0;
+    virtual ObjectsPtr getHLinkEnpoints( const Node& root, bool oneHopOnly ) = 0;
 };
 
 } // end namespace mld

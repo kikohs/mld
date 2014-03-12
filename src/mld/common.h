@@ -46,12 +46,17 @@ namespace sparksee {
 namespace gdb {
     class Objects;
     class ObjectsIterator;
+    class AttributeList;
+    class AttributeListIterator;
 }}
 
 namespace mld {
 
 typedef std::shared_ptr<sparksee::gdb::Objects> ObjectsPtr;
 typedef std::unique_ptr<sparksee::gdb::ObjectsIterator> ObjectsIt;
+typedef std::unique_ptr<sparksee::gdb::AttributeList> AttributeListPtr;
+typedef std::unique_ptr<sparksee::gdb::AttributeListIterator> AttributeListIt;
+
 /**
  * @brief H_LINK default weight value
  */
