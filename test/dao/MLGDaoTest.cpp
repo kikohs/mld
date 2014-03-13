@@ -41,7 +41,7 @@ TEST( MLGDaoTest, CRUD )
     SessionPtr sess = sparkseeManager.newSession();
     Graph* g = sess->GetGraph();
     // Create Db scheme
-    sparkseeManager.createScheme(g);
+    sparkseeManager.createBaseScheme(g);
 
     std::unique_ptr<MLGDao> dao( new MLGDao(g) );
 
@@ -94,14 +94,14 @@ TEST( MLGDaoTest, CRUD )
     ObjectsPtr baseNodes = dao->getAllNodeIds(base);
     EXPECT_EQ(baseNodes->Count(), 2);
     baseNodes.reset();
-    auto nodes = dao->getAllSuperNode(base);
+    auto nodes = dao->getAllNodes(base);
     EXPECT_EQ(nodes.size(), size_t(2));
 
     // Top layer
     ObjectsPtr topNodes = dao->getAllNodeIds(top);
     EXPECT_EQ(topNodes->Count(), 1);
     topNodes.reset();
-    nodes = dao->getAllSuperNode(top);
+    nodes = dao->getAllNodes(top);
     EXPECT_EQ(nodes.size(), size_t(1));
     EXPECT_EQ(nodes.at(0), n3);
 
@@ -111,7 +111,7 @@ TEST( MLGDaoTest, CRUD )
     EXPECT_EQ(noNodes->Count(), 0);
     EXPECT_EQ(dao->getNodeCount(bot), 0);
     noNodes.reset();
-    nodes = dao->getAllSuperNode(bot);
+    nodes = dao->getAllNodes(bot);
     EXPECT_EQ(nodes.empty(), true);
 
     // Get HLink for base layer
@@ -142,7 +142,7 @@ TEST( MLGDaoTest, MirrorLayer )
     SessionPtr sess = sparkseeManager.newSession();
     Graph* g = sess->GetGraph();
     // Create Db scheme
-    sparkseeManager.createScheme(g);
+    sparkseeManager.createBaseScheme(g);
 
     std::unique_ptr<MLGDao> dao( new MLGDao(g) );
     Layer base = dao->addBaseLayer();
@@ -164,7 +164,7 @@ TEST( MLGDaoTest, MirrorLayer )
     Layer top = dao->mirrorTopLayer();
     EXPECT_NE(top.id(), Objects::InvalidOID);
 
-    auto nodes = dao->getAllSuperNode(top);
+    auto nodes = dao->getAllNodes(top);
     EXPECT_EQ(nodes.size(), size_t(3));
 
     auto hlinks = dao->getAllHLinks(top);
@@ -173,13 +173,13 @@ TEST( MLGDaoTest, MirrorLayer )
     // Check parent node
     auto p = dao->getParentNodes(n1.id());
     EXPECT_EQ(p.size(), size_t(1));
-    mld::Node parentN1;
+    mld::Node parentN1(dao->invalidNode());
     if( !p.empty() )
         parentN1 = p.at(0);
     EXPECT_EQ(parentN1.weight(), n1.weight());
 
     // Check child node
-    mld::Node n1_bis;
+    mld::Node n1_bis(dao->invalidNode());
     auto n1_bisvec = dao->getChildNodes(parentN1.id());
     EXPECT_EQ(n1_bisvec.empty(), false);
     if( !n1_bisvec.empty() )
@@ -204,7 +204,7 @@ TEST( MLGDaoTest, GetHeaviestHLink )
     SessionPtr sess = sparkseeManager.newSession();
     Graph* g = sess->GetGraph();
     // Create Db scheme
-    sparkseeManager.createScheme(g);
+    sparkseeManager.createBaseScheme(g);
 
     std::unique_ptr<MLGDao> dao( new MLGDao(g) );
     Layer base = dao->addBaseLayer();
@@ -265,7 +265,7 @@ TEST( MLGDaoTest, copyAndMergeLinks )
     SessionPtr sess = sparkseeManager.newSession();
     Graph* g = sess->GetGraph();
     // Create Db scheme
-    sparkseeManager.createScheme(g);
+    sparkseeManager.createBaseScheme(g);
 
     std::unique_ptr<MLGDao> dao( new MLGDao(g) );
     Layer base = dao->addBaseLayer();
@@ -383,7 +383,7 @@ TEST( MLGDaoTest, copyAndMergeLinks )
     // At this point n2 has 3 parents n1c, n2c, n3c
     // n3 still has 2 parents n2c, n3c
     // n2 - n4 exists (w: 50) and n2 - n3 (w:50)
-    ok = dao->verticalCopyHLinks(n4.id(), n4c.id());
+    ok = dao->verticalCopyHLinks(n4, n4c);
     EXPECT_TRUE(ok);
     HLink h34 = dao->getHLink(n3.id(), n4.id());
     HLink h3c_4c = dao->getHLink(n3c.id(), n4c.id());

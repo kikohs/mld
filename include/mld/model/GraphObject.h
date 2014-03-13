@@ -20,7 +20,6 @@
 #define MLD_GRAPHOBJECT_H
 
 #include <map>
-#include <sparksee/gdb/common.h>
 #include <sparksee/gdb/Value.h>
 
 #include "mld/common.h"
@@ -34,12 +33,18 @@ class MLD_API GraphObject
 {
 public:
     virtual ~GraphObject() = 0;
-    void setId( sparksee::gdb::oid_t id ) { m_id = id; }
     inline sparksee::gdb::oid_t id() const { return m_id; }
-    inline AttrMap& data() { return m_data; }
     inline const AttrMap& data() const { return m_data; }
+    inline AttrMap& data() { return m_data; }
+
+    void setId( sparksee::gdb::oid_t id ) { m_id = id; }
     void setData( const AttrMap& data ) { m_data = data; }
 
+    /**
+     * @brief BEWARE, does not compare text in Value object
+     * @param rhs
+     * @return equality
+     */
     inline bool operator==( const GraphObject& rhs ) const
     {
         auto pred = []( decltype(*m_data.begin()) a, decltype(a) b ) {
@@ -49,6 +54,11 @@ public:
                 && m_data.size() == rhs.m_data.size()
                 && std::equal(m_data.begin(), m_data.end(), rhs.m_data.begin(), pred);
     }
+    /**
+     * @brief Print method which display the content of AttrMap and the id
+     * @param out
+     */
+    virtual void print( std::ostream& out ) const;
 
 protected:
     GraphObject();

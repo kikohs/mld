@@ -40,7 +40,7 @@ TEST( XSelectorTest, initScheme )
     SessionPtr sess = sparkseeManager.newSession();
     sparksee::gdb::Graph* g = sess->GetGraph();
     // Create Db scheme
-    sparkseeManager.createScheme(g);
+    sparkseeManager.createBaseScheme(g);
     std::unique_ptr<MLGDao> dao( new MLGDao(g) );
 
     Layer base = dao->addBaseLayer();

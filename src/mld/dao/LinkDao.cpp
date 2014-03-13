@@ -31,10 +31,7 @@ using namespace sparksee::gdb;
 LinkDao::LinkDao( Graph* g )
     : AbstractDao(g)
 {
-    if( g ) {
-        m_hType = m_g->FindType(EdgeType::H_LINK);
-        m_vType = m_g->FindType(EdgeType::V_LINK);
-    }
+    setGraph(g);
 }
 
 LinkDao::~LinkDao()
@@ -47,6 +44,18 @@ void LinkDao::setGraph( Graph* g )
         AbstractDao::setGraph(g);
         m_hType = m_g->FindType(EdgeType::H_LINK);
         m_vType = m_g->FindType(EdgeType::V_LINK);
+
+        auto nType = m_g->FindType(NodeType::NODE);
+        // Create 2 nodes to get in cache hLinkAttrMap and vLinkAttrMap
+        auto nid = m_g->NewNode(nType);
+        auto nid2 = m_g->NewNode(nType);
+        auto hid = m_g->NewEdge(m_hType, nid, nid2);
+        m_hLinkAttr = readAttrMap(hid);
+        auto vid = m_g->NewEdge(m_vType, nid, nid2);
+        m_vLinkAttr = readAttrMap(vid);
+        // Not needed anymore
+        m_g->Drop(nid);
+        m_g->Drop(nid2);
     }
 }
 
@@ -55,21 +64,17 @@ HLink LinkDao::addHLink( oid_t src, oid_t tgt )
     oid_t eid = addEdge(m_hType, src, tgt);
     if( eid == Objects::InvalidOID )
         return HLink();
-    return HLink(eid, src, tgt);
+    return HLink(eid, src, tgt, m_hLinkAttr);
 }
 
 HLink LinkDao::addHLink( oid_t src, oid_t tgt, double weight )
 {
-    oid_t eid = addEdge(m_hType, src, tgt);
-    if( eid == Objects::InvalidOID )
-        return HLink();
-    HLink res(eid, src, tgt, weight);
-    if( !updateAttrMap(m_hType, eid, res.data()) )
-        return HLink();
-    return res;
+    AttrMap data(m_hLinkAttr);
+    data[H_LinkAttr::WEIGHT].SetDoubleVoid(weight);
+    return addHLink(src, tgt, data);
 }
 
-HLink LinkDao::addHLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt, AttrMap& data )
+HLink LinkDao::addHLink( oid_t src, oid_t tgt, AttrMap& data )
 {
     oid_t eid = addEdge(m_hType, src, tgt);
     if( eid == Objects::InvalidOID )
@@ -84,18 +89,14 @@ VLink LinkDao::addVLink( oid_t child, oid_t parent )
     oid_t eid = addEdge(m_vType, child, parent);
     if( eid == Objects::InvalidOID )
         return VLink();
-    return VLink(eid, child, parent);
+    return VLink(eid, child, parent, m_vLinkAttr);
 }
 
 VLink LinkDao::addVLink( oid_t child, oid_t parent, double weight )
 {
-    oid_t eid = addEdge(m_vType, child, parent);
-    if( eid == Objects::InvalidOID )
-        return VLink();
-    VLink res(eid, child, parent, weight);
-    if( !updateAttrMap(m_vType, eid, res.data()) )
-        return VLink();
-    return res;
+    AttrMap data(m_vLinkAttr);
+    data[V_LinkAttr::WEIGHT].SetDoubleVoid(weight);
+    return addVLink(child, parent, data);
 }
 
 VLink LinkDao::addVLink( oid_t child, oid_t parent, AttrMap& data )

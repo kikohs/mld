@@ -37,7 +37,7 @@ TEST( MLGBuilderTest, createFromInputPlan )
     SessionPtr sess = sparkseeManager.newSession();
     Graph* g = sess->GetGraph();
     // Create Db scheme
-    sparkseeManager.createScheme(g);
+    sparkseeManager.createBaseScheme(g);
     std::unique_ptr<MLGBuilder> builder( new MLGBuilder );
 
     // Test coarsening plan
@@ -113,7 +113,7 @@ TEST( MLGBuilderTest, runStepTest )
     SessionPtr sess = sparkseeManager.newSession();
     Graph* g = sess->GetGraph();
     // Create Db scheme
-    sparkseeManager.createScheme(g);
+    sparkseeManager.createBaseScheme(g);
     std::unique_ptr<MLGDao> dao( new MLGDao(g) );
 
     Layer base = dao->addBaseLayer();

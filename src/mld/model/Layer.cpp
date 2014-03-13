@@ -23,16 +23,8 @@
 using namespace mld;
 
 Layer::Layer()
-    : Layer(sparksee::gdb::Objects::InvalidOID)
+    : GraphObject()
 {
-}
-
-Layer::Layer( sparksee::gdb::oid_t id )
-    : GraphObject(id)
-{
-    // Default construct a Value and set content
-    m_data[LayerAttr::IS_BASE].SetBooleanVoid(false);
-    m_data[LayerAttr::DESCRIPTION].SetStringVoid(L"");
 }
 
 Layer::Layer( sparksee::gdb::oid_t id, const AttrMap& data )

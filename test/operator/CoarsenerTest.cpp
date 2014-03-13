@@ -37,7 +37,7 @@ TEST( CoarsenerTest, HeavyHLinkCoarsenerTest )
     SessionPtr sess = sparkseeManager.newSession();
     sparksee::gdb::Graph* g = sess->GetGraph();
     // Create Db scheme
-    sparkseeManager.createScheme(g);
+    sparkseeManager.createBaseScheme(g);
     std::unique_ptr<MLGDao> dao( new MLGDao(g) );
 
     std::unique_ptr<NeighborCoarsener> coarsener( new NeighborCoarsener(g) );
@@ -101,7 +101,7 @@ TEST( CoarsenerTest, HeavyHLinkCoarsenerTest )
 
     // Check supernode
     top = dao->topLayer();
-    auto nodes = dao->getAllSuperNode(top);
+    auto nodes = dao->getAllNodes(top);
     EXPECT_EQ(nodes.size(), size_t(1));
     if( !nodes.empty() ) {
         auto node = nodes.at(0);
@@ -126,7 +126,7 @@ TEST( CoarsenerTest, XCoarsener )
     SessionPtr sess = sparkseeManager.newSession();
     sparksee::gdb::Graph* g = sess->GetGraph();
     // Create Db scheme
-    sparkseeManager.createScheme(g);
+    sparkseeManager.createBaseScheme(g);
     std::unique_ptr<MLGDao> dao( new MLGDao(g) );
     std::unique_ptr<NeighborCoarsener> coarsener( new NeighborCoarsener(g) );
     coarsener->setSelector( new XSelector(g) );
@@ -164,8 +164,8 @@ TEST( CoarsenerTest, XCoarsener )
     EXPECT_TRUE(coarsener->run());
 
     // Check supernode
-    Layer top = dao->topLayer();
-    auto nodes = dao->getAllSuperNode(top);
+    Layer top(dao->topLayer());
+    auto nodes(dao->getAllNodes(top));
 
     EXPECT_EQ(size_t(1), nodes.size());
     if( !nodes.empty() ) {

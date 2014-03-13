@@ -25,35 +25,15 @@
 
 using namespace mld;
 
-// Delegatin constructor
 Node::Node()
-    : Node(sparksee::gdb::Objects::InvalidOID, L"", kSUPERNODE_DEF_VALUE)
+    : GraphObject()
 {
-}
-
-Node::Node( sparksee::gdb::oid_t id )
-    : Node(id, L"", kSUPERNODE_DEF_VALUE)
-{
-}
-
-Node::Node( sparksee::gdb::oid_t id, const std::wstring& label, double weight )
-    : GraphObject(id)
-{
-    // Default construct a Value and set content
-    m_data[NodeAttr::LABEL].SetStringVoid(label);
-    m_data[NodeAttr::WEIGHT].SetDoubleVoid(weight);
+    // Invalid node
 }
 
 Node::Node( sparksee::gdb::oid_t id, const AttrMap& data )
     : GraphObject(id, data)
 {
-    auto it = m_data.find(NodeAttr::LABEL);
-    if( it == m_data.end() )
-        m_data[NodeAttr::LABEL].SetStringVoid(L"");
-
-    it = m_data.find(NodeAttr::WEIGHT);
-    if( it == m_data.end() )
-        m_data[NodeAttr::WEIGHT].SetDoubleVoid(kSUPERNODE_DEF_VALUE);
 }
 
 Node::~Node()

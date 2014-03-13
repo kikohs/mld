@@ -14,7 +14,7 @@ endmacro(append_test)
 
 # APPEND TESTS HERE
 # DAO
-append_test(SNodeDaoTest dao/SNodeDaoTest.cpp)
+append_test(NodeDaoTest dao/NodeDaoTest.cpp)
 append_test(LayerDaoTest dao/LayerDaoTest.cpp)
 append_test(LinkDaoTest dao/LinkDaoTest.cpp)
 append_test(MLGDaoTest dao/MLGDaoTest.cpp)

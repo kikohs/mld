@@ -109,7 +109,7 @@ public:
     /**
      * @brief Create databse scheme, Nodes and relation types
      */
-    void createScheme( sparksee::gdb::Graph* g );
+    void createBaseScheme( sparksee::gdb::Graph* g );
 
     /**
      * @brief Add a user attribute to the SuperNode type

@@ -56,29 +56,13 @@ void Link::print( std::ostream& out ) const
 // ****** HLINK ****** //
 
 HLink::HLink()
-    : HLink(Objects::InvalidOID,
-            Objects::InvalidOID,
-            Objects::InvalidOID)
+    : Link()
 {
-}
-
-HLink::HLink( oid_t eid, oid_t src, oid_t tgt )
-    : HLink(eid, src, tgt, kHLINK_DEF_VALUE)
-{
-}
-
-HLink::HLink( oid_t eid, oid_t src, oid_t tgt, double weight )
-    : Link(eid, src, tgt)
-{
-    m_data[H_LinkAttr::WEIGHT].SetDoubleVoid(weight);
 }
 
 HLink::HLink( oid_t eid, oid_t src, oid_t tgt, const AttrMap& data )
     : Link(eid, src, tgt, data)
 {
-    auto it = m_data.find(H_LinkAttr::WEIGHT);
-    if( it == m_data.end() )
-        m_data[H_LinkAttr::WEIGHT].SetDoubleVoid(kHLINK_DEF_VALUE);
 }
 
 HLink::~HLink()
@@ -93,29 +77,13 @@ void HLink::setWeight( double v )
 // ****** VLINK ****** //
 
 VLink::VLink()
-    : VLink(Objects::InvalidOID,
-            Objects::InvalidOID,
-            Objects::InvalidOID)
+    : Link()
 {
-}
-
-VLink::VLink( oid_t eid, oid_t src, oid_t tgt )
-    : VLink(eid, src, tgt, kVLINK_DEF_VALUE)
-{
-}
-
-VLink::VLink( oid_t eid, oid_t src, oid_t tgt, double weight )
-    : Link(eid, src, tgt)
-{
-    m_data[V_LinkAttr::WEIGHT].SetDoubleVoid(weight);
 }
 
 VLink::VLink( oid_t eid, oid_t src, oid_t tgt, const AttrMap& data )
     : Link(eid, src, tgt, data)
 {
-    auto it = m_data.find(V_LinkAttr::WEIGHT);
-    if( it == m_data.end() )
-        m_data[V_LinkAttr::WEIGHT].SetDoubleVoid(kVLINK_DEF_VALUE);
 }
 
 VLink::~VLink()

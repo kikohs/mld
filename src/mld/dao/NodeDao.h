@@ -40,14 +40,18 @@ public:
     ~NodeDao();
     virtual void setGraph( sparksee::gdb::Graph* g ) override;
     Node addNode();
+    Node addNode( double weight );
+    Node addNode( AttrMap& data );
     void removeNode( sparksee::gdb::oid_t id );
-    void updateNode( Node& n );
+    bool updateNode( Node& n );
     Node getNode( sparksee::gdb::oid_t id );
     std::vector<Node> getNode( const ObjectsPtr& objs );
-    sparksee::gdb::type_t superNodeType() const { return m_nType; }
+    sparksee::gdb::type_t nodeType() const { return m_nType; }
+    inline Node invalidNode() const { return Node(); }
 
 private:
     sparksee::gdb::type_t m_nType;
+    AttrMap m_nodeAttr;
 };
 
 } // end namespace mld

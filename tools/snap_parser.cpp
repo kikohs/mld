@@ -91,7 +91,7 @@ int main( int argc, char *argv[] )
     SessionPtr sess = sparkseeManager.newSession();
     sparksee::gdb::Graph* g = sess->GetGraph();
     // Create Db scheme
-    sparkseeManager.createScheme(g);
+    sparkseeManager.createBaseScheme(g);
     sess->Begin();
     GraphImporter::fromSnapFormat(g, ctx.inputPath);
     sess->Commit();

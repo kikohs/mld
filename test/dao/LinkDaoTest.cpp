@@ -40,7 +40,7 @@ TEST( LinkDaoTest, H_LINK_add )
     SessionPtr sess = sparkseeManager.newSession();
     Graph* g = sess->GetGraph();
     // Create Db scheme
-    sparkseeManager.createScheme(g);
+    sparkseeManager.createBaseScheme(g);
 
     std::unique_ptr<LinkDao> lkDao( new LinkDao(g) );
     std::unique_ptr<NodeDao> snDao( new NodeDao(g) );
@@ -99,7 +99,7 @@ TEST( LinkDaoTest, V_LINK_add )
     SessionPtr sess = sparkseeManager.newSession();
     Graph* g = sess->GetGraph();
     // Create Db scheme
-    sparkseeManager.createScheme(g);
+    sparkseeManager.createBaseScheme(g);
 
     std::unique_ptr<LinkDao> lkDao( new LinkDao(g) );
     std::unique_ptr<NodeDao> snDao( new NodeDao(g) );
@@ -157,7 +157,7 @@ TEST( LinkDaoTest, H_LINK_get )
     SessionPtr sess = sparkseeManager.newSession();
     Graph* g = sess->GetGraph();
     // Create Db scheme
-    sparkseeManager.createScheme(g);
+    sparkseeManager.createBaseScheme(g);
 
     std::unique_ptr<LinkDao> lkDao( new LinkDao(g) );
     std::unique_ptr<NodeDao> snDao( new NodeDao(g) );
@@ -201,7 +201,7 @@ TEST( LinkDaoTest, H_LINK_get )
 
 #ifdef MLD_SAFE
     // Get Invalid Objects
-    all.reset(g->Select(snDao->superNodeType()));
+    all.reset(g->Select(snDao->nodeType()));
     allVec = lkDao->getHLink(all);
     EXPECT_EQ(allVec.size(), size_t(0));
 #endif
@@ -220,7 +220,7 @@ TEST( LinkDaoTest, V_LINK_get )
     SessionPtr sess = sparkseeManager.newSession();
     Graph* g = sess->GetGraph();
     // Create Db scheme
-    sparkseeManager.createScheme(g);
+    sparkseeManager.createBaseScheme(g);
 
     std::unique_ptr<LinkDao> lkDao( new LinkDao(g) );
     std::unique_ptr<NodeDao> snDao( new NodeDao(g) );
@@ -265,7 +265,7 @@ TEST( LinkDaoTest, V_LINK_get )
 
 #ifdef MLD_SAFE
     // Get Invalid Objects
-    all.reset(g->Select(snDao->superNodeType()));
+    all.reset(g->Select(snDao->nodeType()));
     allVec = lkDao->getVLink(all);
     EXPECT_EQ(allVec.size(), size_t(0));
 #endif
@@ -284,7 +284,7 @@ TEST( LinkDaoTest, H_LINK_remove )
     SessionPtr sess = sparkseeManager.newSession();
     Graph* g = sess->GetGraph();
     // Create Db scheme
-    sparkseeManager.createScheme(g);
+    sparkseeManager.createBaseScheme(g);
 
     std::unique_ptr<LinkDao> lkDao( new LinkDao(g) );
     std::unique_ptr<NodeDao> snDao( new NodeDao(g) );
@@ -340,7 +340,7 @@ TEST( LinkDaoTest, V_LINK_remove )
     SessionPtr sess = sparkseeManager.newSession();
     Graph* g = sess->GetGraph();
     // Create Db scheme
-    sparkseeManager.createScheme(g);
+    sparkseeManager.createBaseScheme(g);
 
     std::unique_ptr<LinkDao> lkDao( new LinkDao(g) );
     std::unique_ptr<NodeDao> snDao( new NodeDao(g) );
@@ -396,7 +396,7 @@ TEST( LinkDaoTest, H_LINK_update )
     SessionPtr sess = sparkseeManager.newSession();
     Graph* g = sess->GetGraph();
     // Create Db scheme
-    sparkseeManager.createScheme(g);
+    sparkseeManager.createBaseScheme(g);
 
     std::unique_ptr<LinkDao> lkDao( new LinkDao(g) );
     std::unique_ptr<NodeDao> snDao( new NodeDao(g) );
@@ -448,7 +448,7 @@ TEST( LinkDaoTest, V_LINK_update )
     SessionPtr sess = sparkseeManager.newSession();
     Graph* g = sess->GetGraph();
     // Create Db scheme
-    sparkseeManager.createScheme(g);
+    sparkseeManager.createBaseScheme(g);
 
     std::unique_ptr<LinkDao> lkDao( new LinkDao(g) );
     std::unique_ptr<NodeDao> snDao( new NodeDao(g) );
@@ -486,6 +486,46 @@ TEST( LinkDaoTest, V_LINK_update )
     // Get form db to check
     auto vl2_get = lkDao->getVLink(vl2.source(), vl2.target());
     EXPECT_EQ(vl2_get.weight(), vl2.weight());
+
+    snDao.reset();
+    lkDao.reset();
+    sess.reset();
+}
+
+TEST( LinkDaoTest, ExtraProp )
+{
+    mld::SparkseeManager sparkseeManager(mld::kRESOURCES_DIR + L"mysparksee.cfg");
+    sparkseeManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.sparksee", L"MLDTest");
+
+    SessionPtr sess = sparkseeManager.newSession();
+    Graph* g = sess->GetGraph();
+    // Create Db scheme
+    sparkseeManager.createBaseScheme(g);
+    Value v;
+    v.SetDouble(42.0);
+    EXPECT_TRUE(sparkseeManager.addAttrToHLink(g, L"Htest", Double, Basic, v));
+    EXPECT_TRUE(sparkseeManager.addAttrToVLink(g, L"Vtest", Double, Basic, v));
+
+    std::unique_ptr<LinkDao> lkDao( new LinkDao(g) );
+    std::unique_ptr<NodeDao> snDao( new NodeDao(g) );
+
+    mld::Node n1(snDao->addNode());
+    mld::Node n2(snDao->addNode());
+
+    HLink hl(lkDao->addHLink(n1.id(), n2.id()));
+    EXPECT_DOUBLE_EQ(42.0, hl.data()[L"Htest"].GetDouble());
+    VLink vl(lkDao->addVLink(n1.id(), n2.id()));
+    EXPECT_DOUBLE_EQ(42.0, vl.data()[L"Vtest"].GetDouble());
+
+    hl.data()[L"Htest"].SetDoubleVoid(50);
+    EXPECT_TRUE(lkDao->updateHLink(hl.source(), hl.target(), hl.data()));
+    HLink hl2(lkDao->getHLink(hl.id()));
+    EXPECT_EQ(hl2, hl);
+
+    vl.data()[L"Vtest"].SetDoubleVoid(50);
+    EXPECT_TRUE(lkDao->updateVLink(vl.source(), vl.target(), vl.data()));
+    VLink vl2(lkDao->getVLink(vl.id()));
+    EXPECT_EQ(vl2, vl);
 
     snDao.reset();
     lkDao.reset();

@@ -89,7 +89,7 @@ mld::Node NeighborSelector::next()
     if( m_scores.empty() ) {
         LOG(logWARNING) << "NeighborSelector::next empty scores";
         resetSelection();
-        return Node();
+        return m_dao->invalidNode();
     }
 
     // Update score form each node marked as to be updated
@@ -97,7 +97,7 @@ mld::Node NeighborSelector::next()
     if( !updateScores() ) {
         resetSelection();
         LOG(logERROR) << "NeighborSelector::next updateScores failed";
-        return Node();
+        return m_dao->invalidNode();
     }
 
     if( m_hasMemory )

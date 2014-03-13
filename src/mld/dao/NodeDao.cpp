@@ -30,8 +30,7 @@ using namespace sparksee::gdb;
 NodeDao::NodeDao( Graph* g )
     : AbstractDao(g)
 {
-    if( g )
-        m_nType = m_g->FindType(NodeType::NODE);
+    setGraph(g);
 }
 
 NodeDao::~NodeDao()
@@ -44,13 +43,37 @@ void NodeDao::setGraph( Graph* g )
     if( g ) {
         AbstractDao::setGraph(g);
         m_nType = m_g->FindType(NodeType::NODE);
+        // Create a node to get in cache nodeAttrMap
+        auto nid = m_g->NewNode(m_nType);
+        m_nodeAttr = readAttrMap(nid);
+        // Not needed anymore
+        m_g->Drop(nid);
     }
 }
 
 mld::Node NodeDao::addNode()
 {
-    return Node( m_g->NewNode(m_nType) );
+    return Node(m_g->NewNode(m_nType), m_nodeAttr);
 }
+
+mld::Node NodeDao::addNode( double weight )
+{
+    AttrMap data(m_nodeAttr);
+    data[NodeAttr::WEIGHT].SetDoubleVoid(weight);
+    return addNode(data);
+}
+
+mld::Node NodeDao::addNode( AttrMap& data )
+{
+    AttrMap dat(m_nodeAttr);
+    // Add or update the attrMap that will be persisted
+    for( auto& kv: data )
+        dat[kv.first] = kv.second;
+    Node n(m_g->NewNode(m_nType), dat);
+    updateAttrMap(m_nType, n.id(), n.data());
+    return n;
+}
+
 
 void NodeDao::removeNode( oid_t id )
 {
@@ -69,9 +92,9 @@ void NodeDao::removeNode( oid_t id )
 #endif
 }
 
-void NodeDao::updateNode( Node& n )
+bool NodeDao::updateNode( Node& n )
 {
-    updateAttrMap(m_nType, n.id(), n.data());
+    return updateAttrMap(m_nType, n.id(), n.data());
 }
 
 mld::Node NodeDao::getNode( oid_t id )

@@ -66,7 +66,7 @@ static const double kHLINK_DEF_VALUE = 1.0;
  */
 static const double kVLINK_DEF_VALUE = 1.0;
 
-static const double kSUPERNODE_DEF_VALUE = 1.0;
+static const double kNODE_DEF_VALUE = 1.0;
 
 static const int64_t kINVALID_NODE_COUNT = -1;
 static const int64_t kINVALID_EDGE_COUNT = -1;

@@ -85,7 +85,8 @@ typedef std::map<sparksee::gdb::oid_t, Node> NodeMap;
      * @param weight
      * @return New created HLink
      */
-    HLink addHLink( const Node& src, const Node& tgt, double weight = kHLINK_DEF_VALUE );
+    HLink addHLink( const Node& src, const Node& tgt, double weight=kHLINK_DEF_VALUE );
+    HLink addHLink( const Node& src, const Node& tgt, AttrMap& data );
 
     /**
      * @brief Add VLink
@@ -95,7 +96,8 @@ typedef std::map<sparksee::gdb::oid_t, Node> NodeMap;
      * @param weight
      * @return New created VLink
      */
-    VLink addVLink( const Node& child, const Node& parent, double weight = kVLINK_DEF_VALUE );
+    VLink addVLink( const Node& child, const Node& parent, double weight=kVLINK_DEF_VALUE );
+    VLink addVLink( const Node& src, const Node& tgt, AttrMap& data );
 
     /**
      * @brief Get all nodes ids belonging to input layer
@@ -247,20 +249,19 @@ typedef std::map<sparksee::gdb::oid_t, Node> NodeMap;
 
     // Forward to SNDao
     void removeNode( sparksee::gdb::oid_t id );
-    void updateNode( const Node& n );
+    void updateNode( Node& n );
     Node getNode( sparksee::gdb::oid_t id );
     SuperNodeVec getNode( const ObjectsPtr& objs );
 
     // Forward to LinkDao
     HLink getHLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
     HLink getHLink( sparksee::gdb::oid_t hid );
-    HLink getOrCreateHLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt, double weight );
-    bool updateHLink( const HLink& link );
+    bool updateHLink( HLink& link );
     std::vector<HLink> getHLink( const ObjectsPtr& objs );
 
     VLink getVLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
     VLink getVLink( sparksee::gdb::oid_t vid );
-    bool updateVLink( const VLink& link );
+    bool updateVLink( VLink& link );
 
     // Forward to LayerDAO
     /**
@@ -360,9 +361,8 @@ typedef std::map<sparksee::gdb::oid_t, Node> NodeMap;
     /**
      * @brief Update Layer attributes
      * @param layer Input layer
-     * @return success
      */
-    bool updateLayer( const Layer& layer );
+    void updateLayer( Layer& layer );
 
     /**
      * @brief Get layer by id
@@ -379,7 +379,7 @@ typedef std::map<sparksee::gdb::oid_t, Node> NodeMap;
 
     sparksee::gdb::type_t hlinkType() const;
     sparksee::gdb::type_t vlinkType() const;
-    sparksee::gdb::type_t superNodeType() const;
+    sparksee::gdb::type_t nodeType() const;
 
 private:
     sparksee::gdb::oid_t getLayerIdForSuperNode( sparksee::gdb::oid_t nid );
@@ -395,7 +395,7 @@ private:
                               const WeightMergerFunc& f );
 
 private:
-    std::unique_ptr<NodeDao> m_sn;
+    std::unique_ptr<NodeDao> m_node;
     std::unique_ptr<LayerDao> m_layer;
     std::unique_ptr<LinkDao> m_link;
     sparksee::gdb::type_t m_ownsType;

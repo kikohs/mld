@@ -35,8 +35,7 @@ public:
 
 protected:
     Layer();
-    Layer( sparksee::gdb::oid_t id );
-    Layer( sparksee::gdb::oid_t id, const AttrMap& data );
+    explicit Layer( sparksee::gdb::oid_t id, const AttrMap& data );
 
     void setIsBaseLayer( bool v );
     // "Hide" the setId method

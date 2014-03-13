@@ -51,7 +51,7 @@ TEST( LayerDaoTest, BaseLayer )
     SessionPtr sess = sparkseeManager.newSession();
     Graph* g = sess->GetGraph();
     // Create Db scheme
-    sparkseeManager.createScheme(g);
+    sparkseeManager.createBaseScheme(g);
 
     std::unique_ptr<LayerDao> dao( new LayerDao(g) );
 
@@ -103,7 +103,7 @@ TEST( LayerDaoTest, AddRemoveLayers )
     SessionPtr sess = sparkseeManager.newSession();
     Graph* g = sess->GetGraph();
     // Create Db scheme
-    sparkseeManager.createScheme(g);
+    sparkseeManager.createBaseScheme(g);
 
     std::unique_ptr<LayerDao> dao( new LayerDao(g) );
     bool success = false;
@@ -205,7 +205,7 @@ TEST( LayerDaoTest, GetUpdateLayer )
     SessionPtr sess = sparkseeManager.newSession();
     Graph* g = sess->GetGraph();
     // Create Db scheme
-    sparkseeManager.createScheme(g);
+    sparkseeManager.createBaseScheme(g);
 
     std::unique_ptr<LayerDao> dao( new LayerDao(g) );
 

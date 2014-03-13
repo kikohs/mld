@@ -34,9 +34,9 @@ public:
 
     virtual void print( std::ostream& out ) const override;
 protected:
-    Link();
-    Link( sparksee::gdb::oid_t eid, sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
-    Link( sparksee::gdb::oid_t eid, sparksee::gdb::oid_t src,
+    explicit Link();
+    explicit Link( sparksee::gdb::oid_t eid, sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
+    explicit Link( sparksee::gdb::oid_t eid, sparksee::gdb::oid_t src,
           sparksee::gdb::oid_t tgt, const AttrMap& data );
     // "Hide" setId method
     using GraphObject::setId;
@@ -65,11 +65,8 @@ public:
     void setWeight( double v );
 
 protected:
-    HLink();
-    HLink( sparksee::gdb::oid_t eid, sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
-    HLink( sparksee::gdb::oid_t eid, sparksee::gdb::oid_t src,
-           sparksee::gdb::oid_t tgt, double weight );
-    HLink( sparksee::gdb::oid_t eid, sparksee::gdb::oid_t src,
+    explicit HLink();
+    explicit HLink( sparksee::gdb::oid_t eid, sparksee::gdb::oid_t src,
            sparksee::gdb::oid_t tgt, const AttrMap& data );
 
     // "Hide" setId method
@@ -94,11 +91,8 @@ public:
     void setWeight( double v );
 
 protected:
-    VLink();
-    VLink( sparksee::gdb::oid_t eid, sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
-    VLink( sparksee::gdb::oid_t eid, sparksee::gdb::oid_t src,
-           sparksee::gdb::oid_t tgt, double weight );
-    VLink( sparksee::gdb::oid_t eid, sparksee::gdb::oid_t src,
+    explicit VLink();
+    explicit VLink( sparksee::gdb::oid_t eid, sparksee::gdb::oid_t src,
            sparksee::gdb::oid_t tgt, const AttrMap& data );
 
     // "Hide" setId method

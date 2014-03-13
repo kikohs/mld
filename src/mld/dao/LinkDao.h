@@ -89,6 +89,9 @@ private:
 private:
     sparksee::gdb::type_t m_hType;
     sparksee::gdb::type_t m_vType;
+
+    AttrMap m_hLinkAttr;
+    AttrMap m_vLinkAttr;
 };
 
 } // end namespace mld

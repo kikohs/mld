@@ -40,7 +40,7 @@ TEST( AdditiveMergerTest, Check )
     SessionPtr sess = sparkseeManager.newSession();
     Graph* g = sess->GetGraph();
     // Create Db scheme
-    sparkseeManager.createScheme(g);
+    sparkseeManager.createBaseScheme(g);
 
     std::unique_ptr<MLGDao> dao( new MLGDao(g) );
     Layer base = dao->addBaseLayer();
