@@ -30,13 +30,6 @@ Layer::Layer()
 Layer::Layer( sparksee::gdb::oid_t id, const AttrMap& data )
     : GraphObject(id, data)
 {
-    auto it = m_data.find(LayerAttr::IS_BASE);
-    if( it == m_data.end() )
-        m_data[LayerAttr::IS_BASE].SetBooleanVoid(false);
-
-    it = m_data.find(LayerAttr::DESCRIPTION);
-    if( it == m_data.end() )
-        m_data[LayerAttr::DESCRIPTION].SetStringVoid(L"");
 }
 
 Layer::~Layer()

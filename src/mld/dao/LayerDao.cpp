@@ -31,8 +31,7 @@ using namespace sparksee::gdb;
 LayerDao::LayerDao( Graph* g )
     : AbstractDao(g)
 {
-    if( g )
-        m_lType = m_g->FindType(NodeType::LAYER);
+    setGraph(g);
 }
 
 LayerDao::~LayerDao()
@@ -45,6 +44,10 @@ void LayerDao::setGraph( Graph* g )
     if( g ) {
         AbstractDao::setGraph(g);
         m_lType = m_g->FindType(NodeType::LAYER);
+        // Create a dummy layer to get the default attributes
+        oid_t id = addLayer();
+        m_layerAttr = readAttrMap(id);
+        m_g->Drop(id);
     }
 }
 
@@ -61,12 +64,13 @@ Layer LayerDao::addLayerOnTop()
         LOG(logERROR) << "LayerDao::addLayerOnTop: need a base layer";
         return Layer();
     }
-    Layer res;
-    auto newId = addLayer();
-    bool ok = attachOnTop(newId);
-    if( ok ) // Valid attach
-        res.m_id = newId;
-    return res;
+
+    oid_t newId = addLayer();
+    if( !attachOnTop(newId) ) {
+        LOG(logERROR) << "LayerDao::addLayerOnTop: attach failed";
+        return Layer();
+    }
+    return Layer(newId, m_layerAttr);
 }
 
 Layer LayerDao::addLayerOnBottom()
@@ -76,12 +80,13 @@ Layer LayerDao::addLayerOnBottom()
         LOG(logERROR) << "LayerDao::addLayerOnBottom: need a base layer";
         return Layer();
     }
-    Layer res;
-    auto newId = addLayer();
-    bool ok = attachOnBottom(newId);
-    if( ok ) // Valid attach
-        res.m_id = newId;
-    return res;
+
+    oid_t newId = addLayer();
+    if( !attachOnBottom(newId) ) {
+        LOG(logERROR) << "LayerDao::addLayerOnBottom: attach failed";
+        return Layer();
+    }
+    return Layer(newId, m_layerAttr);
 }
 
 void LayerDao::updateLayer( Layer& layer )
@@ -199,16 +204,10 @@ bool LayerDao::removeBaseLayer()
 
 bool LayerDao::removeAllButBaseLayer()
 {
-    bool success = true;
     // Remove all top layers
-    while( success )
-        success = removeTopLayer();
-
+    while( removeTopLayer() );
     // Remove all bottom layers
-    success = true;
-    while( success )
-        success = removeBottomLayer();
-
+    while( removeBottomLayer() );
     auto nb = countLayers();
     return nb == 1 ? true : false;
 }
