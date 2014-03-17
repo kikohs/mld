@@ -87,10 +87,10 @@ bool SparkseeManager::addAttrToNode( Graph* g,
 }
 
 bool SparkseeManager::addAttrToHLink( Graph* g,
-                                          const std::wstring& key,
-                                          DataType dtype,
-                                          AttributeKind aKind,
-                                          Value& defaultValue )
+                                      const std::wstring& key,
+                                      DataType dtype,
+                                      AttributeKind aKind,
+                                      Value& defaultValue )
 {
     bool ok = addAttr(g, EdgeType::H_LINK, key, dtype, aKind, defaultValue);
     if( !ok ) {
@@ -100,14 +100,27 @@ bool SparkseeManager::addAttrToHLink( Graph* g,
 }
 
 bool SparkseeManager::addAttrToVLink( Graph* g,
-                                          const std::wstring& key,
-                                          DataType dtype,
-                                          AttributeKind aKind,
-                                          Value& defaultValue )
+                                      const std::wstring& key,
+                                      DataType dtype,
+                                      AttributeKind aKind,
+                                      Value& defaultValue )
 {
     bool ok = addAttr(g, EdgeType::V_LINK, key, dtype, aKind, defaultValue);
     if( !ok ) {
         LOG(logERROR) << "SparkseeManager::addAttrToVLink HLink edgeType not created";
+    }
+    return ok;
+}
+
+bool SparkseeManager::addAttrToOwnsLink( Graph* g,
+                                      const std::wstring& key,
+                                      DataType dtype,
+                                      AttributeKind aKind,
+                                      Value& defaultValue )
+{
+    bool ok = addAttr(g, EdgeType::OWNS, key, dtype, aKind, defaultValue);
+    if( !ok ) {
+        LOG(logERROR) << "SparkseeManager::addAttrToOwnsLink OWNS edgeType not created";
     }
     return ok;
 }

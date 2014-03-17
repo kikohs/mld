@@ -74,6 +74,14 @@ void HLink::setWeight( double v )
     m_data[H_LinkAttr::WEIGHT].SetDoubleVoid(v);
 }
 
+std::ostream& operator<<( std::ostream& out, const mld::HLink& hlink )
+{
+    out << "hlink ";
+    hlink.print(out);
+    return out;
+}
+
+
 // ****** VLINK ****** //
 
 VLink::VLink()
@@ -95,13 +103,6 @@ void VLink::setWeight( double v )
     m_data[V_LinkAttr::WEIGHT].SetDoubleVoid(v);
 }
 
-std::ostream& operator<<( std::ostream& out, const mld::HLink& hlink )
-{
-    out << "hlink ";
-    hlink.print(out);
-    return out;
-}
-
 std::ostream& operator<<( std::ostream& out, const mld::VLink& vlink )
 {
     out << "vlink ";
@@ -109,6 +110,21 @@ std::ostream& operator<<( std::ostream& out, const mld::VLink& vlink )
     return out;
 }
 
+// ****** OLINK ****** //
+
+OLink::OLink()
+    : Link()
+{
+}
+
+OLink::OLink( oid_t eid, oid_t src, oid_t tgt, const AttrMap& data )
+    : Link(eid, src, tgt, data)
+{
+}
+
+OLink::~OLink()
+{
+}
 
 
 

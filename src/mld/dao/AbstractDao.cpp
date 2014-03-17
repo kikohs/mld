@@ -85,3 +85,77 @@ bool AbstractDao::updateAttrMap( type_t objType, oid_t id, AttrMap& data )
 #endif
     return true;
 }
+
+oid_t AbstractDao::addEdge( type_t lType, oid_t src, oid_t tgt )
+{
+    oid_t eid = Objects::InvalidOID;
+#ifdef MLD_SAFE
+    if( src == tgt ) { // no self loop
+        LOG(logWARNING) << "AbstractDao::addEdge: no self-loop allowed";
+        return eid;
+    }
+
+    // no invalid edge
+    if( src == Objects::InvalidOID || tgt == Objects::InvalidOID ) {
+        LOG(logERROR) << "AbstractDao::addEdge: source or target is invalid";
+        return eid;
+    }
+#endif
+#ifdef MLD_SAFE
+    try {
+#endif
+        eid = m_g->NewEdge(lType, src, tgt);
+#ifdef MLD_SAFE
+    } catch( Error& ) {
+        LOG(logERROR) << "AbstractDao::addEdge: invalid src or tgt";
+        return Objects::InvalidOID;
+    }
+#endif
+    return eid;
+}
+
+oid_t AbstractDao::findEdge( type_t objType, oid_t src, oid_t tgt )
+{
+    oid_t eid = Objects::InvalidOID;
+#ifdef MLD_SAFE
+    try {
+#endif
+        eid = m_g->FindEdge(objType, src, tgt);
+#ifdef MLD_SAFE
+    } catch( Error& e ) {
+        LOG(logERROR) << "AbstractDao::findEdge: " << e.Message();
+    }
+#endif
+    return eid;
+}
+
+bool AbstractDao::removeEdge( type_t edgeType, oid_t src, oid_t tgt )
+{
+    oid_t id = findEdge(edgeType, src, tgt);
+    return removeEdge(edgeType, id);
+}
+
+bool AbstractDao::removeEdge( type_t edgeType, oid_t id )
+{
+    if( id == Objects::InvalidOID ) {
+        LOG(logERROR) << "AbstractDao::removeEdgeImpl: invalid oid";
+        return false;
+    }
+#ifdef MLD_SAFE
+
+    try {
+        auto t = m_g->GetObjectType(id);
+        if( edgeType != t || t == Type::InvalidType ) {
+            LOG(logERROR) << "AbstractDao::removeEdgeImpl: type mismatch";
+            return false;
+        }
+#endif
+        m_g->Drop(id);
+#ifdef MLD_SAFE
+    } catch( Error& e ) {
+        LOG(logERROR) << "AbstractDao::removeEdgeImpl: " << e.Message();
+        return false;
+    }
+#endif
+    return true;
+}

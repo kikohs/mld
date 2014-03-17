@@ -39,6 +39,7 @@ namespace mld {
     class NodeDao;
     class LayerDao;
     class LinkDao;
+    class OwnsDao;
 }
 
 namespace mld {
@@ -76,6 +77,8 @@ typedef std::map<sparksee::gdb::oid_t, Node> NodeMap;
      * @return
      */
     Node addNodeToLayer( const Layer& l );
+    Node addNodeToLayer( const Layer& l, AttrMap& nodeData );
+    Node addNodeToLayer( const Layer& l, AttrMap& nodeData, AttrMap& ownsData );
 
     /**
      * @brief Add HLink
@@ -378,9 +381,13 @@ typedef std::map<sparksee::gdb::oid_t, Node> NodeMap;
      */
     bool exists( const Layer& layer );
 
+    // Forward to OwnsDao
+    void removeOwnsLink( sparksee::gdb::oid_t layerId, sparksee::gdb::oid_t nodeId );
+
     sparksee::gdb::type_t hlinkType() const;
     sparksee::gdb::type_t vlinkType() const;
     sparksee::gdb::type_t nodeType() const;
+    sparksee::gdb::type_t ownsType() const;
 
 private:
     sparksee::gdb::oid_t getLayerIdForNode( sparksee::gdb::oid_t nid );
@@ -399,7 +406,7 @@ private:
     std::unique_ptr<NodeDao> m_node;
     std::unique_ptr<LayerDao> m_layer;
     std::unique_ptr<LinkDao> m_link;
-    sparksee::gdb::type_t m_ownsType;
+    std::unique_ptr<OwnsDao> m_owns;
 };
 
 } // end namespace mld

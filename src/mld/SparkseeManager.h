@@ -121,10 +121,10 @@ public:
      * @return success
      */
     bool addAttrToNode( sparksee::gdb::Graph* g,
-                                 const std::wstring& key,
-                                 sparksee::gdb::DataType dtype,
-                                 sparksee::gdb::AttributeKind aKind,
-                                 sparksee::gdb::Value& defaultValue );
+                        const std::wstring& key,
+                        sparksee::gdb::DataType dtype,
+                        sparksee::gdb::AttributeKind aKind,
+                        sparksee::gdb::Value& defaultValue );
 
     /**
      * @brief Add an attribute to the HLink type
@@ -136,10 +136,10 @@ public:
      * @return success
      */
     bool addAttrToHLink( sparksee::gdb::Graph* g,
-                             const std::wstring& key,
-                             sparksee::gdb::DataType dtype,
-                             sparksee::gdb::AttributeKind aKind,
-                             sparksee::gdb::Value& defaultValue );
+                         const std::wstring& key,
+                         sparksee::gdb::DataType dtype,
+                         sparksee::gdb::AttributeKind aKind,
+                         sparksee::gdb::Value& defaultValue );
 
     /**
      * @brief Add an attribute to the VLink type
@@ -151,11 +151,25 @@ public:
      * @return success
      */
     bool addAttrToVLink( sparksee::gdb::Graph* g,
-                             const std::wstring& key,
-                             sparksee::gdb::DataType dtype,
-                             sparksee::gdb::AttributeKind aKind,
-                             sparksee::gdb::Value& defaultValue );
+                         const std::wstring& key,
+                         sparksee::gdb::DataType dtype,
+                         sparksee::gdb::AttributeKind aKind,
+                         sparksee::gdb::Value& defaultValue );
 
+    /**
+     * @brief Add an attribute to the Owns type
+     * @param g Graph
+     * @param key Key to retrieve the attribute
+     * @param dtype Type of the attribute
+     * @param aKind Index or Basic
+     * @param defaultValue
+     * @return success
+     */
+    bool addAttrToOwnsLink( sparksee::gdb::Graph* g,
+                            const std::wstring& key,
+                            sparksee::gdb::DataType dtype,
+                            sparksee::gdb::AttributeKind aKind,
+                            sparksee::gdb::Value& defaultValue );
 private:
     /**
      * @brief Create NodeType if not already in the db

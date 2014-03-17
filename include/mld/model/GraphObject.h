@@ -54,6 +54,11 @@ public:
                 && m_data.size() == rhs.m_data.size()
                 && std::equal(m_data.begin(), m_data.end(), rhs.m_data.begin(), pred);
     }
+
+    inline bool operator !=( const GraphObject& rhs ) const
+    {
+        return !operator ==(rhs);
+    }
     /**
      * @brief Print method which display the content of AttrMap and the id
      * @param out

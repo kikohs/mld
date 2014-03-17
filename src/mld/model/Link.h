@@ -97,7 +97,25 @@ protected:
 
     // "Hide" setId method
     using GraphObject::setId;
+};
 
+/**
+ * @brief The Owns link class
+ */
+class MLD_API OLink : public Link
+{
+    friend class OwnsDao;
+    friend class MLGDao;
+public:
+    virtual ~OLink() override;
+
+protected:
+    explicit OLink();
+    explicit OLink( sparksee::gdb::oid_t eid, sparksee::gdb::oid_t src,
+           sparksee::gdb::oid_t tgt, const AttrMap& data );
+
+    // "Hide" setId method
+    using GraphObject::setId;
 };
 
 } // end namespace mld

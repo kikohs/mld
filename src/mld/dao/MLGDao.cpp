@@ -29,6 +29,7 @@
 #include "mld/dao/LayerDao.h"
 #include "mld/dao/NodeDao.h"
 #include "mld/dao/LinkDao.h"
+#include "mld/dao/OwnsDao.h"
 #include "mld/utils/ProgressDisplay.h"
 
 using namespace mld;
@@ -39,9 +40,8 @@ MLGDao::MLGDao( Graph* g )
     , m_node( new NodeDao(g) )
     , m_layer( new LayerDao(g) )
     , m_link( new LinkDao(g) )
+    , m_owns( new OwnsDao(g) )
 {
-    if( g )
-        m_ownsType = m_g->FindType(EdgeType::OWNS);
 }
 
 MLGDao::~MLGDao()
@@ -55,7 +55,7 @@ void MLGDao::setGraph( Graph* g )
         m_node->setGraph(g);
         m_layer->setGraph(g);
         m_link->setGraph(g);
-        m_ownsType = m_g->FindType(EdgeType::OWNS);
+        m_owns->setGraph(g);
     }
 }
 
@@ -76,9 +76,37 @@ mld::Node MLGDao::addNodeToLayer( const Layer& l )
         return Node();
     }
 #endif
-    Node res = m_node->addNode();
+    Node res(m_node->addNode());
     // New edge OWNS: Layer -> Node
-    m_g->NewEdge(m_ownsType, l.id(), res.id());
+    m_owns->addOLink(l.id(), res.id());
+    return res;
+}
+
+mld::Node MLGDao::addNodeToLayer( const Layer& l, AttrMap& nodeData )
+{
+#ifdef MLD_SAFE
+    if( !m_layer->exists(l) ) {
+        LOG(logERROR) << "MLGDao::addNodeToLayer: Layer doesn't exist!";
+        return Node();
+    }
+#endif
+    Node res(m_node->addNode(nodeData));
+    // New edge OWNS: Layer -> Node
+    m_owns->addOLink(l.id(), res.id());
+    return res;
+}
+
+mld::Node MLGDao::addNodeToLayer( const Layer& l, AttrMap& nodeData, AttrMap& ownsData )
+{
+#ifdef MLD_SAFE
+    if( !m_layer->exists(l) ) {
+        LOG(logERROR) << "MLGDao::addNodeToLayer: Layer doesn't exist!";
+        return Node();
+    }
+#endif
+    Node res(m_node->addNode(nodeData));
+    // New edge OWNS: Layer -> Node
+    m_owns->addOLink(l.id(), res.id(), ownsData);
     return res;
 }
 
@@ -152,7 +180,7 @@ ObjectsPtr MLGDao::getAllNodeIds( const Layer& l )
 #ifdef MLD_SAFE
     try {
 #endif
-        res.reset(m_g->Neighbors(l.id(), m_ownsType, Outgoing));
+        res.reset(m_g->Neighbors(l.id(), m_owns->ownsType(), Outgoing));
 #ifdef MLD_SAFE
     } catch( Error& e ) {
         LOG(logERROR) << "MLGDao::getAllNodes: " << e.Message();
@@ -378,7 +406,7 @@ oid_t MLGDao::getLayerIdForNode( oid_t nid )
 #ifdef MLD_SAFE
     try {
 #endif
-        obj.reset(m_g->Neighbors(nid, m_ownsType, Ingoing));
+        obj.reset(m_g->Neighbors(nid, m_owns->ownsType(), Ingoing));
 #ifdef MLD_SAFE
     } catch( Error& ) {
         LOG(logERROR) << "MLGDao::getLayerForNode: invalid supernode";
@@ -761,4 +789,9 @@ type_t MLGDao::vlinkType() const
 type_t MLGDao::nodeType() const
 {
     return m_node->nodeType();
+}
+
+type_t MLGDao::ownsType() const
+{
+    return m_owns->ownsType();
 }

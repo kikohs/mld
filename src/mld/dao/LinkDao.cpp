@@ -231,22 +231,22 @@ std::vector<VLink> LinkDao::getVLink( const ObjectsPtr& objs )
 
 bool LinkDao::removeHLink( oid_t src, oid_t tgt )
 {
-    return removeLinkImpl(m_hType, src, tgt);
+    return removeEdge(m_hType, src, tgt);
 }
 
 bool LinkDao::removeHLink( oid_t hid )
 {
-    return removeLinkImpl(m_hType, hid);
+    return removeEdge(m_hType, hid);
 }
 
 bool LinkDao::removeVLink( oid_t src, oid_t tgt )
 {
-    return removeLinkImpl(m_vType, src, tgt);
+    return removeEdge(m_vType, src, tgt);
 }
 
 bool LinkDao::removeVLink( oid_t vid )
 {
-    return removeLinkImpl(m_vType, vid);
+    return removeEdge(m_vType, vid);
 }
 
 bool LinkDao::updateHLink( oid_t src, oid_t tgt, double weight )
@@ -293,17 +293,11 @@ bool LinkDao::updateVLink( oid_t child, oid_t parent, double weight )
 
 bool LinkDao::updateVLink( oid_t child, oid_t parent, AttrMap& data )
 {
-    oid_t eid = Objects::InvalidOID;
-#ifdef MLD_SAFE
-    try {
-#endif
-        eid = m_g->FindEdge(m_vType, child, parent);
-#ifdef MLD_SAFE
-    } catch( Error& ) {
+    oid_t eid = findEdge(m_vType, child, parent);
+    if( eid == Objects::InvalidOID ) {
         LOG(logERROR) << "LinkDao::updateVLink: invalid child or parent";
         return false;
     }
-#endif
     return updateVLink(eid, data);
 }
 
@@ -318,76 +312,4 @@ bool LinkDao::updateVLink( oid_t vid, double weight )
     data[V_LinkAttr::WEIGHT].SetDoubleVoid(weight);
     return updateVLink(vid, data);
 }
-
-
-// ****** PRIVATE METHODS ****** //
-bool LinkDao::removeLinkImpl( type_t edgeType, oid_t src, oid_t tgt )
-{
-    oid_t id = Objects::InvalidOID;
-#ifdef MLD_SAFE
-    try {
-#endif
-        id = m_g->FindEdge(edgeType, src, tgt);
-#ifdef MLD_SAFE
-    } catch( Error& ) {
-        LOG(logERROR) << "LinkDao::removeLinkImpl: invalid src and or target";
-        return false;
-    }
-#endif
-    return removeLinkImpl(edgeType, id);
-}
-
-bool LinkDao::removeLinkImpl( type_t edgeType, oid_t id )
-{
-#ifdef MLD_SAFE
-    if( id == Objects::InvalidOID ) {
-        LOG(logERROR) << "LinkDao::removeLinkImpl: invalid oid";
-        return false;
-    }
-
-    try {
-        auto t = m_g->GetObjectType(id);
-        if( edgeType != t || t == Type::InvalidType ) {
-            LOG(logERROR) << "LinkDao::removeLinkImpl: type mismatch";
-            return false;
-        }
-#endif
-        m_g->Drop(id);
-#ifdef MLD_SAFE
-    } catch( Error& e ) {
-        LOG(logERROR) << "LinkDao::removeLinkImpl: " << e.Message();
-        return false;
-    }
-#endif
-    return true;
-}
-
-oid_t LinkDao::addEdge( type_t lType, oid_t src, oid_t tgt )
-{
-    oid_t eid = Objects::InvalidOID;
-#ifdef MLD_SAFE
-    if( src == tgt ) { // no self loop
-        LOG(logWARNING) << "LinkDao::addEdge: no self-loop allowed";
-        return eid;
-    }
-
-    // no invalid edge
-    if( src == Objects::InvalidOID || tgt == Objects::InvalidOID ) {
-        LOG(logERROR) << "LinkDao::addEdge: source or target is invalid";
-        return eid;
-    }
-#endif
-#ifdef MLD_SAFE
-    try {
-#endif
-        eid = m_g->NewEdge(lType, src, tgt);
-#ifdef MLD_SAFE
-    } catch( Error& ) {
-        LOG(logERROR) << "LinkDao::addEdge: invalid src or tgt";
-        return Objects::InvalidOID;
-    }
-#endif
-    return eid;
-}
-
 

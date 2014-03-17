@@ -44,7 +44,7 @@ namespace mld {
 namespace mld {
 
 typedef std::function<double (double, double)>  WeightMergerFunc;
-typedef std::vector<Node> SuperNodeVec;
+typedef std::vector<Node> NodeVec;
 
 /**
  * @brief The MultiLayerGraph (MLG) dao
@@ -118,7 +118,7 @@ typedef std::map<sparksee::gdb::oid_t, Node> NodeMap;
      * @param l Input layer
      * @return Nodes
      */
-    SuperNodeVec getAllSuperNode( const Layer& l );
+    NodeVec getAllNodes( const Layer& l );
 
     /**
      * @brief Get all Hlink for an input layer
@@ -148,7 +148,7 @@ typedef std::map<sparksee::gdb::oid_t, Node> NodeMap;
      * @param id SuperNode id
      * @return Parent SuperNodes
      */
-    SuperNodeVec getParentNodes( sparksee::gdb::oid_t id );
+    NodeVec getParentNodes( sparksee::gdb::oid_t id );
     ObjectsPtr getParentIds( sparksee::gdb::oid_t id );
 
     /**
@@ -156,7 +156,7 @@ typedef std::map<sparksee::gdb::oid_t, Node> NodeMap;
      * @param id SuperNode id
      * @return Child SuperNodes
      */
-    SuperNodeVec getChildNodes( sparksee::gdb::oid_t id );
+    NodeVec getChildNodes( sparksee::gdb::oid_t id );
     ObjectsPtr getChildIds( sparksee::gdb::oid_t id );
 
     /**
@@ -247,11 +247,12 @@ typedef std::map<sparksee::gdb::oid_t, Node> NodeMap;
                              const ObjectsPtr& subset=ObjectsPtr(),
                              const WeightMergerFunc& f=[](double a, double b) {return a + b;} );
 
+    inline Node invalidNode() const { return Node(); }
     // Forward to SNDao
     void removeNode( sparksee::gdb::oid_t id );
-    void updateNode( Node& n );
+    bool updateNode( Node& n );
     Node getNode( sparksee::gdb::oid_t id );
-    SuperNodeVec getNode( const ObjectsPtr& objs );
+    NodeVec getNode( const ObjectsPtr& objs );
 
     // Forward to LinkDao
     HLink getHLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
@@ -382,7 +383,7 @@ typedef std::map<sparksee::gdb::oid_t, Node> NodeMap;
     sparksee::gdb::type_t nodeType() const;
 
 private:
-    sparksee::gdb::oid_t getLayerIdForSuperNode( sparksee::gdb::oid_t nid );
+    sparksee::gdb::oid_t getLayerIdForNode( sparksee::gdb::oid_t nid );
     Layer mirrorLayerImpl( Direction dir );
     HLink mirrorEdge( const HLink& current, Direction dir, const Layer& newLayer, NodeMap& nodeMap );
     Node mirrorNode( sparksee::gdb::oid_t current, Direction dir, const Layer& newLayer );

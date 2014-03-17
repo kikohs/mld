@@ -80,13 +80,6 @@ public:
     inline sparksee::gdb::type_t vlinkType() const { return m_vType; }
 
 private:
-    bool removeLinkImpl( sparksee::gdb::type_t edgeType, sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
-    bool removeLinkImpl( sparksee::gdb::type_t edgeType, sparksee::gdb::oid_t id );
-
-    sparksee::gdb::oid_t addEdge( sparksee::gdb::type_t lType,
-                                  sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
-
-private:
     sparksee::gdb::type_t m_hType;
     sparksee::gdb::type_t m_vType;
 

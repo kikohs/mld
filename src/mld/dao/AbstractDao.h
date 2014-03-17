@@ -56,8 +56,30 @@ public:
      */
     bool updateAttrMap( sparksee::gdb::type_t objType, sparksee::gdb::oid_t id, AttrMap& data );
 
+
+    /**
+     * @brief Find Edge, safe version if MLD_SAFE is enabled
+     * @param objType
+     * @param src
+     * @param tgt
+     * @return edge oid
+     */
+    sparksee::gdb::oid_t findEdge( sparksee::gdb::type_t objType,
+                                   sparksee::gdb::oid_t src,
+                                   sparksee::gdb::oid_t tgt );
+
 protected:
     AbstractDao( sparksee::gdb::Graph* g );
+    sparksee::gdb::oid_t addEdge( sparksee::gdb::type_t lType,
+                                  sparksee::gdb::oid_t src,
+                                  sparksee::gdb::oid_t tgt );
+
+    bool removeEdge( sparksee::gdb::type_t lType,
+                     sparksee::gdb::oid_t src,
+                     sparksee::gdb::oid_t tgt );
+
+    bool removeEdge( sparksee::gdb::type_t lType,
+                     sparksee::gdb::oid_t id );
 
 protected:
     sparksee::gdb::Graph* m_g;
