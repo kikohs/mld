@@ -76,6 +76,8 @@ typedef std::map<sparksee::gdb::oid_t, Node> NodeMap;
      * @return
      */
     Node addNodeToLayer( const Layer& l );
+    Node addNodeToLayer( const Layer& l, AttrMap& nodeData );
+    Node addNodeToLayer( const Layer& l, AttrMap& nodeData, AttrMap& ownsData );
 
     /**
      * @brief Add HLink
@@ -85,7 +87,7 @@ typedef std::map<sparksee::gdb::oid_t, Node> NodeMap;
      * @param weight
      * @return New created HLink
      */
-    HLink addHLink( const Node& src, const Node& tgt, double weight=kHLINK_DEF_VALUE );
+    HLink addHLink( const Node& src, const Node& tgt, double weight=HLINK_DEF_VALUE );
     HLink addHLink( const Node& src, const Node& tgt, AttrMap& data );
 
     /**
@@ -96,7 +98,7 @@ typedef std::map<sparksee::gdb::oid_t, Node> NodeMap;
      * @param weight
      * @return New created VLink
      */
-    VLink addVLink( const Node& child, const Node& parent, double weight=kVLINK_DEF_VALUE );
+    VLink addVLink( const Node& child, const Node& parent, double weight=VLINK_DEF_VALUE );
     VLink addVLink( const Node& src, const Node& tgt, AttrMap& data );
 
     /**
@@ -378,9 +380,13 @@ typedef std::map<sparksee::gdb::oid_t, Node> NodeMap;
      */
     bool exists( const Layer& layer );
 
+    // Forward to OwnsDao
+    void removeOwnsLink( sparksee::gdb::oid_t layerId, sparksee::gdb::oid_t nodeId );
+
     sparksee::gdb::type_t hlinkType() const;
     sparksee::gdb::type_t vlinkType() const;
     sparksee::gdb::type_t nodeType() const;
+    sparksee::gdb::type_t ownsType() const;
 
 private:
     sparksee::gdb::oid_t getLayerIdForNode( sparksee::gdb::oid_t nid );
@@ -399,7 +405,6 @@ private:
     std::unique_ptr<NodeDao> m_node;
     std::unique_ptr<LayerDao> m_layer;
     std::unique_ptr<LinkDao> m_link;
-    sparksee::gdb::type_t m_ownsType;
 };
 
 } // end namespace mld

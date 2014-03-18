@@ -29,7 +29,6 @@
 #include "mld/dao/LayerDao.h"
 #include "mld/dao/NodeDao.h"
 #include "mld/dao/LinkDao.h"
-#include "mld/dao/OwnsDao.h"
 #include "mld/utils/ProgressDisplay.h"
 
 using namespace mld;
@@ -40,7 +39,6 @@ MLGDao::MLGDao( Graph* g )
     , m_node( new NodeDao(g) )
     , m_layer( new LayerDao(g) )
     , m_link( new LinkDao(g) )
-    , m_owns( new OwnsDao(g) )
 {
 }
 
@@ -55,7 +53,6 @@ void MLGDao::setGraph( Graph* g )
         m_node->setGraph(g);
         m_layer->setGraph(g);
         m_link->setGraph(g);
-        m_owns->setGraph(g);
     }
 }
 
@@ -78,7 +75,7 @@ mld::Node MLGDao::addNodeToLayer( const Layer& l )
 #endif
     Node res(m_node->addNode());
     // New edge OWNS: Layer -> Node
-    m_owns->addOLink(l.id(), res.id());
+    m_link->addOLink(l.id(), res.id());
     return res;
 }
 
@@ -92,11 +89,11 @@ mld::Node MLGDao::addNodeToLayer( const Layer& l, AttrMap& nodeData )
 #endif
     Node res(m_node->addNode(nodeData));
     // New edge OWNS: Layer -> Node
-    m_owns->addOLink(l.id(), res.id());
+    m_link->addOLink(l.id(), res.id());
     return res;
 }
 
-mld::Node MLGDao::addNodeToLayer( const Layer& l, AttrMap& nodeData, AttrMap& ownsData )
+mld::Node MLGDao::addNodeToLayer( const Layer& l, AttrMap& nodeData, AttrMap& oLinkData )
 {
 #ifdef MLD_SAFE
     if( !m_layer->exists(l) ) {
@@ -106,7 +103,7 @@ mld::Node MLGDao::addNodeToLayer( const Layer& l, AttrMap& nodeData, AttrMap& ow
 #endif
     Node res(m_node->addNode(nodeData));
     // New edge OWNS: Layer -> Node
-    m_owns->addOLink(l.id(), res.id(), ownsData);
+    m_link->addOLink(l.id(), res.id(), oLinkData);
     return res;
 }
 
@@ -122,7 +119,7 @@ HLink MLGDao::addHLink( const Node& src, const Node& tgt, double weight )
         return HLink();
     }
 #endif
-    if( weight == kHLINK_DEF_VALUE )
+    if( weight == HLINK_DEF_VALUE )
         return m_link->addHLink(src.id(), tgt.id());
     else
         return m_link->addHLink(src.id(), tgt.id(), weight);
@@ -154,7 +151,7 @@ VLink MLGDao::addVLink( const Node& child, const Node& parent, double weight )
         return VLink();
     }
 #endif
-    if( weight == kVLINK_DEF_VALUE )
+    if( weight == VLINK_DEF_VALUE )
         return m_link->addVLink(child.id(), parent.id());
     else
         return m_link->addVLink(child.id(), parent.id(), weight);
@@ -180,7 +177,7 @@ ObjectsPtr MLGDao::getAllNodeIds( const Layer& l )
 #ifdef MLD_SAFE
     try {
 #endif
-        res.reset(m_g->Neighbors(l.id(), m_owns->ownsType(), Outgoing));
+        res.reset(m_g->Neighbors(l.id(), m_link->ownsType(), Outgoing));
 #ifdef MLD_SAFE
     } catch( Error& e ) {
         LOG(logERROR) << "MLGDao::getAllNodes: " << e.Message();
@@ -265,7 +262,7 @@ int64_t MLGDao::getNodeCount( const Layer& l )
 {
     ObjectsPtr nodes(getAllNodeIds(l));
     if( !nodes )
-        return kINVALID_NODE_COUNT;
+        return INVALID_NODE_COUNT;
     return nodes->Count();
 }
 
@@ -273,7 +270,7 @@ int64_t MLGDao::getHLinkCount( const Layer& l )
 {
     ObjectsPtr edges(getAllHLinkIds(l));
     if( !edges )
-        return kINVALID_EDGE_COUNT;
+        return INVALID_EDGE_COUNT;
     return edges->Count();
 }
 
@@ -406,7 +403,7 @@ oid_t MLGDao::getLayerIdForNode( oid_t nid )
 #ifdef MLD_SAFE
     try {
 #endif
-        obj.reset(m_g->Neighbors(nid, m_owns->ownsType(), Ingoing));
+        obj.reset(m_g->Neighbors(nid, m_link->ownsType(), Ingoing));
 #ifdef MLD_SAFE
     } catch( Error& ) {
         LOG(logERROR) << "MLGDao::getLayerForNode: invalid supernode";
@@ -503,7 +500,7 @@ mld::Node MLGDao::mirrorNode( oid_t current, Direction dir, const Layer& newLaye
         m_link->addVLink(newNode.id(), prevNode.id());
 
     // Update node weight if needed
-    if( prevNode.weight() != kNODE_DEF_VALUE ) {
+    if( prevNode.weight() != NODE_DEF_VALUE ) {
         newNode.setWeight(prevNode.weight());
         m_node->updateNode(newNode);
     }
@@ -793,5 +790,5 @@ type_t MLGDao::nodeType() const
 
 type_t MLGDao::ownsType() const
 {
-    return m_owns->ownsType();
+    return m_link->ownsType();
 }

@@ -8,22 +8,28 @@
 - Layer
     - description when coarsening occurs
 
+## Dao
+- Refactor Link DAO for HLink, VLink, OLink
+
 ## Operator
-- Big refactoring
-- Coarsener factory, Selector and Merger factory
-- Unify Single and Multi derived class into 1
-- One coarsener with 2 different options:
-    - mirroring and second pass
-    - firstpass and mirroring and second pass.
+- Create in memory coarsening
+
+## Filter
+- Create filters
 
 ## Diffusion
 - Create diffuser
 
 ## IO
+- Import TimeSeries graph
 - Export layers
 - Export MLD
 
 # Tools
 - Create Explorer tool
 - Create benchmark tool which compares BFS, Dijkstra with subgraph from MLD
+
+# Tests
+
+
 

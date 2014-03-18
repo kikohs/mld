@@ -63,7 +63,7 @@ struct MLD_API EdgeType
     /**
      * @brief OWNS, a Layer OWNS some SuperNodes
      */
-    static const std::wstring OWNS;
+    static const std::wstring O_LINK;
     /**
      * @brief CHILD_OF, Layer - Layer relation
      */
@@ -95,6 +95,12 @@ struct MLD_API H_LinkAttr
 };
 
 struct MLD_API V_LinkAttr
+{
+    static const std::wstring WEIGHT;
+    static const AttrNameVec ATTRS;
+};
+
+struct MLD_API O_LinkAttr
 {
     static const std::wstring WEIGHT;
     static const AttrNameVec ATTRS;

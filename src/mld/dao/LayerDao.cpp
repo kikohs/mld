@@ -249,7 +249,7 @@ bool LayerDao::removeLayer( oid_t lid )
         return false;
     }
 
-    auto ownsType = m_g->FindType(EdgeType::OWNS);
+    auto ownsType = m_g->FindType(EdgeType::O_LINK);
     std::unique_ptr<Objects> nodesObj(m_g->Neighbors(lid, ownsType, Outgoing));
     // Remove all the associated nodes
     m_g->Drop(nodesObj.get());

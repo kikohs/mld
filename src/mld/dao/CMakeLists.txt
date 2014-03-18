@@ -3,7 +3,6 @@ set( DAO_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/NodeDao.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/LayerDao.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/LinkDao.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/OwnsDao.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/MLGDao.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/AbstractDao.cpp
 )

@@ -57,19 +57,13 @@ typedef std::unique_ptr<sparksee::gdb::ObjectsIterator> ObjectsIt;
 typedef std::unique_ptr<sparksee::gdb::AttributeList> AttributeListPtr;
 typedef std::unique_ptr<sparksee::gdb::AttributeListIterator> AttributeListIt;
 
-/**
- * @brief H_LINK default weight value
- */
-static const double kHLINK_DEF_VALUE = 1.0;
-/**
- * @brief V_LINK default weight value
- */
-static const double kVLINK_DEF_VALUE = 1.0;
+static const double HLINK_DEF_VALUE = 1.0;
+static const double VLINK_DEF_VALUE = 1.0;
+static const double OLINK_DEF_VALUE = 0.0;
+static const double NODE_DEF_VALUE = 1.0;
 
-static const double kNODE_DEF_VALUE = 1.0;
-
-static const int64_t kINVALID_NODE_COUNT = -1;
-static const int64_t kINVALID_EDGE_COUNT = -1;
+static const int64_t INVALID_NODE_COUNT = -1;
+static const int64_t INVALID_EDGE_COUNT = -1;
 
 } // end namespace mld
 

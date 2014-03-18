@@ -32,22 +32,22 @@ using namespace sparksee::gdb;
 
 namespace {
 
-oid_t addOrGetFromInsparkseeMap( uint64_t node, std::map<uint64_t, oid_t>& insparkseeMap,
+oid_t addOrGetFromIndexMap( uint64_t node, std::map<uint64_t, oid_t>& indexMap,
                             const Layer& base, MLGDao& dao )
 {
     oid_t id = 0;
-    auto it = insparkseeMap.find(node);
-    if( it != insparkseeMap.end() ) {
+    auto it = indexMap.find(node);
+    if( it != indexMap.end() ) {
         id = it->second;
     }
     else {  // Not in map
         // Add to graph
-        mld::Node n = dao.addNodeToLayer(base);
+        mld::Node n(dao.addNodeToLayer(base));
         std::wstringstream stream;
         stream << node;
         n.setLabel(stream.str());
         dao.updateNode(n);
-        insparkseeMap[node] = n.id();
+        indexMap[node] = n.id();
         id = n.id();
     }
     return id;
@@ -61,7 +61,7 @@ GraphImporter::GraphImporter()
 
 bool GraphImporter::fromSnapFormat( sparksee::gdb::Graph* g, const std::string& filepath )
 {
-    std::unique_ptr<Timer> t(new Timer("Importing graph"));
+    std::unique_ptr<Timer> t(new Timer("Importing snap graph"));
     LOG(logINFO) << "Parsing SNAP undirected graph: " << filepath;
     MLGDao dao(g);
     LinkDao linkDao(g);
@@ -72,7 +72,6 @@ bool GraphImporter::fromSnapFormat( sparksee::gdb::Graph* g, const std::string& 
     }
 
     std::ifstream infile(filepath.c_str());
-
     if( !infile ) {
         LOG(logERROR) << "GraphImporter::fromSnapFormat cannot open file " << filepath;
         return false;
@@ -89,15 +88,15 @@ bool GraphImporter::fromSnapFormat( sparksee::gdb::Graph* g, const std::string& 
     long startPos = pos - (read_line.size() + 1);
     infile.seekg(startPos);
 
-    std::map<uint64_t, oid_t> insparkseeMap;
+    std::map<uint64_t, oid_t> indexMap;
     uint64_t src;
     uint64_t tgt;
     while( infile >> src >> tgt ) {
         if( src == tgt ) // Skip self loop
             continue;
         // Add node if needed
-        oid_t srcId = addOrGetFromInsparkseeMap(src, insparkseeMap, base, dao);
-        oid_t tgtId = addOrGetFromInsparkseeMap(tgt, insparkseeMap, base, dao);
+        oid_t srcId = addOrGetFromIndexMap(src, indexMap, base, dao);
+        oid_t tgtId = addOrGetFromIndexMap(tgt, indexMap, base, dao);
         // Create HLink
         linkDao.addHLink(srcId, tgtId);
     }

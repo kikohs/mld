@@ -45,10 +45,8 @@ void AbstractDao::setGraph( Graph* g )
 AttrMap AbstractDao::readAttrMap( oid_t id )
 {
     AttrMap data;
-#ifdef MLD_SAFE
     if( id == Objects::InvalidOID )
         return data;
-#endif
 
     AttributeListPtr attrs(m_g->GetAttributes(id));
     AttributeListIt it(attrs->Iterator());
@@ -65,10 +63,9 @@ AttrMap AbstractDao::readAttrMap( oid_t id )
 
 bool AbstractDao::updateAttrMap( type_t objType, oid_t id, AttrMap& data )
 {
-#ifdef MLD_SAFE
     if( id == Objects::InvalidOID )
         return false;
-#endif
+
 #ifdef MLD_SAFE
     try {
 #endif

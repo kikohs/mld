@@ -51,7 +51,7 @@ TEST( MLGDaoTest, CRUD )
     mld::Node n1 = dao->addNodeToLayer(base);
     mld::Node n2 = dao->addNodeToLayer(base);
     // Check node ownership
-    ObjectsPtr neighbors(g->Neighbors(base.id(), g->FindType(EdgeType::OWNS), Outgoing));
+    ObjectsPtr neighbors(g->Neighbors(base.id(), g->FindType(EdgeType::O_LINK), Outgoing));
     success = neighbors->Exists(n1.id());
     EXPECT_EQ(success, true);
     neighbors.reset();

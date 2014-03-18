@@ -77,7 +77,7 @@ TEST( LinkDaoTest, H_LINK_add )
     EXPECT_NE(res.id(), Objects::InvalidOID);
     EXPECT_EQ(res.source(), n1.id());
     EXPECT_EQ(res.target(), n2.id());
-    EXPECT_EQ(res.weight(), kHLINK_DEF_VALUE);
+    EXPECT_EQ(res.weight(), HLINK_DEF_VALUE);
 
     // Add link with weight
     HLink res2 = lkDao->addHLink(n2.id(), n3.id(), 15.0);
@@ -135,7 +135,7 @@ TEST( LinkDaoTest, V_LINK_add )
     EXPECT_NE(res.id(), Objects::InvalidOID);
     EXPECT_EQ(res.source(), n1.id());
     EXPECT_EQ(res.target(), n2.id());
-    EXPECT_EQ(res.weight(), kVLINK_DEF_VALUE);
+    EXPECT_EQ(res.weight(), VLINK_DEF_VALUE);
 
     // Add link with weight
     VLink res2 = lkDao->addVLink(n2.id(), n3.id(), 15.0);
@@ -530,4 +530,46 @@ TEST( LinkDaoTest, ExtraProp )
     snDao.reset();
     lkDao.reset();
     sess.reset();
+}
+
+TEST( LinkDaoTest, OLinkCRUD )
+{
+    mld::SparkseeManager sparkseeManager(mld::kRESOURCES_DIR + L"mysparksee.cfg");
+    sparkseeManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.sparksee", L"MLDTest");
+
+    SessionPtr sess = sparkseeManager.newSession();
+    Graph* g = sess->GetGraph();
+    // Create Db scheme
+    sparkseeManager.createBaseScheme(g);
+
+    std::unique_ptr<LinkDao> lkDao( new LinkDao(g) );
+    std::unique_ptr<NodeDao> snDao( new NodeDao(g) );
+
+    oid_t layerType = g->FindType(NodeType::LAYER);
+    oid_t lid = g->NewNode(layerType);
+
+    bool success = false;
+#ifdef MLD_SAFE
+    // Update invalid
+    success = lkDao->updateOLink(53541, 45.0);
+    EXPECT_FALSE(success);
+    success = lkDao->updateVLink(53541, 455, 78.0);
+    EXPECT_FALSE(success);
+#endif
+
+    // Add node first
+    mld::Node n1 = snDao->addNode();
+    OLink ol1 = lkDao->addOLink(lid, n1.id());
+    EXPECT_NE(Objects::InvalidOID, ol1.id());
+
+    mld::Node n2 = snDao->addNode();
+    OLink ol2 = lkDao->addOLink(lid, n2.id(), 12.0);
+    EXPECT_NE(Objects::InvalidOID, ol2.id());
+    EXPECT_DOUBLE_EQ(12.0, ol2.weight());
+
+    ol1.setWeight(12.0);
+    success = lkDao->updateOLink(ol1.id(), ol1.data());
+    EXPECT_TRUE(success);
+    ol1 = lkDao->getOLink(ol1.id());
+    EXPECT_DOUBLE_EQ(ol1.weight(), ol2.weight());
 }

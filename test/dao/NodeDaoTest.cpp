@@ -51,7 +51,7 @@ TEST( NodeDaoTest, CRUD )
 //    EXPECT_DOUBLE_EQ(kNODE_DEF_VALUE, a2.weight());
 
     mld::Node n1 = dao->addNode();
-    EXPECT_EQ(kNODE_DEF_VALUE, n1.weight());
+    EXPECT_EQ(NODE_DEF_VALUE, n1.weight());
 
     n1.setWeight(15);
     n1.setLabel(L"test");

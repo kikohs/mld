@@ -28,7 +28,7 @@ const std::wstring NodeType::LAYER(L"MLD_LAYER");
 // Edge Types
 const std::wstring EdgeType::H_LINK(L"MLD_H_LINK");
 const std::wstring EdgeType::V_LINK(L"MLD_V_LINK");
-const std::wstring EdgeType::OWNS(L"MLD_OWNS");
+const std::wstring EdgeType::O_LINK(L"MLD_OWNS");
 const std::wstring EdgeType::CHILD_OF(L"MLD_CHILD_OF");
 
 // Node Attributes
@@ -43,7 +43,11 @@ const std::wstring LayerAttr::DESCRIPTION(L"MLD_LAYER_DESCRIPTION");
 // Edge Attributes
 const std::wstring H_LinkAttr::WEIGHT(L"MLD_H_LINK_WEIGHT");
 const AttrNameVec H_LinkAttr::ATTRS{ H_LinkAttr::WEIGHT };
+
 const std::wstring V_LinkAttr::WEIGHT(L"MLD_V_LINK_WEIGHT");
 const AttrNameVec V_LinkAttr::ATTRS{ V_LinkAttr::WEIGHT };
+
+const std::wstring O_LinkAttr::WEIGHT(L"MLD_O_LINK_WEIGHT");
+const AttrNameVec O_LinkAttr::ATTRS{ O_LinkAttr::WEIGHT };
 
 } // end namespace mld

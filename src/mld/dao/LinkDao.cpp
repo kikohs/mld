@@ -16,10 +16,6 @@
 **
 ****************************************************************************/
 
-#include <sparksee/gdb/Graph.h>
-#include <sparksee/gdb/Objects.h>
-#include <sparksee/gdb/ObjectsIterator.h>
-#include <sparksee/gdb/Graph_data.h>
 #include <sparksee/gdb/Value.h>
 
 #include "mld/GraphTypes.h"
@@ -44,189 +40,90 @@ void LinkDao::setGraph( Graph* g )
         AbstractDao::setGraph(g);
         m_hType = m_g->FindType(EdgeType::H_LINK);
         m_vType = m_g->FindType(EdgeType::V_LINK);
-
+        m_oType = m_g->FindType(EdgeType::O_LINK);
+        auto layerType = m_g->FindType(NodeType::LAYER);
         auto nType = m_g->FindType(NodeType::NODE);
+
         // Create 2 nodes to get in cache hLinkAttrMap and vLinkAttrMap
         auto nid = m_g->NewNode(nType);
         auto nid2 = m_g->NewNode(nType);
         auto hid = m_g->NewEdge(m_hType, nid, nid2);
+        // Read default hLink attributes map
         m_hLinkAttr = readAttrMap(hid);
+
         auto vid = m_g->NewEdge(m_vType, nid, nid2);
+        // Read default vLink attributes map
         m_vLinkAttr = readAttrMap(vid);
+
+        // Read default oLink attributes map
+        auto l = m_g->NewNode(layerType);
+        auto ownsId = m_g->NewEdge(m_oType, l, nid);
+        m_oLinkAttr = readAttrMap(ownsId);
         // Not needed anymore
+        m_g->Drop(l);
         m_g->Drop(nid);
         m_g->Drop(nid2);
     }
 }
 
+
+// ***** HLINK ***** //
+
+
 HLink LinkDao::addHLink( oid_t src, oid_t tgt )
 {
-    oid_t eid = addEdge(m_hType, src, tgt);
-    if( eid == Objects::InvalidOID )
-        return HLink();
-    return HLink(eid, src, tgt, m_hLinkAttr);
+    return addLink<HLink>(m_hType, src, tgt, m_hLinkAttr, false);
 }
 
 HLink LinkDao::addHLink( oid_t src, oid_t tgt, double weight )
 {
     AttrMap data(m_hLinkAttr);
     data[H_LinkAttr::WEIGHT].SetDoubleVoid(weight);
-    return addHLink(src, tgt, data);
+    return addLink<HLink>(m_hType, src, tgt, data, true);
 }
 
 HLink LinkDao::addHLink( oid_t src, oid_t tgt, AttrMap& data )
 {
-    oid_t eid = addEdge(m_hType, src, tgt);
-    if( eid == Objects::InvalidOID )
-        return HLink();
-    if( !updateAttrMap(m_hType, eid, data) )
-        return HLink();
-    return HLink(eid, src, tgt, data);
-}
-
-VLink LinkDao::addVLink( oid_t child, oid_t parent )
-{
-    oid_t eid = addEdge(m_vType, child, parent);
-    if( eid == Objects::InvalidOID )
-        return VLink();
-    return VLink(eid, child, parent, m_vLinkAttr);
-}
-
-VLink LinkDao::addVLink( oid_t child, oid_t parent, double weight )
-{
-    AttrMap data(m_vLinkAttr);
-    data[V_LinkAttr::WEIGHT].SetDoubleVoid(weight);
-    return addVLink(child, parent, data);
-}
-
-VLink LinkDao::addVLink( oid_t child, oid_t parent, AttrMap& data )
-{
-    oid_t eid = addEdge(m_vType, child, parent);
-    if( eid == Objects::InvalidOID )
-        return VLink();
-    if( !updateAttrMap(m_vType, eid, data) )
-        return VLink();
-    return VLink(eid, child, parent, data);
+    return addLink<HLink>(m_hType, src, tgt, data, true);
 }
 
 HLink LinkDao::getHLink( oid_t src, oid_t tgt )
 {
-    oid_t eid = Objects::InvalidOID;
-#ifdef MLD_SAFE
-    try {
-#endif
-        eid = m_g->FindEdge(m_hType, src, tgt);
-#ifdef MLD_SAFE
-    } catch( Error& e ) {
-        LOG(logERROR) << "LinkDao::getHLink: " << e.Message();
-        return HLink();
-    }
-#endif
-    if( eid == Objects::InvalidOID )
-        return HLink();
-    return HLink(eid, src, tgt, readAttrMap(eid));
+    return getLink<HLink>(m_hType, src, tgt);
 }
 
 HLink LinkDao::getHLink( oid_t hid )
 {
-#ifdef MLD_SAFE
-    if( hid == Objects::InvalidOID ) {
-        LOG(logERROR) << "LinkDao::getHLink: invalid oid";
-        return HLink();
-    }
-#endif
-    std::unique_ptr<EdgeData> eData;
-#ifdef MLD_SAFE
-    try {
-        if( m_g->GetObjectType(hid) != m_hType ) {
-            LOG(logERROR) << "LinkDao::getHLink: invalid type";
-            return HLink();
-        }
-#endif
-        eData.reset(m_g->GetEdgeData(hid));
-#ifdef MLD_SAFE
-    } catch( Error& e ) {
-        LOG(logERROR) << "LinkDao::getHLink: " << e.Message();
-        return HLink();
-    }
-#endif
-    return HLink(hid, eData->GetTail(), eData->GetHead(), readAttrMap(hid));
+    return getLink<HLink>(m_hType, hid);
 }
 
 std::vector<HLink> LinkDao::getHLink( const ObjectsPtr& objs )
 {
-    std::vector<HLink> res;
-    res.reserve(objs->Count());
-    ObjectsIt it(objs->Iterator());
-    while( it->HasNext() ) {
-        HLink e = getHLink(it->Next());
-#ifdef MLD_SAFE
-        // Watch for the if, no { }
-        if( e.id() != Objects::InvalidOID )
-#endif
-            res.push_back(e);
-    }
-    return res;
+    return getLink<HLink>(m_hType, objs);
 }
 
-VLink LinkDao::getVLink( oid_t child, oid_t parent )
+bool LinkDao::updateHLink( oid_t src, oid_t tgt, double weight )
 {
-    oid_t vid = Objects::InvalidOID;
-#ifdef MLD_SAFE
-    try {
-#endif
-    vid = m_g->FindEdge(m_vType, child, parent);
-#ifdef MLD_SAFE
-    } catch( Error& e ) {
-        LOG(logERROR) << "LinkDao::getVLink: " << e.Message();
-        return VLink();
-    }
-#endif
-    if( vid == Objects::InvalidOID )
-        return VLink();
-    return VLink(vid, child, parent, readAttrMap(vid));;
+    AttrMap data;
+    data[H_LinkAttr::WEIGHT].SetDoubleVoid(weight);
+    return updateAttrMap(m_hType, findEdge(m_hType, src, tgt), data);
 }
 
-VLink LinkDao::getVLink( oid_t vid )
+bool LinkDao::updateHLink( oid_t src, oid_t tgt, AttrMap& data )
 {
-#ifdef MLD_SAFE
-    if( vid == Objects::InvalidOID ) {
-        LOG(logERROR) << "LinkDao::getVLink: invalid oid";
-        return VLink();
-    }
-#endif
-    std::unique_ptr<EdgeData> eData;
-#ifdef MLD_SAFE
-    try {
-        if( m_g->GetObjectType(vid) != m_vType ) {
-            LOG(logERROR) << "LinkDao::getVLink: invalid type";
-            return VLink();
-        }
-#endif
-        eData.reset(m_g->GetEdgeData(vid));
-#ifdef MLD_SAFE
-    } catch( Error& e ) {
-        LOG(logERROR) << "LinkDao::getVLink: " << e.Message();
-        return VLink();
-    }
-#endif
-    return VLink(vid, eData->GetTail(), eData->GetHead(), readAttrMap(vid));
+    return updateAttrMap(m_hType, findEdge(m_hType, src, tgt), data);
 }
 
-std::vector<VLink> LinkDao::getVLink( const ObjectsPtr& objs )
+bool LinkDao::updateHLink( oid_t hid, AttrMap& data )
 {
-    std::vector<VLink> res;
-    res.reserve(objs->Count());
-    ObjectsIt it(objs->Iterator());
-    while( it->HasNext() ) {
-        VLink e = getVLink(it->Next());
-#ifdef MLD_SAFE
-        // Watch for the if, no { }
-        if( e.id() != Objects::InvalidOID )
-#endif
-            res.push_back(e);
-    }
-    return res;
+    return updateAttrMap(m_hType, hid, data);
+}
+
+bool LinkDao::updateHLink( oid_t hid, double weight )
+{
+    AttrMap data;
+    data[H_LinkAttr::WEIGHT].SetDoubleVoid(weight);
+    return updateAttrMap(m_hType, hid, data);
 }
 
 bool LinkDao::removeHLink( oid_t src, oid_t tgt )
@@ -239,66 +136,52 @@ bool LinkDao::removeHLink( oid_t hid )
     return removeEdge(m_hType, hid);
 }
 
-bool LinkDao::removeVLink( oid_t src, oid_t tgt )
+
+// ***** VLINK ***** //
+
+
+VLink LinkDao::addVLink( oid_t child, oid_t parent )
 {
-    return removeEdge(m_vType, src, tgt);
+    return addLink<VLink>(m_vType, child, parent, m_vLinkAttr, false);
 }
 
-bool LinkDao::removeVLink( oid_t vid )
+VLink LinkDao::addVLink( oid_t child, oid_t parent, double weight )
 {
-    return removeEdge(m_vType, vid);
+    AttrMap data(m_vLinkAttr);
+    data[V_LinkAttr::WEIGHT].SetDoubleVoid(weight);
+    return addLink<VLink>(m_vType, child, parent, data, true);
 }
 
-bool LinkDao::updateHLink( oid_t src, oid_t tgt, double weight )
+VLink LinkDao::addVLink( oid_t child, oid_t parent, AttrMap& data )
 {
-    AttrMap data;
-    data[H_LinkAttr::WEIGHT].SetDoubleVoid(weight);
-    return updateHLink(src, tgt, data);
+    return addLink<VLink>(m_vType, child, parent, data, true);
 }
 
-bool LinkDao::updateHLink( oid_t src, oid_t tgt, AttrMap& data )
+VLink LinkDao::getVLink( oid_t child, oid_t parent )
 {
-    oid_t eid = Objects::InvalidOID;
-#ifdef MLD_SAFE
-    try {
-#endif
-        eid = m_g->FindEdge(m_hType, src, tgt);
-#ifdef MLD_SAFE
-    } catch( Error& ) {
-        LOG(logERROR) << "LinkDao::updateHLink: invalid src or tgt";
-        return false;
-    }
-#endif
-    return updateHLink(eid, data);
+    return getLink<VLink>(m_vType, child, parent);
 }
 
-bool LinkDao::updateHLink( oid_t eid, AttrMap& data )
+VLink LinkDao::getVLink( oid_t vid )
 {
-    return updateAttrMap(m_hType, eid, data);
+    return getLink<VLink>(m_vType, vid);
 }
 
-bool LinkDao::updateHLink( oid_t hid, double weight )
+std::vector<VLink> LinkDao::getVLink( const ObjectsPtr& objs )
 {
-    AttrMap data;
-    data[H_LinkAttr::WEIGHT].SetDoubleVoid(weight);
-    return updateHLink(hid, data);
+    return getLink<VLink>(m_vType, objs);
 }
 
 bool LinkDao::updateVLink( oid_t child, oid_t parent, double weight )
 {
     AttrMap data;
     data[V_LinkAttr::WEIGHT].SetDoubleVoid(weight);
-    return updateVLink(child, parent, data);;
+    return updateAttrMap(m_vType, findEdge(m_vType, child, parent), data);
 }
 
 bool LinkDao::updateVLink( oid_t child, oid_t parent, AttrMap& data )
 {
-    oid_t eid = findEdge(m_vType, child, parent);
-    if( eid == Objects::InvalidOID ) {
-        LOG(logERROR) << "LinkDao::updateVLink: invalid child or parent";
-        return false;
-    }
-    return updateVLink(eid, data);
+    return updateAttrMap(m_vType, findEdge(m_vType, child, parent), data);
 }
 
 bool LinkDao::updateVLink( oid_t eid, AttrMap& data )
@@ -310,6 +193,86 @@ bool LinkDao::updateVLink( oid_t vid, double weight )
 {
     AttrMap data;
     data[V_LinkAttr::WEIGHT].SetDoubleVoid(weight);
-    return updateVLink(vid, data);
+    return updateAttrMap(m_vType, vid, data);
+}
+
+bool LinkDao::removeVLink( oid_t src, oid_t tgt )
+{
+    return removeEdge(m_vType, src, tgt);
+}
+
+bool LinkDao::removeVLink( oid_t vid )
+{
+    return removeEdge(m_vType, vid);
+}
+
+
+// ***** OLINK ***** //
+
+
+OLink LinkDao::addOLink( oid_t layer, oid_t node )
+{
+    return addLink<OLink>(m_oType, layer, node, m_oLinkAttr, false);
+}
+
+OLink LinkDao::addOLink( oid_t layer, oid_t node, double weight )
+{
+    AttrMap data(m_oLinkAttr);
+    data[O_LinkAttr::WEIGHT].SetDoubleVoid(weight);
+    return addLink<OLink>(m_oType, layer, node, data, true);
+}
+
+OLink LinkDao::addOLink( oid_t layer, oid_t node, AttrMap& data )
+{
+    return addLink<OLink>(m_oType, layer, node, data, true);
+}
+
+OLink LinkDao::getOLink( oid_t layer, oid_t node )
+{
+    return getLink<OLink>(m_oType, layer, node);
+}
+
+OLink LinkDao::getOLink( oid_t eid )
+{
+    return getLink<OLink>(m_oType, eid);
+}
+
+std::vector<OLink> LinkDao::getOLink( const ObjectsPtr& objs )
+{
+    return getLink<OLink>(m_oType, objs);
+}
+
+bool LinkDao::updateOLink( oid_t layer, oid_t node, double weight )
+{
+    AttrMap data(m_oLinkAttr);
+    data[O_LinkAttr::WEIGHT].SetDoubleVoid(weight);
+    return updateAttrMap(m_oType, findEdge(m_oType, layer, node), data);
+}
+
+bool LinkDao::updateOLink( oid_t layer, oid_t node, AttrMap& data )
+{
+    return updateAttrMap(m_oType, findEdge(m_oType, layer, node), data);
+}
+
+bool LinkDao::updateOLink( oid_t eid, AttrMap& data )
+{
+    return updateAttrMap(m_oType, eid, data);
+}
+
+bool LinkDao::updateOLink( oid_t eid, double weight )
+{
+    AttrMap data;
+    data[O_LinkAttr::WEIGHT].SetDoubleVoid(weight);
+    return updateAttrMap(m_oType, eid, data);
+}
+
+bool LinkDao::removeOLink( oid_t src, oid_t tgt )
+{
+    return removeEdge(m_oType, src, tgt);
+}
+
+bool LinkDao::removeOLink( oid_t eid )
+{
+    return removeEdge(m_oType, eid);
 }
 

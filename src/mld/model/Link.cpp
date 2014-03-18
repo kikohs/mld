@@ -126,6 +126,18 @@ OLink::~OLink()
 {
 }
 
+void OLink::setWeight( double v )
+{
+    m_data[O_LinkAttr::WEIGHT].SetDoubleVoid(v);
+}
+
+std::ostream& operator<<( std::ostream& out, const mld::OLink& olink )
+{
+    out << "olink ";
+    olink.print(out);
+    return out;
+}
+
 
 
 

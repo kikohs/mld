@@ -39,7 +39,6 @@ namespace mld {
     class NodeDao;
     class LayerDao;
     class LinkDao;
-    class OwnsDao;
 }
 
 namespace mld {
@@ -78,7 +77,7 @@ typedef std::map<sparksee::gdb::oid_t, Node> NodeMap;
      */
     Node addNodeToLayer( const Layer& l );
     Node addNodeToLayer( const Layer& l, AttrMap& nodeData );
-    Node addNodeToLayer( const Layer& l, AttrMap& nodeData, AttrMap& ownsData );
+    Node addNodeToLayer( const Layer& l, AttrMap& nodeData, AttrMap& oLinkData );
 
     /**
      * @brief Add HLink
@@ -88,7 +87,7 @@ typedef std::map<sparksee::gdb::oid_t, Node> NodeMap;
      * @param weight
      * @return New created HLink
      */
-    HLink addHLink( const Node& src, const Node& tgt, double weight=kHLINK_DEF_VALUE );
+    HLink addHLink( const Node& src, const Node& tgt, double weight=HLINK_DEF_VALUE );
     HLink addHLink( const Node& src, const Node& tgt, AttrMap& data );
 
     /**
@@ -99,7 +98,7 @@ typedef std::map<sparksee::gdb::oid_t, Node> NodeMap;
      * @param weight
      * @return New created VLink
      */
-    VLink addVLink( const Node& child, const Node& parent, double weight=kVLINK_DEF_VALUE );
+    VLink addVLink( const Node& child, const Node& parent, double weight=VLINK_DEF_VALUE );
     VLink addVLink( const Node& src, const Node& tgt, AttrMap& data );
 
     /**
@@ -406,7 +405,6 @@ private:
     std::unique_ptr<NodeDao> m_node;
     std::unique_ptr<LayerDao> m_layer;
     std::unique_ptr<LinkDao> m_link;
-    std::unique_ptr<OwnsDao> m_owns;
 };
 
 } // end namespace mld

@@ -104,10 +104,13 @@ protected:
  */
 class MLD_API OLink : public Link
 {
-    friend class OwnsDao;
+    friend class LinkDao;
     friend class MLGDao;
 public:
     virtual ~OLink() override;
+
+    inline double weight() const { return m_data[O_LinkAttr::WEIGHT].GetDouble(); }
+    void setWeight( double v );
 
 protected:
     explicit OLink();
@@ -122,6 +125,7 @@ protected:
 
 std::ostream& operator<<( std::ostream& out, const mld::HLink& hlink );
 std::ostream& operator<<( std::ostream& out, const mld::VLink& vlink );
+std::ostream& operator<<( std::ostream& out, const mld::OLink& olink );
 
 
 #endif // LINK_H
