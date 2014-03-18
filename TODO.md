@@ -8,9 +8,6 @@
 - Layer
     - description when coarsening occurs
 
-## Dao
-- Refactor Link DAO for HLink, VLink, OLink
-
 ## Operator
 - Create in memory coarsening
 
