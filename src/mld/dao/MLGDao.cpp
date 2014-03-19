@@ -171,6 +171,17 @@ VLink MLGDao::addVLink( const Node& child, const Node& parent, AttrMap& data )
     return m_link->addVLink(child.id(), parent.id(), data);
 }
 
+OLink MLGDao::addOLink( const Layer& layer, const Node& node, AttrMap& data )
+{
+#ifdef MLD_SAFE
+    if( !m_layer->exists(layer) ) {
+        LOG(logERROR) << "MLGDao::addOLink: Layer doesn't exist!";
+        return OLink();
+    }
+#endif
+    return m_link->addOLink(layer.id(), node.id(), data);
+}
+
 ObjectsPtr MLGDao::getAllNodeIds( const Layer& l )
 {
     ObjectsPtr res;
@@ -280,7 +291,7 @@ HLink MLGDao::getHeaviestHLink( const Layer& l )
     if( !hlinkIds )
         return HLink();
 
-    auto attr = m_g->FindAttribute(m_link->hlinkType(), H_LinkAttr::WEIGHT);
+    auto attr = m_g->FindAttribute(m_link->hlinkType(), Attrs::V[HLinkAttr::WEIGHT]);
     std::unique_ptr<Values> val(m_g->GetValues(attr));
     std::unique_ptr<ValuesIterator> valIt(val->Iterator(Descendent));
 
@@ -299,7 +310,7 @@ HLink MLGDao::getHeaviestHLink( const Layer& l )
 
 HLink MLGDao::getUnsafeHeaviestHLink()
 {
-    auto attr = m_g->FindAttribute(m_link->hlinkType(), H_LinkAttr::WEIGHT);
+    auto attr = m_g->FindAttribute(m_link->hlinkType(), Attrs::V[HLinkAttr::WEIGHT]);
     std::unique_ptr<AttributeStatistics> stats(m_g->GetAttributeStatistics(attr, true));
     // Get maximum value for H_LINK weight
     m_v->SetDouble(stats->GetMax().GetDouble());
@@ -753,9 +764,9 @@ Layer MLGDao::child( const Layer& layer )
     return m_layer->child(layer);
 }
 
-int64_t MLGDao::countLayers()
+int64_t MLGDao::getLayerCount()
 {
-    return m_layer->countLayers();
+    return m_layer->getLayerCount();
 }
 
 void MLGDao::updateLayer( Layer& layer )

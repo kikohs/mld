@@ -32,9 +32,9 @@ class MLD_API Node: public GraphObject
 public:
     virtual ~Node() override;
 
-    inline double weight() const { return m_data[NodeAttr::WEIGHT].GetDouble(); }
+    inline double weight() const { return m_data[Attrs::V[NodeAttr::WEIGHT]].GetDouble(); }
     void setWeight( double v );
-    inline std::wstring label() const { return m_data[NodeAttr::LABEL].GetString(); }
+    inline std::wstring label() const { return m_data[Attrs::V[NodeAttr::LABEL]].GetString(); }
     void setLabel( const std::wstring& label );
 
 protected:

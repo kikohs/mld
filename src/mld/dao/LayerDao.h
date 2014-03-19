@@ -64,7 +64,7 @@ public:
     Layer parent( const Layer& layer );
     Layer child( const Layer& layer );
 
-    int64_t countLayers();
+    int64_t getLayerCount();
     void updateLayer( Layer& layer );
     Layer getLayer( sparksee::gdb::oid_t id );
     bool exists( const Layer& layer );

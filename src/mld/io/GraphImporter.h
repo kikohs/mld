@@ -19,25 +19,41 @@
 #ifndef MLD_GRAPHIMPORTER_H
 #define MLD_GRAPHIMPORTER_H
 
-#include <iostream>
+#include <map>
 #include <sparksee/gdb/Graph.h>
-
 #include "mld/common.h"
 
 namespace mld {
 
+class SparkseeManager;
+
 class MLD_API GraphImporter
 {
 public:
+    typedef std::map<uint64_t, sparksee::gdb::oid_t> IndexMap;
+
     GraphImporter();
     /**
-     * @brief Import a SNAP graph into MLD
+     * @brief Import a SNAP graph
      * @param g Graph handle
      * @param filepath Graph to import
-     * @param logpath Import log file
      * @return success
      */
-    static bool fromSnapFormat(sparksee::gdb::Graph* g, const std::string& filepath );
+    static bool fromSnapFormat( sparksee::gdb::Graph* g, const std::string& filepath );
+
+    /**
+     * @brief Import a timeSeries graph from 2 files
+     * name.nodes.csv and name.edges.csv
+     * @param g Graph handle
+     * @param nodePath filepath to the *.nodes.csv file
+     * @param edgePath filepath to the *.edges.csv file
+     * @return success
+     */
+    static bool fromTimeSeries( sparksee::gdb::Graph* g, const std::string& nodePath, const std::string& edgePath );
+
+private:
+    static bool importTSNodes( sparksee::gdb::Graph* g, const std::string& nodePath, IndexMap& indexMap );
+    static bool importTSEdges( sparksee::gdb::Graph* g, const std::string& edgePath, const IndexMap& indexMap );
 };
 
 } // end namespace mld

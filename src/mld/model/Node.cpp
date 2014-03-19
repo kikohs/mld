@@ -42,10 +42,10 @@ Node::~Node()
 
 void Node::setWeight( double v )
 {
-    m_data[NodeAttr::WEIGHT].SetDoubleVoid(v);
+    m_data[Attrs::V[NodeAttr::WEIGHT]].SetDoubleVoid(v);
 }
 
 void Node::setLabel( const std::wstring& label )
 {
-    m_data[NodeAttr::LABEL].SetStringVoid(label);
+    m_data[Attrs::V[NodeAttr::LABEL]].SetStringVoid(label);
 }

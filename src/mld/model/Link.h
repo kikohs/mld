@@ -61,7 +61,7 @@ class MLD_API HLink : public Link
 public:
     virtual ~HLink() override;
 
-    inline double weight() const { return m_data[H_LinkAttr::WEIGHT].GetDouble(); }
+    inline double weight() const { return m_data[Attrs::V[HLinkAttr::WEIGHT]].GetDouble(); }
     void setWeight( double v );
 
 protected:
@@ -87,7 +87,7 @@ class MLD_API VLink : public Link
 public:
     virtual ~VLink() override;
 
-    inline double weight() const { return m_data[V_LinkAttr::WEIGHT].GetDouble(); }
+    inline double weight() const { return m_data[Attrs::V[VLinkAttr::WEIGHT]].GetDouble(); }
     void setWeight( double v );
 
 protected:
@@ -109,7 +109,7 @@ class MLD_API OLink : public Link
 public:
     virtual ~OLink() override;
 
-    inline double weight() const { return m_data[O_LinkAttr::WEIGHT].GetDouble(); }
+    inline double weight() const { return m_data[Attrs::V[OLinkAttr::WEIGHT]].GetDouble(); }
     void setWeight( double v );
 
 protected:

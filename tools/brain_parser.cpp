@@ -27,6 +27,7 @@
 #include <mld/SparkseeManager.h>
 #include <mld/Session.h>
 #include <mld/io/GraphImporter.h>
+#include <mld/GraphTypes.h>
 #include <mld/utils/Timer.h>
 
 using namespace TCLAP;
@@ -35,7 +36,8 @@ using namespace mld;
 struct InputContext {
     std::wstring dbName;
     std::wstring workDir;
-    std::string inputPath;
+    std::string nodePath;
+    std::string edgePath;
 };
 
 std::wstring extractDbName( const std::wstring& inputPath )
@@ -48,6 +50,8 @@ std::wstring extractDbName( const std::wstring& inputPath )
     boost::algorithm::split(strs, filename, boost::is_any_of(L"."));
     // Remove last part of .txt for instance
     strs.pop_back();
+    // Remove *.nodes or *.edges
+    strs.pop_back();
     return boost::algorithm::join(strs, L".");
 }
 
@@ -56,11 +60,13 @@ bool parseOptions( int argc, char *argv[], InputContext& out )
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     try {
         // Define the command line object.
-        CmdLine cmd("Snap Parser", ' ', "0.1");
+        CmdLine cmd("Brain Parser", ' ', "0.1");
 
         // Define a value argument and add it to the command line.
-        ValueArg<std::string> inputArg("i", "input", "undirected snap graph", true, "", "path");
-        cmd.add(inputArg);
+        ValueArg<std::string> nodeArg("n", "nodes", "nodes data filepath", true, "", "path");
+        cmd.add(nodeArg);
+        ValueArg<std::string> edgeArg("e", "edges", "edges data filepath", true, "", "path");
+        cmd.add(edgeArg);
         ValueArg<std::string> wdArg("d", "workDir", "MLD working directory",
                                     false, converter.to_bytes(mld::kRESOURCES_DIR), "path");
         cmd.add(wdArg);
@@ -68,9 +74,10 @@ bool parseOptions( int argc, char *argv[], InputContext& out )
         cmd.parse(argc, argv);
 
         // Get the value parsed by each arg.
-        out.inputPath = inputArg.getValue();
+        out.nodePath = nodeArg.getValue();
+        out.edgePath = edgeArg.getValue();
         out.workDir = converter.from_bytes(wdArg.getValue());
-        out.dbName = extractDbName(converter.from_bytes(out.inputPath));
+        out.dbName = extractDbName(converter.from_bytes(out.nodePath));
     } catch( ArgException& e ) {
         LOG(logERROR) << "error: " << e.error() << " for arg " << e.argId();
         return false;
@@ -88,16 +95,32 @@ int main( int argc, char *argv[] )
     mld::SparkseeManager m(ctx.workDir + L"mysparksee.cfg");
     m.createDatabase(ctx.workDir + ctx.dbName + L".sparksee", ctx.dbName);
 
-    SessionPtr sess = m.newSession();
+    SessionPtr sess(m.newSession());
     sparksee::gdb::Graph* g = sess->GetGraph();
-    // Create Db scheme
     m.createBaseScheme(g);
-    sess->Begin();
-    if( !GraphImporter::fromSnapFormat(g, ctx.inputPath) ) {
-        LOG(logERROR) << "Error parsing snap format";
+    try {
+        sess->Begin();
+        // Create or rename attributes
+        m.addAttrToNode(g, L"id", sparksee::gdb::String,
+                        sparksee::gdb::Indexed, sparksee::gdb::Value().SetNull());
+
+        m.addAttrToNode(g, L"brain side", sparksee::gdb::String,
+                        sparksee::gdb::Indexed, sparksee::gdb::Value().SetNull());
+
+        // Rename default label
+        m.renameDefaultAttribute(g, mld::NodeType::NODE, NodeAttr::LABEL, L"name");
+
+        if( !GraphImporter::fromTimeSeries(g, ctx.nodePath, ctx.edgePath) ) {
+            LOG(logERROR) << "Error parsing timeseries graph";
+        }
+
+    } catch( sparksee::gdb::Error& e ) {
+        LOG(logERROR) << e.Message();
+        sess->Commit();
     }
     sess->Commit();
     LOG(logINFO) << Timer::dumpTrials();
     return EXIT_SUCCESS;
 }
+
 

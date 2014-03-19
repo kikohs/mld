@@ -38,10 +38,10 @@ Layer::~Layer()
 
 void Layer::setIsBaseLayer( bool v )
 {
-    m_data[LayerAttr::IS_BASE].SetBooleanVoid(v);
+    m_data[Attrs::V[LayerAttr::IS_BASE]].SetBooleanVoid(v);
 }
 
 void Layer::setDescription( const std::wstring& des )
 {
-    m_data[LayerAttr::DESCRIPTION].SetStringVoid(des);
+    m_data[Attrs::V[LayerAttr::DESCRIPTION]].SetStringVoid(des);
 }

@@ -56,7 +56,7 @@ TEST( LayerDaoTest, BaseLayer )
     std::unique_ptr<LayerDao> dao( new LayerDao(g) );
 
     // No layers yet
-    int64_t nb = dao->countLayers();
+    int64_t nb = dao->getLayerCount();
     EXPECT_EQ(nb, 0);
     // No base layer is defined
     Layer res = dao->addLayerOnTop();
@@ -89,7 +89,7 @@ TEST( LayerDaoTest, BaseLayer )
     EXPECT_EQ(bottom.id(), base.id());
 
     // Only baseLayer
-    EXPECT_EQ(dao->countLayers(), 1);
+    EXPECT_EQ(dao->getLayerCount(), 1);
 
     dao.reset();
     sess.reset();
@@ -108,7 +108,7 @@ TEST( LayerDaoTest, AddRemoveLayers )
     std::unique_ptr<LayerDao> dao( new LayerDao(g) );
     bool success = false;
     // No layers yet
-    EXPECT_EQ(0, dao->countLayers());
+    EXPECT_EQ(0, dao->getLayerCount());
     // Create base layer
     Layer base = dao->addBaseLayer();
     EXPECT_NE(base.id(), Objects::InvalidOID);
@@ -121,7 +121,7 @@ TEST( LayerDaoTest, AddRemoveLayers )
     Layer bot = dao->addLayerOnBottom();
     EXPECT_NE(bot.id(), Objects::InvalidOID);
 
-    EXPECT_EQ(3, dao->countLayers());
+    EXPECT_EQ(3, dao->getLayerCount());
 
     // Set top layer as new base
     dao->setAsBaseLayer(top);
@@ -146,12 +146,12 @@ TEST( LayerDaoTest, AddRemoveLayers )
     success = dao->removeTopLayer();
     EXPECT_EQ(success, false);
 
-    EXPECT_EQ(3, dao->countLayers());
+    EXPECT_EQ(3, dao->getLayerCount());
 
     // Remove bottom layer
     success = dao->removeBottomLayer();
     EXPECT_EQ(success, true);
-    EXPECT_EQ(dao->countLayers(), 2);
+    EXPECT_EQ(dao->getLayerCount(), 2);
 
     // Set reset base layer
     dao->setAsBaseLayer(base);
@@ -159,12 +159,12 @@ TEST( LayerDaoTest, AddRemoveLayers )
     // Remove toplayer
     success = dao->removeTopLayer();
     EXPECT_EQ(success, true);
-    EXPECT_EQ(dao->countLayers(), 1);
+    EXPECT_EQ(dao->getLayerCount(), 1);
 
     // Test remove base layer
     success = dao->removeBaseLayer();
     EXPECT_EQ(success, true);
-    EXPECT_EQ(dao->countLayers(), 0);
+    EXPECT_EQ(dao->getLayerCount(), 0);
 
     // Test remove
     base = dao->addBaseLayer();
@@ -178,11 +178,11 @@ TEST( LayerDaoTest, AddRemoveLayers )
 
     success = dao->removeBaseLayer();
     EXPECT_EQ(success, false);
-    EXPECT_EQ(dao->countLayers(), 8);
+    EXPECT_EQ(dao->getLayerCount(), 8);
 
     success = dao->removeAllButBaseLayer();
     EXPECT_EQ(success, true);
-    EXPECT_EQ(dao->countLayers(), 1);
+    EXPECT_EQ(dao->getLayerCount(), 1);
     EXPECT_EQ(base.id(), dao->baseLayer().id());
 
     // Check if exists

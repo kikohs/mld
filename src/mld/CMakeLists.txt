@@ -30,6 +30,7 @@ set( CUR_PUB_HDRS
     SparkseeManager.h
     Session.h
     MLGBuilder.h
+    GraphTypes.h
 )
 file( COPY ${CUR_PUB_HDRS} DESTINATION ${PUBLIC_HDRS_DIR} )
 

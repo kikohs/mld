@@ -38,9 +38,9 @@ void LinkDao::setGraph( Graph* g )
 {
     if( g ) {
         AbstractDao::setGraph(g);
-        m_hType = m_g->FindType(EdgeType::H_LINK);
-        m_vType = m_g->FindType(EdgeType::V_LINK);
-        m_oType = m_g->FindType(EdgeType::O_LINK);
+        m_hType = m_g->FindType(EdgeType::HLINK);
+        m_vType = m_g->FindType(EdgeType::VLINK);
+        m_oType = m_g->FindType(EdgeType::OLINK);
         auto layerType = m_g->FindType(NodeType::LAYER);
         auto nType = m_g->FindType(NodeType::NODE);
 
@@ -78,7 +78,7 @@ HLink LinkDao::addHLink( oid_t src, oid_t tgt )
 HLink LinkDao::addHLink( oid_t src, oid_t tgt, double weight )
 {
     AttrMap data(m_hLinkAttr);
-    data[H_LinkAttr::WEIGHT].SetDoubleVoid(weight);
+    data[Attrs::V[HLinkAttr::WEIGHT]].SetDoubleVoid(weight);
     return addLink<HLink>(m_hType, src, tgt, data, true);
 }
 
@@ -105,7 +105,7 @@ std::vector<HLink> LinkDao::getHLink( const ObjectsPtr& objs )
 bool LinkDao::updateHLink( oid_t src, oid_t tgt, double weight )
 {
     AttrMap data;
-    data[H_LinkAttr::WEIGHT].SetDoubleVoid(weight);
+    data[Attrs::V[HLinkAttr::WEIGHT]].SetDoubleVoid(weight);
     return updateAttrMap(m_hType, findEdge(m_hType, src, tgt), data);
 }
 
@@ -122,7 +122,7 @@ bool LinkDao::updateHLink( oid_t hid, AttrMap& data )
 bool LinkDao::updateHLink( oid_t hid, double weight )
 {
     AttrMap data;
-    data[H_LinkAttr::WEIGHT].SetDoubleVoid(weight);
+    data[Attrs::V[HLinkAttr::WEIGHT]].SetDoubleVoid(weight);
     return updateAttrMap(m_hType, hid, data);
 }
 
@@ -148,7 +148,7 @@ VLink LinkDao::addVLink( oid_t child, oid_t parent )
 VLink LinkDao::addVLink( oid_t child, oid_t parent, double weight )
 {
     AttrMap data(m_vLinkAttr);
-    data[V_LinkAttr::WEIGHT].SetDoubleVoid(weight);
+    data[Attrs::V[VLinkAttr::WEIGHT]].SetDoubleVoid(weight);
     return addLink<VLink>(m_vType, child, parent, data, true);
 }
 
@@ -175,7 +175,7 @@ std::vector<VLink> LinkDao::getVLink( const ObjectsPtr& objs )
 bool LinkDao::updateVLink( oid_t child, oid_t parent, double weight )
 {
     AttrMap data;
-    data[V_LinkAttr::WEIGHT].SetDoubleVoid(weight);
+    data[Attrs::V[VLinkAttr::WEIGHT]].SetDoubleVoid(weight);
     return updateAttrMap(m_vType, findEdge(m_vType, child, parent), data);
 }
 
@@ -192,7 +192,7 @@ bool LinkDao::updateVLink( oid_t eid, AttrMap& data )
 bool LinkDao::updateVLink( oid_t vid, double weight )
 {
     AttrMap data;
-    data[V_LinkAttr::WEIGHT].SetDoubleVoid(weight);
+    data[Attrs::V[VLinkAttr::WEIGHT]].SetDoubleVoid(weight);
     return updateAttrMap(m_vType, vid, data);
 }
 
@@ -218,7 +218,7 @@ OLink LinkDao::addOLink( oid_t layer, oid_t node )
 OLink LinkDao::addOLink( oid_t layer, oid_t node, double weight )
 {
     AttrMap data(m_oLinkAttr);
-    data[O_LinkAttr::WEIGHT].SetDoubleVoid(weight);
+    data[Attrs::V[OLinkAttr::WEIGHT]].SetDoubleVoid(weight);
     return addLink<OLink>(m_oType, layer, node, data, true);
 }
 
@@ -245,7 +245,7 @@ std::vector<OLink> LinkDao::getOLink( const ObjectsPtr& objs )
 bool LinkDao::updateOLink( oid_t layer, oid_t node, double weight )
 {
     AttrMap data(m_oLinkAttr);
-    data[O_LinkAttr::WEIGHT].SetDoubleVoid(weight);
+    data[Attrs::V[OLinkAttr::WEIGHT]].SetDoubleVoid(weight);
     return updateAttrMap(m_oType, findEdge(m_oType, layer, node), data);
 }
 
@@ -262,7 +262,7 @@ bool LinkDao::updateOLink( oid_t eid, AttrMap& data )
 bool LinkDao::updateOLink( oid_t eid, double weight )
 {
     AttrMap data;
-    data[O_LinkAttr::WEIGHT].SetDoubleVoid(weight);
+    data[Attrs::V[OLinkAttr::WEIGHT]].SetDoubleVoid(weight);
     return updateAttrMap(m_oType, eid, data);
 }
 

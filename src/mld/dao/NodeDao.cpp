@@ -59,7 +59,7 @@ mld::Node NodeDao::addNode()
 mld::Node NodeDao::addNode( double weight )
 {
     AttrMap data(m_nodeAttr);
-    data[NodeAttr::WEIGHT].SetDoubleVoid(weight);
+    data[Attrs::V[NodeAttr::WEIGHT]].SetDoubleVoid(weight);
     return addNode(data);
 }
 

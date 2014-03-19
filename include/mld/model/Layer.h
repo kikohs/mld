@@ -29,9 +29,9 @@ class MLD_API Layer : public GraphObject
 public:
     virtual ~Layer() override;
 
-    inline double isBaseLayer() const { return m_data[LayerAttr::IS_BASE].GetBoolean(); }
+    inline double isBaseLayer() const { return m_data[Attrs::V[LayerAttr::IS_BASE]].GetBoolean(); }
     void setDescription( const std::wstring& des );
-    std::wstring description() const { return m_data[LayerAttr::DESCRIPTION].GetString(); }
+    std::wstring description() const { return m_data[Attrs::V[LayerAttr::DESCRIPTION]].GetString(); }
 
 protected:
     Layer();

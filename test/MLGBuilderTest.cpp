@@ -156,13 +156,13 @@ TEST( MLGBuilderTest, runStepTest )
     EXPECT_TRUE(builder->run());
     Layer top = dao->topLayer();
     EXPECT_EQ(1, dao->getNodeCount(top));
-    EXPECT_EQ(5, dao->countLayers());
+    EXPECT_EQ(5, dao->getLayerCount());
 
     // Only 1 node should failed
     builder->addStep(coarsener);
     EXPECT_FALSE(builder->run());
     // Still 5 layers, mirror should have failed
-    EXPECT_EQ(5, dao->countLayers());
+    EXPECT_EQ(5, dao->getLayerCount());
     coarsener.reset();
 
     builder.reset();

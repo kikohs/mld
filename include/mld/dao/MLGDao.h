@@ -77,7 +77,7 @@ typedef std::map<sparksee::gdb::oid_t, Node> NodeMap;
      */
     Node addNodeToLayer( const Layer& l );
     Node addNodeToLayer( const Layer& l, AttrMap& nodeData );
-    Node addNodeToLayer( const Layer& l, AttrMap& nodeData, AttrMap& ownsData );
+    Node addNodeToLayer( const Layer& l, AttrMap& nodeData, AttrMap& oLinkData );
 
     /**
      * @brief Add HLink

@@ -21,33 +21,24 @@
 namespace mld {
 
 // Node Types
-const std::wstring NodeType::NODE(L"MLD_NODE");
-const std::wstring NodeType::LAYER(L"MLD_LAYER");
-
+std::wstring NodeType::NODE(L"MLD_NODE");
+std::wstring NodeType::LAYER(L"MLD_LAYER");
 
 // Edge Types
-const std::wstring EdgeType::H_LINK(L"MLD_H_LINK");
-const std::wstring EdgeType::V_LINK(L"MLD_V_LINK");
-const std::wstring EdgeType::O_LINK(L"MLD_OWNS");
-const std::wstring EdgeType::CHILD_OF(L"MLD_CHILD_OF");
+std::wstring EdgeType::HLINK(L"MLD_HLINK");
+std::wstring EdgeType::VLINK(L"MLD_VLINK");
+std::wstring EdgeType::OLINK(L"MLD_OLINK");
+std::wstring EdgeType::CHILD_OF(L"MLD_CHILD_OF");
 
-// Node Attributes
-// Node
-const std::wstring NodeAttr::WEIGHT(L"MLD_N_WEIGHT");
-const std::wstring NodeAttr::LABEL(L"MLD_N_LABEL");
-const AttrNameVec NodeAttr::ATTRS{ NodeAttr::WEIGHT, NodeAttr::LABEL };
-// Layer
-const std::wstring LayerAttr::IS_BASE(L"MLD_LAYER_IS_BASE");
-const std::wstring LayerAttr::DESCRIPTION(L"MLD_LAYER_DESCRIPTION");
-
-// Edge Attributes
-const std::wstring H_LinkAttr::WEIGHT(L"MLD_H_LINK_WEIGHT");
-const AttrNameVec H_LinkAttr::ATTRS{ H_LinkAttr::WEIGHT };
-
-const std::wstring V_LinkAttr::WEIGHT(L"MLD_V_LINK_WEIGHT");
-const AttrNameVec V_LinkAttr::ATTRS{ V_LinkAttr::WEIGHT };
-
-const std::wstring O_LinkAttr::WEIGHT(L"MLD_O_LINK_WEIGHT");
-const AttrNameVec O_LinkAttr::ATTRS{ O_LinkAttr::WEIGHT };
+// Attributes
+Enum2Wstring Attrs::V {
+    {NodeAttr::WEIGHT, L"MLD_N_WEIGHT"},
+    {NodeAttr::LABEL, L"MLD_N_LABEL"},
+    {LayerAttr::IS_BASE, L"MLD_LAYER_IS_BASE"},
+    {LayerAttr::DESCRIPTION, L"MLD_LAYER_DESCRIPTION"},
+    {HLinkAttr::WEIGHT, L"MLD_HLINK_WEIGHT"},
+    {VLinkAttr::WEIGHT, L"MLD_VLINK_WEIGHT"},
+    {OLinkAttr::WEIGHT, L"MLD_OLINK_WEIGHT"}
+};
 
 } // end namespace mld

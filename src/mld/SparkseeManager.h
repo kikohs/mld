@@ -112,6 +112,17 @@ public:
     void createBaseScheme( sparksee::gdb::Graph* g );
 
     /**
+     * @brief Rename default attributes
+     * @param objType, NODE or EDGE
+     * @param key GraphTypes enum
+     * @param newName
+     */
+    void renameDefaultAttribute( sparksee::gdb::Graph* g,
+                                 const std::wstring& objType,
+                                 int key,
+                                 const std::wstring& newName );
+
+    /**
      * @brief Add an attribute to the SuperNode type
      * @param g Graph
      * @param key Key to retrieve the attribute
@@ -165,7 +176,7 @@ public:
      * @param defaultValue
      * @return success
      */
-    bool addAttrToOwnsLink( sparksee::gdb::Graph* g,
+    bool addAttrToOLink( sparksee::gdb::Graph* g,
                             const std::wstring& key,
                             sparksee::gdb::DataType dtype,
                             sparksee::gdb::AttributeKind aKind,

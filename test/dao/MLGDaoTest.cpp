@@ -51,7 +51,7 @@ TEST( MLGDaoTest, CRUD )
     mld::Node n1 = dao->addNodeToLayer(base);
     mld::Node n2 = dao->addNodeToLayer(base);
     // Check node ownership
-    ObjectsPtr neighbors(g->Neighbors(base.id(), g->FindType(EdgeType::O_LINK), Outgoing));
+    ObjectsPtr neighbors(g->Neighbors(base.id(), g->FindType(EdgeType::OLINK), Outgoing));
     success = neighbors->Exists(n1.id());
     EXPECT_EQ(success, true);
     neighbors.reset();
@@ -186,7 +186,7 @@ TEST( MLGDaoTest, MirrorLayer )
         n1_bis = n1_bisvec.at(0);
     EXPECT_EQ(n1, n1_bis);
 
-    ObjectsPtr ed(g->Explode(parentN1.id(), g->FindType(EdgeType::H_LINK), Outgoing));
+    ObjectsPtr ed(g->Explode(parentN1.id(), g->FindType(EdgeType::HLINK), Outgoing));
     EXPECT_EQ(ed->Count(), 1);
     HLink pHl21 = dao->getHLink(ed->Any());
     ed.reset();

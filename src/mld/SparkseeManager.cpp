@@ -73,11 +73,39 @@ void SparkseeManager::createBaseScheme( Graph* g )
     createEdgeTypes(g);
 }
 
+void SparkseeManager::renameDefaultAttribute( Graph* g,
+                                              const std::wstring& objType,
+                                              int key,
+                                              const std::wstring& newName )
+{
+    try {
+        type_t t = g->FindType(objType);
+
+        auto it = Attrs::V.find(key);
+        if( it == Attrs::V.end() ) {
+            LOG(logERROR) << "SparkseeManager::renameDefaultAttribute  \
+                             attribute not found in base scheme";
+            return;
+        }
+        attr_t attr = g->FindAttribute(t, it->second);
+        if( attr != Attribute::InvalidAttribute ) {
+            g->RenameAttribute(attr, newName);
+            // Change name
+            it->second = newName;
+        } else {
+            LOG(logERROR) << "SparkseeManager::renameDefaultAttribute: invalid attribute";
+        }
+
+    } catch( Error& e ) {
+        LOG(logERROR) << "SparkseeManager::renameDefaultAttribute: " << e.Message();
+    }
+}
+
 bool SparkseeManager::addAttrToNode( Graph* g,
-                                              const std::wstring& key,
-                                              DataType dtype,
-                                              AttributeKind aKind,
-                                              Value& defaultValue )
+                                     const std::wstring& key,
+                                     DataType dtype,
+                                     AttributeKind aKind,
+                                     Value& defaultValue )
 {
     bool ok = addAttr(g, NodeType::NODE, key, dtype, aKind, defaultValue);
     if( !ok ) {
@@ -92,7 +120,7 @@ bool SparkseeManager::addAttrToHLink( Graph* g,
                                       AttributeKind aKind,
                                       Value& defaultValue )
 {
-    bool ok = addAttr(g, EdgeType::H_LINK, key, dtype, aKind, defaultValue);
+    bool ok = addAttr(g, EdgeType::HLINK, key, dtype, aKind, defaultValue);
     if( !ok ) {
         LOG(logERROR) << "SparkseeManager::addAttrToHLink HLink edgeType not created";
     }
@@ -105,20 +133,20 @@ bool SparkseeManager::addAttrToVLink( Graph* g,
                                       AttributeKind aKind,
                                       Value& defaultValue )
 {
-    bool ok = addAttr(g, EdgeType::V_LINK, key, dtype, aKind, defaultValue);
+    bool ok = addAttr(g, EdgeType::VLINK, key, dtype, aKind, defaultValue);
     if( !ok ) {
         LOG(logERROR) << "SparkseeManager::addAttrToVLink HLink edgeType not created";
     }
     return ok;
 }
 
-bool SparkseeManager::addAttrToOwnsLink( Graph* g,
+bool SparkseeManager::addAttrToOLink( Graph* g,
                                       const std::wstring& key,
                                       DataType dtype,
                                       AttributeKind aKind,
                                       Value& defaultValue )
 {
-    bool ok = addAttr(g, EdgeType::O_LINK, key, dtype, aKind, defaultValue);
+    bool ok = addAttr(g, EdgeType::OLINK, key, dtype, aKind, defaultValue);
     if( !ok ) {
         LOG(logERROR) << "SparkseeManager::addAttrToOwnsLink OWNS edgeType not created";
     }
@@ -134,16 +162,16 @@ void SparkseeManager::createNodeTypes( Graph* g )
     type_t nType = g->FindType(NodeType::NODE);
     if( nType == Type::InvalidType ) {
         nType = g->NewNodeType(NodeType::NODE);
-        addAttr(g, NodeType::NODE, NodeAttr::WEIGHT, Double, Indexed, val.SetDouble(NODE_DEF_VALUE));
-        addAttr(g, NodeType::NODE, NodeAttr::LABEL, String, Indexed, val.SetString(L""));
+        addAttr(g, NodeType::NODE, Attrs::V[NodeAttr::WEIGHT], Double, Indexed, val.SetDouble(NODE_DEF_VALUE));
+        addAttr(g, NodeType::NODE, Attrs::V[NodeAttr::LABEL], String, Indexed, val.SetString(L""));
     }
 
     // Create Layer type
     nType = g->FindType(NodeType::LAYER);
     if( nType == Type::InvalidType ) {
         nType = g->NewNodeType(NodeType::LAYER);
-        addAttr(g, NodeType::LAYER, LayerAttr::IS_BASE, Boolean, Indexed, val.SetBoolean(false));
-        addAttr(g, NodeType::LAYER, LayerAttr::DESCRIPTION, String, Basic, val.SetString(L""));
+        addAttr(g, NodeType::LAYER, Attrs::V[LayerAttr::IS_BASE], Boolean, Indexed, val.SetBoolean(false));
+        addAttr(g, NodeType::LAYER, Attrs::V[LayerAttr::DESCRIPTION], String, Basic, val.SetString(L""));
     }
 }
 
@@ -151,27 +179,27 @@ void SparkseeManager::createEdgeTypes( Graph* g )
 {
     Value val;
     // Create H_LINK type
-    type_t eType = g->FindType(EdgeType::H_LINK);
+    type_t eType = g->FindType(EdgeType::HLINK);
     if( eType == Type::InvalidType ) {
         // Undirected, insparksee neighbors
-        eType = g->NewEdgeType(EdgeType::H_LINK, false, true);
-        addAttr(g, EdgeType::H_LINK, H_LinkAttr::WEIGHT, Double, Indexed, val.SetDouble(HLINK_DEF_VALUE));
+        eType = g->NewEdgeType(EdgeType::HLINK, false, true);
+        addAttr(g, EdgeType::HLINK, Attrs::V[HLinkAttr::WEIGHT], Double, Indexed, val.SetDouble(HLINK_DEF_VALUE));
     }
 
     // Create V_LINK type
-    eType = g->FindType(EdgeType::V_LINK);
+    eType = g->FindType(EdgeType::VLINK);
     if( eType == Type::InvalidType ) {
         // Directed, insparksee neighbors
-        eType = g->NewEdgeType(EdgeType::V_LINK, true, true);
-        addAttr(g, EdgeType::V_LINK, V_LinkAttr::WEIGHT, Double, Indexed, val.SetDouble(VLINK_DEF_VALUE));
+        eType = g->NewEdgeType(EdgeType::VLINK, true, true);
+        addAttr(g, EdgeType::VLINK, Attrs::V[VLinkAttr::WEIGHT], Double, Indexed, val.SetDouble(VLINK_DEF_VALUE));
     }
 
     // Create OWNS type
-    eType = g->FindType(EdgeType::O_LINK);
+    eType = g->FindType(EdgeType::OLINK);
     if( eType == Type::InvalidType ) {
         // Directed, insparksee neighbors
-        g->NewEdgeType(EdgeType::O_LINK, true, true);
-        addAttr(g, EdgeType::O_LINK, O_LinkAttr::WEIGHT, Double, Indexed, val.SetDouble(OLINK_DEF_VALUE));
+        g->NewEdgeType(EdgeType::OLINK, true, true);
+        addAttr(g, EdgeType::OLINK, Attrs::V[OLinkAttr::WEIGHT], Double, Indexed, val.SetDouble(OLINK_DEF_VALUE));
     }
 
     // Create CHILD_OF type

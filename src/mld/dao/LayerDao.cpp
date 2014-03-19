@@ -51,7 +51,7 @@ void LayerDao::setGraph( Graph* g )
     }
 }
 
-int64_t LayerDao::countLayers()
+int64_t LayerDao::getLayerCount()
 {
     std::unique_ptr<Objects> obj(m_g->Select(m_lType));
     return obj->Count();
@@ -94,11 +94,11 @@ void LayerDao::updateLayer( Layer& layer )
     // Remove the key isBaseLayer not to update this value
     bool isBase = layer.isBaseLayer();
     AttrMap& data = layer.data();
-    auto it = data.find(LayerAttr::IS_BASE);
+    auto it = data.find(Attrs::V[LayerAttr::IS_BASE]);
     data.erase(it);
     updateAttrMap(m_lType, layer.id(), data);
     // Add key to object
-    data[LayerAttr::IS_BASE].SetBooleanVoid(isBase);
+    data[Attrs::V[LayerAttr::IS_BASE]].SetBooleanVoid(isBase);
 }
 
 Layer LayerDao::getLayer( oid_t id )
@@ -193,7 +193,7 @@ Layer LayerDao::addBaseLayer()
 
 bool LayerDao::removeBaseLayer()
 {
-    auto nb = countLayers();
+    auto nb = getLayerCount();
     auto base = baseLayerImpl();
 
     if( nb == 1 && base != Objects::InvalidOID )
@@ -208,7 +208,7 @@ bool LayerDao::removeAllButBaseLayer()
     while( removeTopLayer() );
     // Remove all bottom layers
     while( removeBottomLayer() );
-    auto nb = countLayers();
+    auto nb = getLayerCount();
     return nb == 1 ? true : false;
 }
 
@@ -249,7 +249,7 @@ bool LayerDao::removeLayer( oid_t lid )
         return false;
     }
 
-    auto ownsType = m_g->FindType(EdgeType::O_LINK);
+    auto ownsType = m_g->FindType(EdgeType::OLINK);
     std::unique_ptr<Objects> nodesObj(m_g->Neighbors(lid, ownsType, Outgoing));
     // Remove all the associated nodes
     m_g->Drop(nodesObj.get());
@@ -282,7 +282,7 @@ bool LayerDao::attachOnBottom( oid_t newId )
 
 oid_t LayerDao::baseLayerImpl()
 {
-    auto attr = m_g->FindAttribute(m_lType, LayerAttr::IS_BASE);
+    auto attr = m_g->FindAttribute(m_lType, Attrs::V[LayerAttr::IS_BASE]);
 
     std::unique_ptr<Objects> obj(m_g->Select(attr, Equal, m_v->SetBoolean(true)));
     if( obj->Count() == 0 ) {
@@ -294,7 +294,7 @@ oid_t LayerDao::baseLayerImpl()
 
 void LayerDao::setAsBaseLayerImpl( oid_t newId )
 {
-    auto attr = m_g->FindAttribute(m_lType, LayerAttr::IS_BASE);
+    auto attr = m_g->FindAttribute(m_lType, Attrs::V[LayerAttr::IS_BASE]);
     auto oldId = baseLayerImpl();
     // No base layer
     if( oldId == Objects::InvalidOID ) {
