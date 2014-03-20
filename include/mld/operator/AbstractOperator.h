@@ -39,7 +39,7 @@ public:
 
     /**
      * @brief Run the underlying algorithms
-     *  Call pre_exec(), exec() and post_exec()
+     *  Call preExec(), exec() and postExec()
      * @return success
      */
     bool run();

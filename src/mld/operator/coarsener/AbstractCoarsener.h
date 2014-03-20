@@ -48,7 +48,7 @@ public:
      * @param fac
      */
     void setReductionFactor( float fac );
-    float reductionFactor() const { return m_reductionFac; }
+    inline float reductionFactor() const { return m_reductionFac; }
     /**
      * @brief Return the number of nodes to merge
      * @param numVertices base layer num of vertices returned by sparksee as an int64_t

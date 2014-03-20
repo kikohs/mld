@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 EPFL-LTS2
+** Copyright (C) 2014 EPFL-LTS2
 ** Contact: Kirell Benzi (first.last@epfl.ch)
 **
 ** This file is part of MLD.
@@ -16,16 +16,18 @@
 **
 ****************************************************************************/
 
-#include "mld/operator/merger/AbstractMerger.h"
-#include "mld/dao/MLGDao.h"
+#ifndef MLD_ABSTRACTFILTER_H
+#define MLD_ABSTRACTFILTER_H
 
-using namespace mld;
+#include "mld/common.h"
 
-AbstractMerger::AbstractMerger( sparksee::gdb::Graph* g )
-    : m_dao( new MLGDao(g) )
+class MLD_API AbstractFilter
 {
-}
+public:
+    AbstractFilter();
+    virtual ~AbstractFilter() = 0;
 
-AbstractMerger::~AbstractMerger()
-{
-}
+    virtual std::string name() const = 0;
+};
+
+#endif // MLD_ABSTRACTFILTER_H

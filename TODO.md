@@ -18,7 +18,6 @@
 - Create diffuser
 
 ## IO
-- Import TimeSeries graph
 - Export layers
 - Export MLD
 

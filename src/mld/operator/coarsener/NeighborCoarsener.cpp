@@ -16,12 +16,9 @@
 **
 ****************************************************************************/
 
-
 #include <sparksee/gdb/Graph.h>
 #include <sparksee/gdb/Objects.h>
 #include <sparksee/gdb/ObjectsIterator.h>
-
-#include <boost/progress.hpp>
 
 #include "mld/operator/selector/NeighborSelector.h"
 #include "mld/operator/coarsener/NeighborCoarsener.h"

@@ -102,6 +102,15 @@ typedef std::map<sparksee::gdb::oid_t, Node> NodeMap;
     VLink addVLink( const Node& src, const Node& tgt, AttrMap& data );
 
     /**
+     * @brief Add OLink
+     * @param layer src Layer
+     * @param tgttgt Node
+     * @param data
+     * @return newly created OLink
+     */
+    OLink addOLink( const Layer& layer, const Node& node, AttrMap& data );
+
+    /**
      * @brief Get all nodes ids belonging to input layer
      * @param l Input layer
      * @return Nodes
@@ -360,7 +369,7 @@ typedef std::map<sparksee::gdb::oid_t, Node> NodeMap;
      * @brief Get numbers of layer in the MLG`
      * @return number of layers
      */
-    int64_t countLayers();
+    int64_t getLayerCount();
     /**
      * @brief Update Layer attributes
      * @param layer Input layer

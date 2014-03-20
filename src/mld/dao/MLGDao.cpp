@@ -799,7 +799,7 @@ type_t MLGDao::nodeType() const
     return m_node->nodeType();
 }
 
-type_t MLGDao::ownsType() const
+type_t MLGDao::olinkType() const
 {
     return m_link->ownsType();
 }

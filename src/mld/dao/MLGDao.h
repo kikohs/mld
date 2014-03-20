@@ -395,7 +395,7 @@ typedef std::map<sparksee::gdb::oid_t, Node> NodeMap;
     sparksee::gdb::type_t hlinkType() const;
     sparksee::gdb::type_t vlinkType() const;
     sparksee::gdb::type_t nodeType() const;
-    sparksee::gdb::type_t ownsType() const;
+    sparksee::gdb::type_t olinkType() const;
 
 private:
     sparksee::gdb::oid_t getLayerIdForNode( sparksee::gdb::oid_t nid );

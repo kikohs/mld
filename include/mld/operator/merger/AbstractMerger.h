@@ -31,8 +31,6 @@ namespace mld {
 class MLGDao;
 class HLink;
 class Node;
-class AbstractSingleSelector;
-class AbstractMultiSelector;
 
 /**
  * @brief Base class inherited by all edge mergers
@@ -51,31 +49,6 @@ public:
     virtual std::string name() const = 0;
 protected:
     std::unique_ptr<MLGDao> m_dao;
-};
-
-// Single Merger
-class MLD_API AbstractSingleMerger: public AbstractMerger
-{
-public:
-    AbstractSingleMerger( sparksee::gdb::Graph* g );
-    virtual ~AbstractSingleMerger() = 0;
-
-    /**
-     * @brief Collapse a HLink depending on the underlying algorithm
-     * Update graph and selector
-     * @param hlink
-     * @param selector
-     * @return success
-     */
-    virtual bool merge( const HLink& hlink, const AbstractSingleSelector& selector ) = 0;
-
-    /**
-     * @brief Compute weight for the future merged node
-     * @param target Node to update
-     * @param source Source node
-     * @return new weight
-     */
-    virtual double computeWeight( const Node& target, const Node& source ) = 0;
 };
 
 } // end namespace mld
