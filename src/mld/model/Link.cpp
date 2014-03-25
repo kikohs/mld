@@ -138,6 +138,35 @@ std::ostream& operator<<( std::ostream& out, const mld::OLink& olink )
     return out;
 }
 
+// ****** CLINK ****** //
+
+CLink::CLink()
+    : Link()
+{
+}
+
+CLink::CLink( oid_t eid, oid_t src, oid_t tgt, const AttrMap& data )
+    : Link(eid, src, tgt, data)
+{
+}
+
+CLink::~CLink()
+{
+}
+
+void CLink::setWeight( double v )
+{
+    m_data[Attrs::V[CLinkAttr::WEIGHT]].SetDoubleVoid(v);
+}
+
+std::ostream& operator<<( std::ostream& out, const mld::CLink& clink )
+{
+    out << "clink ";
+    clink.print(out);
+    return out;
+}
+
+
 
 
 

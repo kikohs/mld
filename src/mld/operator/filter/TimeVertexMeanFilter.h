@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 EPFL-LTS2
+** Copyright (C) 2014 EPFL-LTS2
 ** Contact: Kirell Benzi (first.last@epfl.ch)
 **
 ** This file is part of MLD.
@@ -16,24 +16,29 @@
 **
 ****************************************************************************/
 
-#ifndef MLD_MULTIADDITIVEMERGER_H
-#define MLD_MULTIADDITIVEMERGER_H
+#ifndef MLD_TIMEVERTEXMEANFILTER_H
+#define MLD_TIMEVERTEXMEANFILTER_H
 
 #include "mld/common.h"
-#include "mld/operator/AbstractMerger.h"
+#include "mld/operator/filter/AbstractVertexFilter.h"
+
+namespace sparksee {
+namespace gdb {
+    class Graph;
+}}
 
 namespace mld {
 
-class MLD_API MultiAdditiveMerger : public AbstractMultiMerger
+class MLD_API TimeVertexMeanFilter : public AbstractVertexFilter
 {
 public:
-    MultiAdditiveMerger( sparksee::gdb::Graph* g );
-    virtual ~MultiAdditiveMerger() override;
+    TimeVertexMeanFilter( sparksee::gdb::Graph* g );
+    virtual ~TimeVertexMeanFilter();
 
-    virtual double computeWeight( const SuperNode& target, const ObjectsPtr& neighbors ) override;
-    virtual bool merge( SuperNode& target, const ObjectsPtr& neighbors ) override;
+    virtual std::string name() const override;
+    virtual OLink compute( sparksee::gdb::oid_t layerId, sparksee::gdb::oid_t rootId ) override;
 };
 
 } // end namespace mld
 
-#endif // MULTIADDITIVEMERGER_H
+#endif // MLD_TIMEVERTEXMEANFILTER_H

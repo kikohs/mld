@@ -20,10 +20,6 @@
 #define MLD_LINKDAO_H
 
 #include <vector>
-#include <sparksee/gdb/Graph.h>
-#include <sparksee/gdb/Graph_data.h>
-#include <sparksee/gdb/Objects.h>
-#include <sparksee/gdb/ObjectsIterator.h>
 
 #include "mld/common.h"
 #include "mld/dao/AbstractDao.h"
@@ -107,71 +103,7 @@ public:
     bool removeOLink( oid_t eid );
 
 private:
-    template<typename T>
-    T addLink( type_t lType, oid_t src, oid_t tgt, AttrMap& data, bool updateDb )
-    {
-        oid_t eid = addEdge(lType, src, tgt);
-        if( eid == Objects::InvalidOID )
-            return T();
-        if( updateDb ) {
-            if( !updateAttrMap(lType, eid, data) )
-                return T();
-        }
-        return T(eid, src, tgt, data);
-    }
 
-    template<typename T>
-    T getLink( type_t lType, oid_t src, oid_t tgt )
-    {
-        oid_t eid = findEdge(lType, src, tgt);
-        if( eid == Objects::InvalidOID )
-            return T();
-        return T(eid, src, tgt, readAttrMap(eid));
-    }
-
-    template<typename T>
-    T getLink( type_t lType, oid_t eid )
-    {
-        #ifdef MLD_SAFE
-            if( eid == Objects::InvalidOID ) {
-                LOG(logERROR) << "LinkDao::getLink: invalid oid";
-                return T();
-            }
-        #endif
-            std::unique_ptr<sparksee::gdb::EdgeData> eData;
-        #ifdef MLD_SAFE
-            try {
-                if( m_g->GetObjectType(eid) != lType ) {
-                    LOG(logERROR) << "LinkDao::getLink: invalid type";
-                    return T();
-                }
-        #endif
-                eData.reset(m_g->GetEdgeData(eid));
-        #ifdef MLD_SAFE
-            } catch( sparksee::gdb::Error& e ) {
-                LOG(logERROR) << "LinkDao::getLink: " << e.Message();
-                return T();
-            }
-        #endif
-            return T(eid, eData->GetTail(), eData->GetHead(), readAttrMap(eid));
-    }
-
-    template<typename T>
-    std::vector<T> getLink( type_t lType, const ObjectsPtr& objs )
-    {
-        std::vector<T> res;
-        res.reserve(objs->Count());
-        ObjectsIt it(objs->Iterator());
-        while( it->HasNext() ) {
-            T e(getLink<T>(lType, it->Next()));
-        #ifdef MLD_SAFE
-            // Watch for the if, no { }
-            if( e.id() != Objects::InvalidOID )
-        #endif
-                res.push_back(e);
-        }
-        return res;
-    }
 
 private:
     type_t m_hType; // hlinkType

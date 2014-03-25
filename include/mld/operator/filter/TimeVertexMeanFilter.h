@@ -16,14 +16,29 @@
 **
 ****************************************************************************/
 
-#include "mld/operator/filter/AbstractFilter.h"
+#ifndef MLD_TIMEVERTEXMEANFILTER_H
+#define MLD_TIMEVERTEXMEANFILTER_H
 
-using namespace mld;
+#include "mld/common.h"
+#include "mld/operator/filter/AbstractVertexFilter.h"
 
-AbstractFilter::AbstractFilter()
+namespace sparksee {
+namespace gdb {
+    class Graph;
+}}
+
+namespace mld {
+
+class MLD_API TimeVertexMeanFilter : public AbstractVertexFilter
 {
-}
+public:
+    TimeVertexMeanFilter( sparksee::gdb::Graph* g );
+    virtual ~TimeVertexMeanFilter();
 
-AbstractFilter::~AbstractFilter()
-{
-}
+    virtual std::string name() const override;
+    virtual OLink compute( sparksee::gdb::oid_t nodeId, sparksee::gdb::oid_t layerId ) override;
+};
+
+} // end namespace mld
+
+#endif // MLD_TIMEVERTEXMEANFILTER_H

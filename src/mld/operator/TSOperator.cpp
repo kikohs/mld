@@ -22,7 +22,7 @@
 
 #include "mld/operator/TSOperator.h"
 #include "mld/dao/MLGDao.h"
-#include "mld/operator/filter/AbstractFilter.h"
+#include "mld/operator/filter/AbstractVertexFilter.h"
 #include "mld/utils/Timer.h"
 #include "mld/utils/ProgressDisplay.h"
 
@@ -39,30 +39,9 @@ TSOperator::~TSOperator()
 {
 }
 
-void TSOperator::setFilter( AbstractFilter* filter )
+void TSOperator::setFilter( AbstractVertexFilter* filter )
 {
     m_filt.reset(filter);
-}
-
-std::string TSOperator::name() const
-{
-    // TODO
-    return std::string();
-}
-
-void TSOperator::setActiveNodes( const ObjectsPtr& nodeSet )
-{
-    m_activeNodes = nodeSet;
-}
-
-void TSOperator::setActiveLayers( const ObjectsPtr& layerSet )
-{
-    m_activeLayers = layerSet;
-}
-
-void TSOperator::setExcludedNodes( const ObjectsPtr& nodeSet )
-{
-    m_excludedNodes = nodeSet;
 }
 
 bool TSOperator::preExec()
@@ -71,33 +50,57 @@ bool TSOperator::preExec()
         LOG(logERROR) << "TSOperator::preExec: No filter set. Please set a filter first";
         return false;
     }
-
-    // Select all nodes from base layer
-    if( !m_activeNodes ) {
-        m_activeNodes = m_dao->getAllNodeIds(m_dao->baseLayer());
-    }
-
-    // Set empty set
-    if( !m_excludedNodes ) {
-        m_excludedNodes = m_dao->newObjectsPtr();
-    }
-
-    // Select all layers
-    if( !m_activeLayers ) {
-        m_activeLayers.reset(m_dao->graph()->Select(m_dao->olinkType()));
-    }
-    // TODO
-    return false;
+    return true;
 }
 
 bool TSOperator::exec()
-{
-    // TODO
-    return false;
+{    
+    std::unique_ptr<Timer> t(new Timer("TSOperator::exec"));
+    m_buffer.clear();
+    // Select all nodes from base layer
+    ObjectsPtr nodes(m_dao->getAllNodeIds(m_dao->baseLayer()));
+    // Remove excluded nodes
+    nodes->Difference(m_filt->excludedNodes());
+
+    // Get all layers
+    std::vector<Layer> layers(m_dao->getAllLayers());
+
+    size_t oLinkCount = layers.size() * nodes->Count();
+    m_buffer.reserve(oLinkCount);
+
+    LOG(logINFO) << "Start filtering, " << oLinkCount << " timeseries values to process";
+    ProgressDisplay display(oLinkCount);
+
+    for( auto& layer: layers ) {
+        ObjectsIt it(nodes->Iterator());
+        while( it->HasNext() ) {
+            oid_t nid = it->Next();
+            OLink olink( m_filt->compute(nid, layer.id()) );
+#ifdef MLD_SAFE
+            if( olink.id() == Objects::InvalidOID ) {
+                LOG(logERROR) << "TSOperator::exec invalid OLink";
+                return false;
+            }
+#endif
+            m_buffer.push_back(olink);
+            ++display;
+        }
+    }
+    return true;
 }
 
 bool TSOperator::postExec()
 {
-    // TODO
-    return false;
+    std::unique_ptr<Timer> t(new Timer("TSOperator::postExec"));
+    LOG(logINFO) << "Commit OLink in-memory stored values in DB";
+    ProgressDisplay display(m_buffer.size());
+
+    for( auto& olink: m_buffer ) {
+        if( !m_dao->updateOLink(olink) ) {
+            LOG(logERROR) << "TSOperator::postExec: updateOLink failed: " << olink;
+            return false;
+        }
+        ++display;
+    }
+    return true;
 }

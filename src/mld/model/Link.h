@@ -56,6 +56,7 @@ protected:
  */
 class MLD_API HLink : public Link
 {
+    friend class AbstractDao;
     friend class LinkDao;
     friend class MLGDao;
 public:
@@ -82,6 +83,7 @@ protected:
  */
 class MLD_API VLink : public Link
 {
+    friend class AbstractDao;
     friend class LinkDao;
     friend class MLGDao;
 public:
@@ -104,6 +106,7 @@ protected:
  */
 class MLD_API OLink : public Link
 {
+    friend class AbstractDao;
     friend class LinkDao;
     friend class MLGDao;
 public:
@@ -121,11 +124,35 @@ protected:
     using GraphObject::setId;
 };
 
+/**
+ * @brief The Child_Of link class
+ */
+class MLD_API CLink : public Link
+{
+    friend class AbstractDao;
+    friend class LinkDao;
+    friend class MLGDao;
+public:
+    virtual ~CLink() override;
+
+    inline double weight() const { return m_data[Attrs::V[CLinkAttr::WEIGHT]].GetDouble(); }
+    void setWeight( double v );
+
+protected:
+    explicit CLink();
+    explicit CLink( sparksee::gdb::oid_t eid, sparksee::gdb::oid_t src,
+           sparksee::gdb::oid_t tgt, const AttrMap& data );
+
+    // "Hide" setId method
+    using GraphObject::setId;
+};
+
+
 } // end namespace mld
 
 std::ostream& operator<<( std::ostream& out, const mld::HLink& hlink );
 std::ostream& operator<<( std::ostream& out, const mld::VLink& vlink );
 std::ostream& operator<<( std::ostream& out, const mld::OLink& olink );
-
+std::ostream& operator<<( std::ostream& out, const mld::CLink& clink );
 
 #endif // LINK_H

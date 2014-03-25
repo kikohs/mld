@@ -207,6 +207,7 @@ void SparkseeManager::createEdgeTypes( Graph* g )
     if( eType == Type::InvalidType ) {
         // Directed, insparksee neighbors
         g->NewEdgeType(EdgeType::CHILD_OF, true, true);
+        addAttr(g, EdgeType::CHILD_OF, Attrs::V[CLinkAttr::WEIGHT], Double, Indexed, val.SetDouble(CLINK_DEF_VALUE));
     }
 }
 

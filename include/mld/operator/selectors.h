@@ -19,23 +19,7 @@
 #ifndef MLD_SELECTORS_H
 #define MLD_SELECTORS_H
 
-#include "mld/common.h"
-#include "mld/operator/selector/AbstractSelector.h"
+#include "mld/operator/selector/HeavyHLinkSelector.h"
 #include "mld/operator/selector/XSelector.h"
-
-namespace mld {
-
-class MLD_API HeavyEdgeSelector: public AbstractSingleSelector
-{
-public:
-    HeavyEdgeSelector( sparksee::gdb::Graph* g );
-    virtual ~HeavyEdgeSelector() override;
-
-    virtual HLink selectBestHLink( const Layer& layer ) override;
-
-    virtual std::string name() const override { return "HeavyEdgeSelector"; }
-};
-
-} // end namespace mld
 
 #endif // MLD_SELECTORS_H

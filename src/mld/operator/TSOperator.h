@@ -20,6 +20,7 @@
 #define MLD_TSOPERATOR_H
 
 #include "mld/operator/AbstractOperator.h"
+#include "mld/model/Link.h"
 
 namespace sparksee {
 namespace gdb {
@@ -31,7 +32,7 @@ namespace gdb {
 namespace mld {
 
 class MLGDao;
-class AbstractFilter;
+class AbstractVertexFilter;
 
 class MLD_API TSOperator : public AbstractOperator
 {
@@ -43,35 +44,7 @@ public:
      * @brief Set filter in the operator and TAKE OWNERSHIP of it
      * @param filter
      */
-    void setFilter( AbstractFilter* filter );
-
-    /**
-     * @brief Name of this operator, use underlying name filter if any
-     * @return name
-     */
-    virtual std::string name() const;
-
-    /**
-     * @brief Define nodes which will be processed
-     * By default all the base layer is processed
-     * @param nodeSet
-     */
-    void setActiveNodes( const ObjectsPtr& nodeSet );
-
-    /**
-     * @brief Define layers (time step in our case) where
-     * data will be retrieve.
-     * By default takes on the layers
-     * @param layerSet
-     */
-    void setActiveLayers( const ObjectsPtr& layerSet );
-
-    /**
-     * @brief Exclude Nodes, they will not
-     * be processed nor retrieved as neighbors
-     * @param nodeSet
-     */
-    void setExcludedNodes( const ObjectsPtr& nodeSet );
+    void setFilter( AbstractVertexFilter* filter );
 
 protected:
     /**
@@ -92,11 +65,9 @@ protected:
 
 protected:
     std::unique_ptr<MLGDao> m_dao;
-    std::unique_ptr<AbstractFilter> m_filt;
+    std::unique_ptr<AbstractVertexFilter> m_filt;
 
-    ObjectsPtr m_activeLayers;
-    ObjectsPtr m_activeNodes;
-    ObjectsPtr m_excludedNodes;
+    std::vector<OLink> m_buffer; // store OLink to be commited
 };
 
 } // end namespace mld

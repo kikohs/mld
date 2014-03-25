@@ -16,14 +16,8 @@
 **
 ****************************************************************************/
 
-#include <sparksee/gdb/Graph.h>
-#include <sparksee/gdb/Objects.h>
-#include <sparksee/gdb/Graph_data.h>
-#include <sparksee/gdb/Value.h>
-
 #include "mld/GraphTypes.h"
 #include "mld/dao/LayerDao.h"
-#include "mld/utils/log.h"
 
 using namespace mld;
 using namespace sparksee::gdb;
@@ -43,17 +37,22 @@ void LayerDao::setGraph( Graph* g )
 {
     if( g ) {
         AbstractDao::setGraph(g);
-        m_lType = m_g->FindType(NodeType::LAYER);
+        m_layerType = m_g->FindType(NodeType::LAYER);
+        m_clinkType = m_g->FindType(EdgeType::CHILD_OF);
         // Create a dummy layer to get the default attributes
         oid_t id = addLayer();
+        oid_t id2 = addLayer();
         m_layerAttr = readAttrMap(id);
+        auto clink = m_g->NewEdge(m_clinkType, id, id2);
+        m_clinkAttr = readAttrMap(clink);
         m_g->Drop(id);
+        m_g->Drop(id2);
     }
 }
 
 int64_t LayerDao::getLayerCount()
 {
-    std::unique_ptr<Objects> obj(m_g->Select(m_lType));
+    std::unique_ptr<Objects> obj(m_g->Select(m_layerType));
     return obj->Count();
 }
 
@@ -96,7 +95,7 @@ void LayerDao::updateLayer( Layer& layer )
     AttrMap& data = layer.data();
     auto it = data.find(Attrs::V[LayerAttr::IS_BASE]);
     data.erase(it);
-    updateAttrMap(m_lType, layer.id(), data);
+    updateAttrMap(m_layerType, layer.id(), data);
     // Add key to object
     data[Attrs::V[LayerAttr::IS_BASE]].SetBooleanVoid(isBase);
 }
@@ -212,18 +211,37 @@ bool LayerDao::removeAllButBaseLayer()
     return nb == 1 ? true : false;
 }
 
+std::vector<Layer> LayerDao::getAllLayers()
+{
+    std::vector<Layer> res;
+    Layer bot(bottomLayer());
+    if( bot.id() == Objects::InvalidOID )
+        return res;
+
+    // Add bottom Layer
+    res.push_back(bot);
+
+    // Loop through all parent layers from the bottom
+    oid_t pId = bot.id();
+    while( pId != Objects::InvalidOID ) {
+        pId = parentImpl(pId);
+        if( pId != Objects::InvalidOID )
+            res.push_back(getLayer(pId));
+    }
+    return res;
+}
+
 bool LayerDao::affiliated( oid_t layer1, oid_t layer2 )
 {
-    auto childType = m_g->FindType(EdgeType::CHILD_OF);
     oid_t eid = Objects::InvalidOID;
 #ifdef MLD_SAFE
     try {
 #endif
         // Check child_of
-        eid = m_g->FindEdge(childType, layer1, layer2);
+        eid = m_g->FindEdge(m_clinkType, layer1, layer2);
         if( eid == Objects::InvalidOID ) {
             // Check reverse child_of
-            eid = m_g->FindEdge(childType, layer2, layer1);
+            eid = m_g->FindEdge(m_clinkType, layer2, layer1);
             if( eid == Objects::InvalidOID )
                 return false;
         }
@@ -236,10 +254,56 @@ bool LayerDao::affiliated( oid_t layer1, oid_t layer2 )
     return true;
 }
 
+CLink LayerDao::topCLink( oid_t lid )
+{
+    oid_t top = parentImpl(lid);
+    return getCLink(lid, top);
+}
+
+CLink LayerDao::bottomCLink( oid_t lid )
+{
+    oid_t child = childImpl(lid);
+    return getCLink(child, lid);
+}
+
+CLink LayerDao::getCLink( oid_t src, oid_t tgt )
+{
+    return getLink<CLink>(m_clinkType, src, tgt);
+}
+
+CLink LayerDao::getCLink( oid_t clid )
+{
+    return getLink<CLink>(m_clinkType, clid);
+}
+
+bool LayerDao::updateCLink( oid_t child, oid_t parent, double weight )
+{
+    AttrMap data(m_clinkAttr);
+    data[Attrs::V[CLinkAttr::WEIGHT]].SetDoubleVoid(weight);
+    return updateAttrMap(m_clinkType, findEdge(m_clinkType, child, parent), data);
+}
+
+bool LayerDao::updateCLink( oid_t child, oid_t parent, AttrMap& data )
+{
+    return updateAttrMap(m_clinkType, findEdge(m_clinkType, child, parent), data);
+}
+
+bool LayerDao::updateCLink( oid_t eid, AttrMap& data )
+{
+    return updateAttrMap(m_clinkType, eid, data);
+}
+
+bool LayerDao::updateCLink( oid_t eid, double weight )
+{
+    AttrMap data;
+    data[Attrs::V[CLinkAttr::WEIGHT]].SetDoubleVoid(weight);
+    return updateAttrMap(m_clinkType, eid, data);
+}
+
 // ********** PRIVATE METHODS ********** //
 oid_t LayerDao::addLayer()
 {
-    return m_g->NewNode(m_lType);
+    return m_g->NewNode(m_layerType);
 }
 
 bool LayerDao::removeLayer( oid_t lid )
@@ -264,8 +328,7 @@ bool LayerDao::attachOnTop( oid_t newId )
     if( top == Objects::InvalidOID )
         return false;
 
-    auto childType = m_g->FindType(EdgeType::CHILD_OF);
-    m_g->NewEdge(childType, top, newId);
+    m_g->NewEdge(m_clinkType, top, newId);
     return true;
 }
 
@@ -275,14 +338,13 @@ bool LayerDao::attachOnBottom( oid_t newId )
     if( bottom == Objects::InvalidOID )
         return false;
 
-    auto childType = m_g->FindType(EdgeType::CHILD_OF);
-    m_g->NewEdge(childType, newId, bottom);
+    m_g->NewEdge(m_clinkType, newId, bottom);
     return true;
 }
 
 oid_t LayerDao::baseLayerImpl()
 {
-    auto attr = m_g->FindAttribute(m_lType, Attrs::V[LayerAttr::IS_BASE]);
+    auto attr = m_g->FindAttribute(m_layerType, Attrs::V[LayerAttr::IS_BASE]);
 
     std::unique_ptr<Objects> obj(m_g->Select(attr, Equal, m_v->SetBoolean(true)));
     if( obj->Count() == 0 ) {
@@ -294,7 +356,7 @@ oid_t LayerDao::baseLayerImpl()
 
 void LayerDao::setAsBaseLayerImpl( oid_t newId )
 {
-    auto attr = m_g->FindAttribute(m_lType, Attrs::V[LayerAttr::IS_BASE]);
+    auto attr = m_g->FindAttribute(m_layerType, Attrs::V[LayerAttr::IS_BASE]);
     auto oldId = baseLayerImpl();
     // No base layer
     if( oldId == Objects::InvalidOID ) {
@@ -349,9 +411,8 @@ oid_t LayerDao::parentImpl( oid_t lid )
     if( lid == Objects::InvalidOID )
         return Objects::InvalidOID;
 
-    auto childType = m_g->FindType(EdgeType::CHILD_OF);
     // ID is CHILD_OF -> next ID
-    std::unique_ptr<Objects> obj(m_g->Neighbors(lid, childType, Outgoing));
+    std::unique_ptr<Objects> obj(m_g->Neighbors(lid, m_clinkType, Outgoing));
 
     if( obj->Count() == 0 )
         return Objects::InvalidOID;
@@ -364,9 +425,8 @@ oid_t LayerDao::childImpl( oid_t lid )
     if( lid == Objects::InvalidOID ) {
         return Objects::InvalidOID;
     }
-    auto childType = m_g->FindType(EdgeType::CHILD_OF);
     // NEXT CHILD is CHILD_OF -> ID
-    std::unique_ptr<Objects> obj(m_g->Neighbors(lid, childType, Ingoing));
+    std::unique_ptr<Objects> obj(m_g->Neighbors(lid, m_clinkType, Ingoing));
 
     if( obj->Count() == 0 )
         return Objects::InvalidOID;

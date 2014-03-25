@@ -275,6 +275,11 @@ typedef std::map<sparksee::gdb::oid_t, Node> NodeMap;
     VLink getVLink( sparksee::gdb::oid_t vid );
     bool updateVLink( VLink& link );
 
+    OLink getOLink( sparksee::gdb::oid_t layerId, sparksee::gdb::oid_t nodeId );
+    OLink getOLink( sparksee::gdb::oid_t eid );
+    bool updateOLink( OLink& link );
+    void removeOLink( sparksee::gdb::oid_t layerId, sparksee::gdb::oid_t nodeId );
+
     // Forward to LayerDAO
     /**
      * @brief Add base layer, initial layer, mandatory
@@ -389,8 +394,8 @@ typedef std::map<sparksee::gdb::oid_t, Node> NodeMap;
      */
     bool exists( const Layer& layer );
 
-    // Forward to OwnsDao
-    void removeOwnsLink( sparksee::gdb::oid_t layerId, sparksee::gdb::oid_t nodeId );
+    std::vector<Layer> getAllLayers();
+
 
     sparksee::gdb::type_t hlinkType() const;
     sparksee::gdb::type_t vlinkType() const;

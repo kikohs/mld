@@ -19,6 +19,11 @@
 #ifndef MLD_ABSTRACTDAO_H
 #define MLD_ABSTRACTDAO_H
 
+#include <sparksee/gdb/Graph.h>
+#include <sparksee/gdb/Graph_data.h>
+#include <sparksee/gdb/Objects.h>
+#include <sparksee/gdb/ObjectsIterator.h>
+
 #include "mld/common.h"
 #include "mld/model/GraphObject.h"
 
@@ -80,6 +85,75 @@ protected:
 
     bool removeEdge( sparksee::gdb::type_t lType,
                      sparksee::gdb::oid_t id );
+
+    template<typename T>
+    T addLink( sparksee::gdb::type_t lType,
+               sparksee::gdb::oid_t src,
+               sparksee::gdb::oid_t tgt, AttrMap& data, bool updateDb )
+    {
+        sparksee::gdb::oid_t eid = addEdge(lType, src, tgt);
+        if( eid == sparksee::gdb::Objects::InvalidOID )
+            return T();
+        if( updateDb ) {
+            if( !updateAttrMap(lType, eid, data) )
+                return T();
+        }
+        return T(eid, src, tgt, data);
+    }
+
+    template<typename T>
+    T getLink( sparksee::gdb::type_t lType,
+               sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt )
+    {
+        sparksee::gdb::oid_t eid = findEdge(lType, src, tgt);
+        if( eid == sparksee::gdb::Objects::InvalidOID )
+            return T();
+        return T(eid, src, tgt, readAttrMap(eid));
+    }
+
+    template<typename T>
+    T getLink( sparksee::gdb::type_t lType, sparksee::gdb::oid_t eid )
+    {
+        #ifdef MLD_SAFE
+            if( eid == sparksee::gdb::Objects::InvalidOID ) {
+                LOG(logERROR) << "AbstractDao::getLink: invalid oid";
+                return T();
+            }
+        #endif
+            std::unique_ptr<sparksee::gdb::EdgeData> eData;
+        #ifdef MLD_SAFE
+            try {
+                if( m_g->GetObjectType(eid) != lType ) {
+                    LOG(logERROR) << "AbstractDao::getLink: invalid type";
+                    return T();
+                }
+        #endif
+                eData.reset(m_g->GetEdgeData(eid));
+        #ifdef MLD_SAFE
+            } catch( sparksee::gdb::Error& e ) {
+                LOG(logERROR) << "AbstractDao::getLink: " << e.Message();
+                return T();
+            }
+        #endif
+            return T(eid, eData->GetTail(), eData->GetHead(), readAttrMap(eid));
+    }
+
+    template<typename T>
+    std::vector<T> getLink( sparksee::gdb::type_t lType, const ObjectsPtr& objs )
+    {
+        std::vector<T> res;
+        res.reserve(objs->Count());
+        ObjectsIt it(objs->Iterator());
+        while( it->HasNext() ) {
+            T e(getLink<T>(lType, it->Next()));
+        #ifdef MLD_SAFE
+            // Watch for the if, no { }
+            if( e.id() != sparksee::gdb::Objects::InvalidOID )
+        #endif
+                res.push_back(e);
+        }
+        return res;
+    }
 
 protected:
     sparksee::gdb::Graph* m_g;

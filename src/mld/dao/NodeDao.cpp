@@ -16,11 +16,6 @@
 **
 ****************************************************************************/
 
-#include <sparksee/gdb/Graph.h>
-#include <sparksee/gdb/Objects.h>
-#include <sparksee/gdb/ObjectsIterator.h>
-#include <sparksee/gdb/Graph_data.h>
-
 #include "mld/GraphTypes.h"
 #include "mld/dao/NodeDao.h"
 

@@ -149,6 +149,14 @@ struct MLD_API OLinkAttr
     };
 };
 
+struct MLD_API CLinkAttr
+{
+    enum Attrs
+    {
+        WEIGHT = OLinkAttr::OLINKATTR_MAX,
+        CLINKATTR_MAX
+    };
+};
 
 } // end namespace mld
 

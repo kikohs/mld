@@ -19,28 +19,6 @@
 #ifndef MLD_COARSENERS_H
 #define MLD_COARSENERS_H
 
-#include "mld/common.h"
-#include "mld/operator/coarsener/AbstractCoarsener.h"
-#include "mld/operator/coarsener/XCoarsener.h"
-
-namespace mld {
-
-/**
- * @brief The HeavyEdgeCoarsener class
- *  Mirrors the top layer
- *  Iteratively get the heaviest edge in the top layer and merge
- *  the 2 nodes until goal is reached
- */
-class MLD_API HeavyEdgeCoarsener: public AbstractSingleCoarsener
-{
-public:
-    HeavyEdgeCoarsener( sparksee::gdb::Graph* g );
-    virtual ~HeavyEdgeCoarsener() override;
-    virtual bool preExec() override;
-    virtual bool exec() override;
-    virtual std::string name() const override;
-};
-
-} // end namespace mld
+#include "mld/operator/coarsener/NeighborCoarsener.h"
 
 #endif // MLD_COARSENERS_H

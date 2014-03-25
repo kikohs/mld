@@ -16,10 +16,6 @@
 **
 ****************************************************************************/
 
-#include <sparksee/gdb/Graph.h>
-#include <sparksee/gdb/Objects.h>
-#include <sparksee/gdb/ObjectsIterator.h>
-#include <sparksee/gdb/Graph_data.h>
 #include <sparksee/gdb/Value.h>
 #include <sparksee/gdb/Values.h>
 #include <sparksee/gdb/ValuesIterator.h>
@@ -697,6 +693,26 @@ bool MLGDao::updateVLink( VLink& link )
     return m_link->updateVLink(link.id(), link.data());
 }
 
+OLink MLGDao::getOLink( oid_t layerId, oid_t nodeId )
+{
+    return m_link->getOLink(layerId, nodeId);
+}
+
+OLink MLGDao::getOLink( oid_t eid )
+{
+    return m_link->getOLink(eid);
+}
+
+bool MLGDao::updateOLink( OLink& link )
+{
+    return m_link->updateOLink(link.id(), link.data());
+}
+
+void MLGDao::removeOLink( oid_t layerId, oid_t nodeId )
+{
+    m_link->removeOLink(layerId, nodeId);
+}
+
 // ****** FORWARD METHOD OF LAYER DAO ****** //
 
 Layer MLGDao::addBaseLayer()
@@ -784,6 +800,12 @@ bool MLGDao::exists( const Layer& layer )
     return m_layer->exists(layer);
 }
 
+std::vector<Layer> MLGDao::getAllLayers()
+{
+    return m_layer->getAllLayers();
+}
+
+// Types
 type_t MLGDao::hlinkType() const
 {
     return m_link->hlinkType();

@@ -35,12 +35,12 @@ public:
      * @brief Set selector and TAKE OWNERSHIP
      * @param sel
      */
-    void setSelector( NeighborSelector* sel ) { m_sel.reset(sel); }
+    void setSelector( NeighborSelector* selector );
     /**
      * @brief Set merger and TAKE OWNERSHIP
      * @param merger
      */
-    void setMerger( NeighborMerger* merger ) { m_merger.reset(merger); }
+    void setMerger( NeighborMerger* merger );
 
 protected:
     virtual bool preExec() override;

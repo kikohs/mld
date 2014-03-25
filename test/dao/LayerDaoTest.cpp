@@ -176,8 +176,11 @@ TEST( LayerDaoTest, AddRemoveLayers )
     dao->addLayerOnBottom();
     auto last = dao->addLayerOnBottom();
 
+    auto layers = dao->getAllLayers();
+    EXPECT_EQ(size_t(8), layers.size());
+
     success = dao->removeBaseLayer();
-    EXPECT_EQ(success, false);
+    EXPECT_FALSE(success);
     EXPECT_EQ(dao->getLayerCount(), 8);
 
     success = dao->removeAllButBaseLayer();
@@ -217,6 +220,35 @@ TEST( LayerDaoTest, GetUpdateLayer )
     EXPECT_EQ(base_get.id(), base.id());
     EXPECT_EQ(base_get.description(), base.description());
     EXPECT_EQ(base_get.isBaseLayer(), true);
+
+    dao.reset();
+    sess.reset();
+}
+
+TEST( LayerDaoTest, GetUpdateCLink )
+{
+    mld::SparkseeManager sparkseeManager(mld::kRESOURCES_DIR + L"mysparksee.cfg");
+    sparkseeManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.sparksee", L"MLDTest");
+
+    SessionPtr sess = sparkseeManager.newSession();
+    Graph* g = sess->GetGraph();
+    // Create Db scheme
+    sparkseeManager.createBaseScheme(g);
+
+    std::unique_ptr<LayerDao> dao( new LayerDao(g) );
+
+    auto base = dao->addBaseLayer();
+    auto top = dao->addLayerOnTop();
+
+    bool ok = dao->updateCLink(base.id(), top.id(), 12.0);
+    EXPECT_TRUE(ok);
+
+    CLink topCLink = dao->topCLink(base.id());
+    EXPECT_NE(topCLink.id(), Objects::InvalidOID);
+    EXPECT_DOUBLE_EQ(12.0, topCLink.weight());
+
+    CLink topCLinkBis = dao->getCLink(topCLink.id());
+    EXPECT_EQ(topCLink, topCLinkBis);
 
     dao.reset();
     sess.reset();

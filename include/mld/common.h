@@ -60,6 +60,7 @@ typedef std::unique_ptr<sparksee::gdb::AttributeListIterator> AttributeListIt;
 static const double HLINK_DEF_VALUE = 1.0;
 static const double VLINK_DEF_VALUE = 1.0;
 static const double OLINK_DEF_VALUE = 0.0;
+static const double CLINK_DEF_VALUE = 1.0;
 static const double NODE_DEF_VALUE = 1.0;
 
 static const int64_t INVALID_NODE_COUNT = -1;

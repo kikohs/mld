@@ -16,11 +16,6 @@
 **
 ****************************************************************************/
 
-#include <sparksee/gdb/Graph.h>
-#include <sparksee/gdb/Value.h>
-#include <sparksee/gdb/Graph_data.h>
-#include <sparksee/gdb/Objects.h>
-
 #include "mld/dao/AbstractDao.h"
 
 using namespace mld;

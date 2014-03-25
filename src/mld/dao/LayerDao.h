@@ -22,6 +22,7 @@
 #include "mld/common.h"
 #include "mld/dao/AbstractDao.h"
 #include "mld/model/Layer.h"
+#include "mld/model/Link.h"
 
 namespace sparksee {
 namespace gdb {
@@ -69,6 +70,8 @@ public:
     Layer getLayer( sparksee::gdb::oid_t id );
     bool exists( const Layer& layer );
 
+    std::vector<Layer> getAllLayers();
+
     /**
      * @brief Check filiation
      * @param layer1
@@ -76,6 +79,16 @@ public:
      * @return TRue is one of the layer is child of the other
      */
     bool affiliated( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
+
+    CLink topCLink( sparksee::gdb::oid_t lid );
+    CLink bottomCLink( sparksee::gdb::oid_t lid );
+    CLink getCLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
+    CLink getCLink( sparksee::gdb::oid_t clid );
+
+    bool updateCLink( sparksee::gdb::oid_t child, sparksee::gdb::oid_t parent, double weight );
+    bool updateCLink( sparksee::gdb::oid_t child, sparksee::gdb::oid_t parent, AttrMap& data );
+    bool updateCLink( sparksee::gdb::oid_t eid, AttrMap& data );
+    bool updateCLink( sparksee::gdb::oid_t eid, double weight );
 
 private:
     sparksee::gdb::oid_t addLayer();
@@ -94,8 +107,10 @@ private:
     sparksee::gdb::oid_t childImpl( sparksee::gdb::oid_t lid );
 
 private:
-    sparksee::gdb::type_t m_lType;
+    sparksee::gdb::type_t m_layerType;
+    sparksee::gdb::type_t m_clinkType;
     AttrMap m_layerAttr;
+    AttrMap m_clinkAttr;
 };
 
 } // end namespace mld
