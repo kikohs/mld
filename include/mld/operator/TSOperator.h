@@ -32,7 +32,7 @@ namespace gdb {
 namespace mld {
 
 class MLGDao;
-class AbstractVertexFilter;
+class AbstractTimeVertexFilter;
 
 class MLD_API TSOperator : public AbstractOperator
 {
@@ -44,7 +44,7 @@ public:
      * @brief Set filter in the operator and TAKE OWNERSHIP of it
      * @param filter
      */
-    void setFilter( AbstractVertexFilter* filter );
+    void setFilter( AbstractTimeVertexFilter* filter );
 
 protected:
     /**
@@ -65,7 +65,7 @@ protected:
 
 protected:
     std::unique_ptr<MLGDao> m_dao;
-    std::unique_ptr<AbstractVertexFilter> m_filt;
+    std::unique_ptr<AbstractTimeVertexFilter> m_filt;
 
     std::vector<OLink> m_buffer; // store OLink to be commited
 };

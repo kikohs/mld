@@ -20,7 +20,7 @@
 #define MLD_TIMEVERTEXMEANFILTER_H
 
 #include "mld/common.h"
-#include "mld/operator/filter/AbstractVertexFilter.h"
+#include "mld/operator/filter/AbstractTimeVertexFilter.h"
 
 namespace sparksee {
 namespace gdb {
@@ -29,14 +29,16 @@ namespace gdb {
 
 namespace mld {
 
-class MLD_API TimeVertexMeanFilter : public AbstractVertexFilter
+class MLD_API TimeVertexMeanFilter : public AbstractTimeVertexFilter
 {
+
 public:
     TimeVertexMeanFilter( sparksee::gdb::Graph* g );
     virtual ~TimeVertexMeanFilter();
 
     virtual std::string name() const override;
-    virtual OLink compute( sparksee::gdb::oid_t nodeId, sparksee::gdb::oid_t layerId ) override;
+    virtual OLink compute( sparksee::gdb::oid_t layerId, sparksee::gdb::oid_t rootId ) override;
+    virtual OLink computeNodeWeight( sparksee::gdb::oid_t node, double hlinkWeight, const TWCoeff& coeff ) override;
 };
 
 } // end namespace mld

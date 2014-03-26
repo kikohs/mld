@@ -17,33 +17,15 @@
 ****************************************************************************/
 
 #include <vector>
+#include <algorithm>
 #include "mld/operator/filter/TimeVertexMeanFilter.h"
 #include "mld/dao/MLGDao.h"
 
 using namespace mld;
 using namespace sparksee::gdb;
 
-using TWCoeff = std::pair<oid_t, double>;
-using TWCoeffVec = std::vector<TWCoeff>;
-
-namespace {
-
-TWCoeffVec computeTimeWindowCoeffs( oid_t layerId, uint32_t wSize, MLGDao* dao )
-{
-    // TODO
-    return TWCoeffVec();
-}
-
-double computeNodeWeight( oid_t current, double hlinkWeight, const TWCoeff& coeff, MLGDao* dao )
-{
-    // TODO
-    return 0.0;
-}
-
-} // end namespace anonymous
-
 TimeVertexMeanFilter::TimeVertexMeanFilter( sparksee::gdb::Graph* g )
-    : AbstractVertexFilter(g)
+    : AbstractTimeVertexFilter(g)
 {
 }
 
@@ -54,6 +36,16 @@ TimeVertexMeanFilter::~TimeVertexMeanFilter()
 std::string TimeVertexMeanFilter::name() const
 {
     std::string name("TimeVertexMeanFilter: ");
+    if( m_timeOnly ) {
+        name += " filter on time domain only";
+        return name;
+    }
+
+    if( m_timeWindowSize == 0 ) {
+        name += " filter on vertex domain only";
+        return name;
+    }
+
     name += "timewindow size: " + std::to_string(m_timeWindowSize);
     if( m_override )
         name += " overriden lambda: " + std::to_string(m_lambda);
@@ -63,31 +55,61 @@ std::string TimeVertexMeanFilter::name() const
 
 OLink TimeVertexMeanFilter::compute( oid_t layerId, oid_t rootId )
 {
-    // Get current valid neighbors
-    ObjectsPtr neigh(m_dao->graph()->Neighbors(rootId, m_dao->hlinkType(), Outgoing));
-    neigh->Difference(m_excludedNodes.get());
-
-    TWCoeffVec coeffs(computeTimeWindowCoeffs(layerId, m_timeWindowSize, m_dao.get()));
-    double total = 0.0;
-
-    ObjectsIt it(neigh->Iterator());
-    while( it->HasNext() ) {  // Iterate through each neighbors
-        oid_t current = it->Next();
-        HLink currentHLink(m_dao->getHLink(rootId, current));
-        for( auto& tw: coeffs )  // Loop through each layer to get node weight
-            total += computeNodeWeight(current, currentHLink.weight(), tw, m_dao.get());
+    OLink rootOLink(m_dao->getOLink(layerId, rootId));
+    if( m_coeffs.empty() ) {
+        LOG(logERROR) << "TimeVertexMeanFilter::compute empty coeff, call computeTWCoeffs prior to compute";
+        return rootOLink;
     }
 
+//    LOG(logDEBUG) << "TimeVertexMeanFilter::compute: " << rootId;
+
+    double total = 0.0;
+    int neighborsCount = 0;
     // Compute weight for root node itself (no hlink, set value to 1)
-    for( auto& tw: coeffs )
-        total += computeNodeWeight(rootId, 1, tw, m_dao.get());
+    for( auto& tw: m_coeffs )
+        total += computeNodeWeight(rootId, 1, tw).weight();
+
+    if( !m_timeOnly ) {  // Filter in the vertex domain
+        // Get current valid neighbors
+        ObjectsPtr neigh(m_dao->graph()->Neighbors(rootId, m_dao->hlinkType(), Outgoing));
+        neigh->Difference(m_excludedNodes.get());
+        neighborsCount = neigh->Count();
+
+        ObjectsIt it(neigh->Iterator());
+        while( it->HasNext() ) {  // Iterate through each neighbors
+            oid_t current = it->Next();
+            HLink currentHLink(m_dao->getHLink(rootId, current));
+            for( auto& tw: m_coeffs ) { // Loop through each layer to get node weight
+                if( m_override )
+                    total += computeNodeWeight(current, currentHLink.weight(), TWCoeff(tw.first, m_lambda)).weight();
+                else
+                    total += computeNodeWeight(current, currentHLink.weight(), tw).weight();
+            }
+        }
+    }
 
     // The final weight is the mean of all weights
     // do not forget to count the root node coeffs
-    total /= (coeffs.size() * neigh->Count()) + coeffs.size();
-
-    OLink rootOLink(m_dao->getOLink(layerId, rootId));
+    total /= (m_coeffs.size() * neighborsCount) + m_coeffs.size();
     rootOLink.setWeight(total);
 
     return rootOLink;
+}
+
+OLink TimeVertexMeanFilter::computeNodeWeight( oid_t node, double hlinkWeight, const TWCoeff& coeff )
+{
+    OLink olink(m_dao->getOLink(coeff.first, node));
+
+#ifdef MLD_SAFE
+    if( hlinkWeight == 0.0 ) {
+        LOG(logERROR) << "TimeVertexMeanFilter::computeNodeWeight: HLink weight = 0";
+        olink.setWeight(0.0);
+        return olink;
+    }
+#endif
+    // Resistivity coeff
+    double c = 1 / (1.0 / hlinkWeight + coeff.second);
+    olink.setWeight(c * olink.weight());
+//    LOG(logDEBUG) << "TimeVertexMeanFilter::computeNodeWeight: " << olink;
+    return olink;
 }

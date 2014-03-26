@@ -396,6 +396,15 @@ typedef std::map<sparksee::gdb::oid_t, Node> NodeMap;
 
     std::vector<Layer> getAllLayers();
 
+    CLink topCLink( sparksee::gdb::oid_t lid );
+    CLink bottomCLink( sparksee::gdb::oid_t lid );
+    CLink getCLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt );
+    CLink getCLink( sparksee::gdb::oid_t clid );
+
+    bool updateCLink( sparksee::gdb::oid_t child, sparksee::gdb::oid_t parent, double weight );
+    bool updateCLink( sparksee::gdb::oid_t child, sparksee::gdb::oid_t parent, AttrMap& data );
+    bool updateCLink( sparksee::gdb::oid_t eid, AttrMap& data );
+    bool updateCLink( sparksee::gdb::oid_t eid, double weight );
 
     sparksee::gdb::type_t hlinkType() const;
     sparksee::gdb::type_t vlinkType() const;

@@ -5,6 +5,7 @@ set( OPERATOR_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/coarseners.h
     ${CMAKE_CURRENT_SOURCE_DIR}/mergers.h
     ${CMAKE_CURRENT_SOURCE_DIR}/selectors.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/filters.h
 )
 
 # Add to global variable
@@ -17,6 +18,7 @@ set( OPERATOR_PUBLIC_HDRS
     coarseners.h
     mergers.h
     selectors.h
+    filters.h
 )
 
 set( OPERATOR_PUB_HDRS_DIR

@@ -105,16 +105,16 @@ mld::Node MLGDao::addNodeToLayer( const Layer& l, AttrMap& nodeData, AttrMap& oL
 
 HLink MLGDao::addHLink( const Node& src, const Node& tgt, double weight )
 {
-#ifdef MLD_SAFE
-    auto srcLayer = getLayerIdForNode(src.id());
-    auto tgtLayer = getLayerIdForNode(tgt.id());
-    if( srcLayer != tgtLayer
-            || srcLayer == Objects::InvalidOID
-            || tgtLayer == Objects::InvalidOID ) {
-        LOG(logERROR) << "MLGDao::addHLink: Nodes are not on the same layer";
-        return HLink();
-    }
-#endif
+//#ifdef MLD_SAFE
+//    auto srcLayer = getLayerIdForNode(src.id());
+//    auto tgtLayer = getLayerIdForNode(tgt.id());
+//    if( srcLayer != tgtLayer
+//            || srcLayer == Objects::InvalidOID
+//            || tgtLayer == Objects::InvalidOID ) {
+//        LOG(logERROR) << "MLGDao::addHLink: Nodes are not on the same layer";
+//        return HLink();
+//    }
+//#endif
     if( weight == HLINK_DEF_VALUE )
         return m_link->addHLink(src.id(), tgt.id());
     else
@@ -123,16 +123,16 @@ HLink MLGDao::addHLink( const Node& src, const Node& tgt, double weight )
 
 HLink MLGDao::addHLink( const Node& src, const Node& tgt, AttrMap& data )
 {
-#ifdef MLD_SAFE
-    auto srcLayer = getLayerIdForNode(src.id());
-    auto tgtLayer = getLayerIdForNode(tgt.id());
-    if( srcLayer != tgtLayer
-            || srcLayer == Objects::InvalidOID
-            || tgtLayer == Objects::InvalidOID ) {
-        LOG(logERROR) << "MLGDao::addHLink: Nodes are not on the same layer";
-        return HLink();
-    }
-#endif
+//#ifdef MLD_SAFE
+//    auto srcLayer = getLayerIdForNode(src.id());
+//    auto tgtLayer = getLayerIdForNode(tgt.id());
+//    if( srcLayer != tgtLayer
+//            || srcLayer == Objects::InvalidOID
+//            || tgtLayer == Objects::InvalidOID ) {
+//        LOG(logERROR) << "MLGDao::addHLink: Nodes are not on the same layer";
+//        return HLink();
+//    }
+//#endif
     return m_link->addHLink(src.id(), tgt.id(), data);
 }
 
@@ -803,6 +803,46 @@ bool MLGDao::exists( const Layer& layer )
 std::vector<Layer> MLGDao::getAllLayers()
 {
     return m_layer->getAllLayers();
+}
+
+CLink MLGDao::topCLink( sparksee::gdb::oid_t lid )
+{
+    return m_layer->topCLink(lid);
+}
+
+CLink MLGDao::bottomCLink( sparksee::gdb::oid_t lid )
+{
+    return m_layer->getCLink(lid);
+}
+
+CLink MLGDao::getCLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt )
+{
+    return m_layer->getCLink(src, tgt);
+}
+
+CLink MLGDao::getCLink( sparksee::gdb::oid_t clid )
+{
+    return m_layer->getCLink(clid);
+}
+
+bool MLGDao::updateCLink( sparksee::gdb::oid_t child, sparksee::gdb::oid_t parent, double weight )
+{
+    return m_layer->updateCLink(child, parent, weight);
+}
+
+bool MLGDao::updateCLink( sparksee::gdb::oid_t child, sparksee::gdb::oid_t parent, AttrMap& data )
+{
+    return m_layer->updateCLink(child, parent, data);
+}
+
+bool MLGDao::updateCLink( sparksee::gdb::oid_t eid, AttrMap& data )
+{
+    return m_layer->updateCLink(eid, data);
+}
+
+bool MLGDao::updateCLink( sparksee::gdb::oid_t eid, double weight )
+{
+    return m_layer->updateCLink(eid, weight);
 }
 
 // Types

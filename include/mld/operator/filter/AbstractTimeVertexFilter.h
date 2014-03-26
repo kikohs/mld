@@ -16,8 +16,8 @@
 **
 ****************************************************************************/
 
-#ifndef MLD_ABSTRACTVERTEXFILTER_H
-#define MLD_ABSTRACTVERTEXFILTER_H
+#ifndef MLD_ABSTRACTTIMEVERTEXFILTER_H
+#define MLD_ABSTRACTTIMEVERTEXFILTER_H
 
 #include "mld/common.h"
 #include "mld/model/Link.h"
@@ -31,11 +31,11 @@ namespace mld {
 
 class MLGDao;
 
-class MLD_API AbstractVertexFilter
+class MLD_API AbstractTimeVertexFilter
 {
 public:
-    AbstractVertexFilter( sparksee::gdb::Graph* g );
-    virtual ~AbstractVertexFilter() = 0;
+    AbstractTimeVertexFilter( sparksee::gdb::Graph* g );
+    virtual ~AbstractTimeVertexFilter() = 0;
 
     virtual std::string name() const = 0;
 
@@ -66,7 +66,34 @@ public:
      */
     sparksee::gdb::Objects* excludedNodes() { return m_excludedNodes.get(); }
 
+    /**
+     * @brief Compute the new value for the current node after the filtering
+     * It is stored into the corresponding OLink.weight field
+     * @param layerId
+     * @param rootId
+     * @return new filtered value in weight()
+     */
     virtual OLink compute( sparksee::gdb::oid_t layerId, sparksee::gdb::oid_t rootId ) = 0;
+
+    /**
+     * @brief Compute TimeWidow coeffs using the resistivity distance
+     * @param layerId layer
+     */
+    virtual void computeTWCoeffs( sparksee::gdb::oid_t layerId );
+
+protected:
+    using TWCoeff = std::pair<sparksee::gdb::oid_t, double>;
+    using TWCoeffVec = std::vector<TWCoeff>;
+
+    /**
+     * @brief Compute weight for a node for a special time scale
+     * @param node neighbor node
+     * @param hlinkWeight Current edge weight between node and root node
+     * @param coeff
+     * @return node score
+     */
+    virtual OLink computeNodeWeight( sparksee::gdb::oid_t node,
+                                      double hlinkWeight, const TWCoeff& coeff ) = 0;
 
 protected:
     std::unique_ptr<MLGDao> m_dao;
@@ -74,9 +101,10 @@ protected:
     bool m_override;
     double m_lambda;
 
+    TWCoeffVec m_coeffs;
     ObjectsPtr m_excludedNodes;
 };
 
 } // end namespace mld
 
-#endif // MLD_ABSTRACTVERTEXFILTER_H
+#endif // MLD_ABSTRACTTIMEVERTEXFILTER_H

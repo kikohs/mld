@@ -22,7 +22,7 @@
 
 #include "mld/operator/TSOperator.h"
 #include "mld/dao/MLGDao.h"
-#include "mld/operator/filter/AbstractVertexFilter.h"
+#include "mld/operator/filter/AbstractTimeVertexFilter.h"
 #include "mld/utils/Timer.h"
 #include "mld/utils/ProgressDisplay.h"
 
@@ -39,7 +39,7 @@ TSOperator::~TSOperator()
 {
 }
 
-void TSOperator::setFilter( AbstractVertexFilter* filter )
+void TSOperator::setFilter( AbstractTimeVertexFilter* filter )
 {
     m_filt.reset(filter);
 }
@@ -68,10 +68,13 @@ bool TSOperator::exec()
     size_t oLinkCount = layers.size() * nodes->Count();
     m_buffer.reserve(oLinkCount);
 
+
     LOG(logINFO) << "Start filtering, " << oLinkCount << " timeseries values to process";
     ProgressDisplay display(oLinkCount);
 
     for( auto& layer: layers ) {
+        // Generate filter coefficient for this layer
+        m_filt->computeTWCoeffs(layer.id());
         ObjectsIt it(nodes->Iterator());
         while( it->HasNext() ) {
             oid_t nid = it->Next();
