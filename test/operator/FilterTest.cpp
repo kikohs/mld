@@ -251,6 +251,7 @@ TEST( FilterTest, TVMFilter1 )
              ) / 9.0;
         EXPECT_DOUBLE_EQ(v, ol2.weight());
 
+        // Test overriding parameters
         filter->setOverrideInterLayerWeight(true, 1.0);
         filter->computeTWCoeffs(middle.id());
         OLink ol2bis = filter->compute(middle.id(), nid);
