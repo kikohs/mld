@@ -257,12 +257,16 @@ bool LayerDao::affiliated( oid_t layer1, oid_t layer2 )
 CLink LayerDao::topCLink( oid_t lid )
 {
     oid_t top = parentImpl(lid);
+    if( top == Objects::InvalidOID )
+        return CLink();
     return getCLink(lid, top);
 }
 
 CLink LayerDao::bottomCLink( oid_t lid )
 {
     oid_t child = childImpl(lid);
+    if( child == Objects::InvalidOID )
+        return CLink();
     return getCLink(child, lid);
 }
 

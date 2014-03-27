@@ -812,7 +812,7 @@ CLink MLGDao::topCLink( sparksee::gdb::oid_t lid )
 
 CLink MLGDao::bottomCLink( sparksee::gdb::oid_t lid )
 {
-    return m_layer->getCLink(lid);
+    return m_layer->bottomCLink(lid);
 }
 
 CLink MLGDao::getCLink( sparksee::gdb::oid_t src, sparksee::gdb::oid_t tgt )

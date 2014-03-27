@@ -61,6 +61,11 @@ OLink TimeVertexMeanFilter::compute( oid_t layerId, oid_t rootId )
         return rootOLink;
     }
 
+    if( rootOLink.id() == Objects::InvalidOID ) {
+        LOG(logERROR) << "TimeVertexMeanFilter::compute invalid Olink " << layerId << " " << rootId;
+        return rootOLink;
+    }
+
 //    LOG(logDEBUG) << "TimeVertexMeanFilter::compute: " << rootId;
 
     double total = 0.0;
@@ -80,10 +85,7 @@ OLink TimeVertexMeanFilter::compute( oid_t layerId, oid_t rootId )
             oid_t current = it->Next();
             HLink currentHLink(m_dao->getHLink(rootId, current));
             for( auto& tw: m_coeffs ) { // Loop through each layer to get node weight
-                if( m_override )
-                    total += computeNodeWeight(current, currentHLink.weight(), TWCoeff(tw.first, m_lambda)).weight();
-                else
-                    total += computeNodeWeight(current, currentHLink.weight(), tw).weight();
+                total += computeNodeWeight(current, currentHLink.weight(), tw).weight();
             }
         }
     }
@@ -101,6 +103,11 @@ OLink TimeVertexMeanFilter::computeNodeWeight( oid_t node, double hlinkWeight, c
     OLink olink(m_dao->getOLink(coeff.first, node));
 
 #ifdef MLD_SAFE
+    if( olink.id() == Objects::InvalidOID ) {
+        LOG(logERROR) << "TimeVertexMeanFilter::computeNodeWeight invalid Olink " << coeff.first << " " << node;
+        return olink;
+    }
+
     if( hlinkWeight == 0.0 ) {
         LOG(logERROR) << "TimeVertexMeanFilter::computeNodeWeight: HLink weight = 0";
         olink.setWeight(0.0);
@@ -108,8 +115,9 @@ OLink TimeVertexMeanFilter::computeNodeWeight( oid_t node, double hlinkWeight, c
     }
 #endif
     // Resistivity coeff
+//    LOG(logDEBUG) << "TimeVertexMeanFilter:: before weight " << olink.weight();
     double c = 1 / (1.0 / hlinkWeight + coeff.second);
+//    LOG(logDEBUG) << "TimeVertexMeanFilter:: c " << c;
     olink.setWeight(c * olink.weight());
-//    LOG(logDEBUG) << "TimeVertexMeanFilter::computeNodeWeight: " << olink;
     return olink;
 }

@@ -41,9 +41,14 @@ void AbstractTimeVertexFilter::setExcludedNodes( const ObjectsPtr& nodeSet )
     m_excludedNodes = nodeSet;
 }
 
-void AbstractTimeVertexFilter::overrideInterLayerWeight( double w )
+void AbstractTimeVertexFilter::setOverrideInterLayerWeight( bool override, double w )
 {
-    m_override = true;
+    m_override = override;
+    if( w == 0.0 ) {
+        LOG(logERROR) << "AbstractTimeVertexFilter::setOverrideInterLayerWeight weight = 0"
+                         << " reset to 1";
+        w = 1.0;
+    }
     m_lambda = w;
 }
 
@@ -70,15 +75,19 @@ void AbstractTimeVertexFilter::computeTWCoeffs( oid_t layerId )
         CLink link(m_dao->bottomCLink(curLayerId));
         if( link.id() == Objects::InvalidOID )
             break;
-        if( link.weight() == 0.0 ) {
-            LOG(logERROR) << "AbstractTimeVertexFilter::computeTWCoeffs CLink weight = 0";
-            link.setWeight(1.0);
+        if( !m_override ) {
+            if( link.weight() == 0.0 ) {
+                LOG(logERROR) << "AbstractTimeVertexFilter::computeTWCoeffs CLink weight = 0";
+                link.setWeight(1.0);
+            }
+            lastLambda += 1 / link.weight();
+            // Go down 1 layer
         }
-        lastLambda += 1 / link.weight();
-        m_coeffs.push_back(TWCoeff(curLayerId, lastLambda));
-
-        // Go down 1 layer
+        else {
+            lastLambda += 1 / m_lambda;
+        }
         curLayerId = link.source();
+        m_coeffs.push_back(TWCoeff(curLayerId, lastLambda));
     }
 
     // Reverse vector to have [bot2, bot1, 1] and pushback upper layers
@@ -93,15 +102,20 @@ void AbstractTimeVertexFilter::computeTWCoeffs( oid_t layerId )
         CLink link(m_dao->topCLink(curLayerId));
         if( link.id() == Objects::InvalidOID )
             break;
-        if( link.weight() == 0.0 ) {
-            LOG(logERROR) << "AbstractTimeVertexFilter::computeTWCoeffs CLink weight = 0";
-            link.setWeight(1.0);
+        if( !m_override ) {
+            if( link.weight() == 0.0 ) {
+                LOG(logERROR) << "AbstractTimeVertexFilter::computeTWCoeffs CLink weight = 0";
+                link.setWeight(1.0);
+            }
+            lastLambda += 1 / link.weight();
         }
-        lastLambda += 1 / link.weight();
-        m_coeffs.push_back(TWCoeff(curLayerId, lastLambda));
+        else {
+            lastLambda += 1 / m_lambda;
+        }
 
         // Go up 1 layer
         curLayerId = link.target();
+        m_coeffs.push_back(TWCoeff(curLayerId, lastLambda));
     }
 }
 

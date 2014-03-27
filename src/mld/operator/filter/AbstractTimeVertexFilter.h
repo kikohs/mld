@@ -49,9 +49,10 @@ public:
     /**
      * @brief Override CLink weight in between layer with given value.
      * Does not touch CLink weight in database
+     * @param override true or false
      * @param w new weight
      */
-    void overrideInterLayerWeight( double w );
+    void setOverrideInterLayerWeight( bool override, double w );
 
     /**
      * @brief Set the size (or height) for the time window size

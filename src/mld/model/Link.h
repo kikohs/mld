@@ -130,7 +130,7 @@ protected:
 class MLD_API CLink : public Link
 {
     friend class AbstractDao;
-    friend class LinkDao;
+    friend class LayerDao;
     friend class MLGDao;
 public:
     virtual ~CLink() override;
