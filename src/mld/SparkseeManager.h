@@ -117,7 +117,7 @@ public:
      * @param key GraphTypes enum
      * @param newName
      */
-    void renameDefaultAttribute( sparksee::gdb::Graph* g,
+    static void renameDefaultAttribute( sparksee::gdb::Graph* g,
                                  const std::wstring& objType,
                                  int key,
                                  const std::wstring& newName );
@@ -131,7 +131,7 @@ public:
      * @param defaultValue
      * @return success
      */
-    bool addAttrToNode( sparksee::gdb::Graph* g,
+    static bool addAttrToNode( sparksee::gdb::Graph* g,
                         const std::wstring& key,
                         sparksee::gdb::DataType dtype,
                         sparksee::gdb::AttributeKind aKind,
@@ -146,7 +146,7 @@ public:
      * @param defaultValue
      * @return success
      */
-    bool addAttrToHLink( sparksee::gdb::Graph* g,
+    static bool addAttrToHLink( sparksee::gdb::Graph* g,
                          const std::wstring& key,
                          sparksee::gdb::DataType dtype,
                          sparksee::gdb::AttributeKind aKind,
@@ -161,7 +161,7 @@ public:
      * @param defaultValue
      * @return success
      */
-    bool addAttrToVLink( sparksee::gdb::Graph* g,
+    static bool addAttrToVLink( sparksee::gdb::Graph* g,
                          const std::wstring& key,
                          sparksee::gdb::DataType dtype,
                          sparksee::gdb::AttributeKind aKind,
@@ -176,7 +176,7 @@ public:
      * @param defaultValue
      * @return success
      */
-    bool addAttrToOLink( sparksee::gdb::Graph* g,
+    static bool addAttrToOLink( sparksee::gdb::Graph* g,
                             const std::wstring& key,
                             sparksee::gdb::DataType dtype,
                             sparksee::gdb::AttributeKind aKind,
@@ -189,7 +189,7 @@ private:
     void createNodeTypes( sparksee::gdb::Graph *g );
     void createEdgeTypes( sparksee::gdb::Graph* g );
 
-    bool addAttr( sparksee::gdb::Graph* g,
+    static bool addAttr( sparksee::gdb::Graph* g,
                   const std::wstring& ObjectKey,
                   const std::wstring& key,
                   sparksee::gdb::DataType dtype,

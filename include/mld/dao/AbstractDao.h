@@ -124,7 +124,8 @@ protected:
         #ifdef MLD_SAFE
             try {
                 if( m_g->GetObjectType(eid) != lType ) {
-                    LOG(logERROR) << "AbstractDao::getLink: invalid type";
+                    LOG(logERROR) << "AbstractDao::getLink: invalid type: " << lType << " "
+                                  << "object type: " << m_g->GetObjectType(eid);
                     return T();
                 }
         #endif

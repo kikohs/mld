@@ -49,11 +49,14 @@ public:
      * @param edgePath filepath to the *.edges.csv file
      * @return success
      */
-    static bool fromTimeSeries( sparksee::gdb::Graph* g, const std::string& nodePath, const std::string& edgePath );
+    static bool fromTimeSeries( sparksee::gdb::Graph* g, const std::string& nodePath,
+                                const std::string& edgePath, bool autoCreateAttributes=true );
 
 private:
-    static bool importTSNodes( sparksee::gdb::Graph* g, const std::string& nodePath, IndexMap& indexMap );
-    static bool importTSEdges( sparksee::gdb::Graph* g, const std::string& edgePath, const IndexMap& indexMap );
+    static bool importTSNodes( sparksee::gdb::Graph* g,
+                               const std::string& nodePath, IndexMap& indexMap, bool autoCreateAttributes );
+    static bool importTSEdges( sparksee::gdb::Graph* g,
+                               const std::string& edgePath, const IndexMap& indexMap, bool autoCreateAttributes );
 };
 
 } // end namespace mld

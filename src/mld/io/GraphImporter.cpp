@@ -130,15 +130,16 @@ bool GraphImporter::fromSnapFormat( Graph* g, const std::string& filepath )
     return true;
 }
 
-bool GraphImporter::fromTimeSeries( sparksee::gdb::Graph* g, const std::string& nodePath, const std::string& edgePath )
+bool GraphImporter::fromTimeSeries(sparksee::gdb::Graph* g, const std::string& nodePath,
+                                   const std::string& edgePath , bool autoCreateAttributes )
 {
     std::unique_ptr<Timer> t(new Timer("Importing TimeSeries graph"));
     IndexMap indexMap;
-    if( !importTSNodes(g, nodePath, indexMap) ) {
+    if( !importTSNodes(g, nodePath, indexMap, autoCreateAttributes) ) {
         LOG(logERROR) << "GraphImporter::fromTimeSeries error importing nodes data: " << nodePath;
         return false;
     }
-    if( !importTSEdges(g, edgePath, indexMap) ) {
+    if( !importTSEdges(g, edgePath, indexMap, autoCreateAttributes) ) {
         LOG(logERROR) << "GraphImporter::fromTimeSeries error importing edges data: " << edgePath;
         return false;
     }
@@ -152,7 +153,9 @@ bool GraphImporter::fromTimeSeries( sparksee::gdb::Graph* g, const std::string& 
     return true;
 }
 
-bool GraphImporter::importTSNodes( sparksee::gdb::Graph* g, const std::string& nodePath, IndexMap& indexMap )
+bool GraphImporter::importTSNodes( sparksee::gdb::Graph* g,
+                                   const std::string& nodePath,
+                                   IndexMap& indexMap, bool autoCreateAttributes )
 {
     LOG(logINFO) << "Parsing node data: " << nodePath;
 
@@ -182,10 +185,21 @@ bool GraphImporter::importTSNodes( sparksee::gdb::Graph* g, const std::string& n
     AttrMap model;
     for( size_t i = 0; i < header.size(); ++i ) {
         ba::to_lower(header[i]);
-        if( header[i] == "weight" )
+        if( header[i] == "weight" ) {
             keyIdx[i] = Attrs::V[NodeAttr::WEIGHT];
-        else
+        }
+        else if( header[i] == "label" ) {
+            keyIdx[i] = Attrs::V[NodeAttr::LABEL];
+        }
+        else {
             keyIdx[i] = converter.from_bytes(header[i]);
+            if( autoCreateAttributes ) {
+                if( !SparkseeManager::addAttrToNode(g, keyIdx[i], String, Indexed, Value().SetNull()) ) {
+                    LOG(logERROR) << "GraphImporter::importTSNodes: failed to add attribute "
+                                  << converter.to_bytes(keyIdx[i]) << " to Node";
+                }
+            }
+        }
         model[keyIdx[i]].SetNullVoid();
     }
 
@@ -209,7 +223,7 @@ bool GraphImporter::importTSNodes( sparksee::gdb::Graph* g, const std::string& n
             break;
         // Copy header model keys
         AttrMap nodeData(model);
-        // Set other attributes
+        // Set values
         for( size_t i = 0; i < header.size(); ++i ) {
             nodeData[keyIdx[i]].SetString(converter.from_bytes(tokens[i]));
         }
@@ -230,7 +244,10 @@ bool GraphImporter::importTSNodes( sparksee::gdb::Graph* g, const std::string& n
     return true;
 }
 
-bool GraphImporter::importTSEdges( sparksee::gdb::Graph* g, const std::string& edgePath, const IndexMap& indexMap )
+bool GraphImporter::importTSEdges( sparksee::gdb::Graph* g,
+                                   const std::string& edgePath,
+                                   const IndexMap& indexMap,
+                                   bool autoCreateAttributes )
 {
     LOG(logINFO) << "Parsing edge data: " << edgePath;
     std::ifstream infile(edgePath);
@@ -263,6 +280,12 @@ bool GraphImporter::importTSEdges( sparksee::gdb::Graph* g, const std::string& e
         }
         else {
             keyIdx[i] = converter.from_bytes(header[i]);
+            if( autoCreateAttributes ) {
+                if( !SparkseeManager::addAttrToHLink(g, keyIdx[i], String, Indexed, Value().SetNull()) ) {
+                    LOG(logERROR) << "GraphImporter::importTSEdges: failed to add attribute "
+                                  << converter.to_bytes(keyIdx[i]) << " to HLink";
+                }
+            }
         }
         model[keyIdx[i]].SetNullVoid();
     }

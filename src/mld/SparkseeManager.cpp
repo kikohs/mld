@@ -158,7 +158,7 @@ bool SparkseeManager::addAttrToOLink( Graph* g,
 void SparkseeManager::createNodeTypes( Graph* g )
 {
     Value val;
-    // Create SuperNode type
+    // Create Node type
     type_t nType = g->FindType(NodeType::NODE);
     if( nType == Type::InvalidType ) {
         nType = g->NewNodeType(NodeType::NODE);

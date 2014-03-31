@@ -60,7 +60,7 @@ bool parseOptions( int argc, char *argv[], InputContext& out )
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     try {
         // Define the command line object.
-        CmdLine cmd("Brain Parser", ' ', "0.1");
+        CmdLine cmd("TimeSeries graph Parser", ' ', "0.1");
 
         // Define a value argument and add it to the command line.
         ValueArg<std::string> nodeArg("n", "nodes", "nodes data filepath", true, "", "path");
@@ -97,19 +97,9 @@ int main( int argc, char *argv[] )
 
     SessionPtr sess(m.newSession());
     sparksee::gdb::Graph* g = sess->GetGraph();
-    m.createBaseScheme(g);
     try {
+        m.createBaseScheme(g);
         sess->Begin();
-        // Create or rename attributes
-        m.addAttrToNode(g, L"id", sparksee::gdb::String,
-                        sparksee::gdb::Indexed, sparksee::gdb::Value().SetNull());
-
-        m.addAttrToNode(g, L"brain side", sparksee::gdb::String,
-                        sparksee::gdb::Indexed, sparksee::gdb::Value().SetNull());
-
-        // Rename default label
-        m.renameDefaultAttribute(g, mld::NodeType::NODE, NodeAttr::LABEL, L"name");
-
         if( !GraphImporter::fromTimeSeries(g, ctx.nodePath, ctx.edgePath) ) {
             LOG(logERROR) << "Error parsing timeseries graph";
         }

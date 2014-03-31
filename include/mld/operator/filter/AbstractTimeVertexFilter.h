@@ -49,9 +49,10 @@ public:
     /**
      * @brief Override CLink weight in between layer with given value.
      * Does not touch CLink weight in database
+     * @param override true or false
      * @param w new weight
      */
-    void overrideInterLayerWeight( double w );
+    void setOverrideInterLayerWeight( bool override, double w );
 
     /**
      * @brief Set the size (or height) for the time window size
@@ -61,10 +62,17 @@ public:
     void setTimeWindowSize( uint32_t nbHops );
 
     /**
+     * @brief If true, the filter only use signal values on the nodes
+     * and does not account for neighbors
+     * @param v
+     */
+    inline void setFilterOnlyInTimeDomain( bool v ) { m_timeOnly = v; }
+
+    /**
      * @brief Get excluded node set, DO NOT DELETE
      * @return excluded nodes
      */
-    sparksee::gdb::Objects* excludedNodes() { return m_excludedNodes.get(); }
+    inline sparksee::gdb::Objects* excludedNodes() { return m_excludedNodes.get(); }
 
     /**
      * @brief Compute the new value for the current node after the filtering
@@ -100,11 +108,14 @@ protected:
     uint32_t m_timeWindowSize;
     bool m_override;
     double m_lambda;
+    bool m_timeOnly;
 
-    TWCoeffVec m_coeffs;
     ObjectsPtr m_excludedNodes;
+    TWCoeffVec m_coeffs;
 };
 
 } // end namespace mld
+
+std::ostream& operator <<( std::ostream& out, const mld::AbstractTimeVertexFilter& filter );
 
 #endif // MLD_ABSTRACTTIMEVERTEXFILTER_H
