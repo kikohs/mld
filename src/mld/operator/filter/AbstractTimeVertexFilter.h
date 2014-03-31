@@ -30,6 +30,7 @@ namespace gdb {
 namespace mld {
 
 class MLGDao;
+class AbstractTimeVertexFilter;
 
 class MLD_API AbstractTimeVertexFilter
 {

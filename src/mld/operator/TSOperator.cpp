@@ -64,10 +64,8 @@ bool TSOperator::exec()
 
     // Get all layers
     std::vector<Layer> layers(m_dao->getAllLayers());
-
     size_t oLinkCount = layers.size() * nodes->Count();
     m_buffer.reserve(oLinkCount);
-
 
     LOG(logINFO) << "Start filtering, " << oLinkCount << " timeseries values to process";
     ProgressDisplay display(oLinkCount);
@@ -78,7 +76,7 @@ bool TSOperator::exec()
         ObjectsIt it(nodes->Iterator());
         while( it->HasNext() ) {
             oid_t nid = it->Next();
-            OLink olink( m_filt->compute(nid, layer.id()) );
+            OLink olink( m_filt->compute(layer.id(), nid) );
 #ifdef MLD_SAFE
             if( olink.id() == Objects::InvalidOID ) {
                 LOG(logERROR) << "TSOperator::exec invalid OLink";

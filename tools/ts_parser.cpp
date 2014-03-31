@@ -16,12 +16,13 @@
 **
 ****************************************************************************/
 
-#include <boost/algorithm/string.hpp>
-#include <tclap/CmdLine.h>
 
 #include <locale>
 #include <codecvt>
 #include <string>
+
+#include <boost/algorithm/string.hpp>
+#include <tclap/CmdLine.h>
 
 #include <mld/config.h>
 #include <mld/SparkseeManager.h>
@@ -29,6 +30,8 @@
 #include <mld/io/GraphImporter.h>
 #include <mld/GraphTypes.h>
 #include <mld/utils/Timer.h>
+#include <mld/operator/TSOperator.h>
+#include <mld/operator/filters.h>
 
 using namespace TCLAP;
 using namespace mld;
@@ -97,18 +100,28 @@ int main( int argc, char *argv[] )
 
     SessionPtr sess(m.newSession());
     sparksee::gdb::Graph* g = sess->GetGraph();
-    try {
-        m.createBaseScheme(g);
-        sess->Begin();
-        if( !GraphImporter::fromTimeSeries(g, ctx.nodePath, ctx.edgePath) ) {
-            LOG(logERROR) << "Error parsing timeseries graph";
-        }
-
-    } catch( sparksee::gdb::Error& e ) {
-        LOG(logERROR) << e.Message();
+    m.createBaseScheme(g);
+    sess->Begin();
+    if( !GraphImporter::fromTimeSeries(g, ctx.nodePath, ctx.edgePath) ) {
+        LOG(logERROR) << "Error parsing timeseries graph";
         sess->Commit();
+        return EXIT_FAILURE;
     }
     sess->Commit();
+
+    TimeVertexMeanFilter* filter = new TimeVertexMeanFilter(g);
+    filter->setTimeWindowSize(1);
+    TSOperator op(g);
+    op.setFilter(filter);
+
+    sess->Begin();
+    if( !op.run() ) {
+        LOG(logERROR) << "Filtering failed";
+        sess->Commit();
+        return EXIT_FAILURE;
+    }
+    sess->Commit();
+
     LOG(logINFO) << Timer::dumpTrials();
     return EXIT_SUCCESS;
 }
