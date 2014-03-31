@@ -21,18 +21,15 @@
 
 #include <map>
 #include <sparksee/gdb/Graph.h>
+
 #include "mld/common.h"
 
 namespace mld {
-
-class SparkseeManager;
 
 class MLD_API GraphImporter
 {
 public:
     typedef std::map<uint64_t, sparksee::gdb::oid_t> IndexMap;
-
-    GraphImporter();
     /**
      * @brief Import a SNAP graph
      * @param g Graph handle

@@ -1,5 +1,6 @@
 # FILTER SRCS
 set( FILTER_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/FilterFactory.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/AbstractTimeVertexFilter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/TimeVertexMeanFilter.cpp
 )
@@ -9,6 +10,7 @@ set( PROJECT_SRCS ${PROJECT_SRCS} ${FILTER_SRCS} CACHE STRING "Sources Files" FO
 
 # Public headers
 set( FILTER_PUBLIC_HDRS
+    FilterFactory.h
     AbstractTimeVertexFilter.h
     TimeVertexMeanFilter.h
 )

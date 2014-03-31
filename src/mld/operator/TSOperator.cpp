@@ -68,6 +68,7 @@ bool TSOperator::exec()
     m_buffer.reserve(oLinkCount);
 
     LOG(logINFO) << "Start filtering, " << oLinkCount << " timeseries values to process";
+    LOG(logINFO) << *m_filt;
     ProgressDisplay display(oLinkCount);
 
     for( auto& layer: layers ) {

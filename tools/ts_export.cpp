@@ -16,7 +16,6 @@
 **
 ****************************************************************************/
 
-
 #include <locale>
 #include <codecvt>
 #include <string>
@@ -27,8 +26,7 @@
 #include <mld/config.h>
 #include <mld/SparkseeManager.h>
 #include <mld/Session.h>
-#include <mld/io/GraphImporter.h>
-#include <mld/GraphTypes.h>
+#include <mld/io/GraphExporter.h>
 #include <mld/utils/Timer.h>
 
 using namespace TCLAP;
@@ -37,48 +35,48 @@ using namespace mld;
 struct InputContext {
     std::wstring dbName;
     std::wstring workDir;
-    std::string nodePath;
-    std::string edgePath;
+    std::string exportDir;
+    std::string outName;
 };
-
-std::wstring extractDbName( const std::wstring& inputPath )
-{
-    std::vector<std::wstring> strs;
-    boost::algorithm::split(strs, inputPath, boost::is_any_of(L"/"));
-    // Get filename from path /test/sdfds.txt
-    std::wstring filename = strs.back();
-    strs.clear();
-    boost::algorithm::split(strs, filename, boost::is_any_of(L"."));
-    // Remove last part of .txt for instance
-    strs.pop_back();
-    // Remove *.nodes or *.edges
-    strs.pop_back();
-    return boost::algorithm::join(strs, L".");
-}
 
 bool parseOptions( int argc, char *argv[], InputContext& out )
 {
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     try {
         // Define the command line object.
-        CmdLine cmd("TimeSeries graph Parser", ' ', "0.1");
+        CmdLine cmd("TimeSeries exporter", ' ', "0.1");
 
-        // Define a value argument and add it to the command line.
-        ValueArg<std::string> nodeArg("n", "nodes", "nodes data filepath", true, "", "path");
-        cmd.add(nodeArg);
-        ValueArg<std::string> edgeArg("e", "edges", "edges data filepath", true, "", "path");
-        cmd.add(edgeArg);
+        // Working dir
         ValueArg<std::string> wdArg("d", "workDir", "MLD working directory",
                                     false, converter.to_bytes(mld::kRESOURCES_DIR), "path");
         cmd.add(wdArg);
+
+        // Db Name
+        ValueArg<std::string> nameArg("n", "dbname", "MLD database name (without extension)",
+                                    true, "", "string");
+        cmd.add(nameArg);
+
+        // Export dir
+        ValueArg<std::string> exportDirArg("o", "outdir",
+                                       "Output directory",
+                                       false, converter.to_bytes(mld::kRESOURCES_DIR), "path");
+        cmd.add(exportDirArg);
+
+        // Out name
+        ValueArg<std::string> outNameArg("v", "outname", "Output name for both file ", false, "", "string");
+        cmd.add(outNameArg);
+
         // Parse the args.
         cmd.parse(argc, argv);
 
         // Get the value parsed by each arg.
-        out.nodePath = nodeArg.getValue();
-        out.edgePath = edgeArg.getValue();
         out.workDir = converter.from_bytes(wdArg.getValue());
-        out.dbName = extractDbName(converter.from_bytes(out.nodePath));
+        out.dbName = converter.from_bytes(nameArg.getValue());
+        out.exportDir = exportDirArg.getValue();
+        out.outName = outNameArg.getValue();
+        if( out.outName.empty() ) {
+            out.outName = converter.to_bytes(out.dbName);
+        }
     } catch( ArgException& e ) {
         LOG(logERROR) << "error: " << e.error() << " for arg " << e.argId();
         return false;
@@ -93,21 +91,18 @@ int main( int argc, char *argv[] )
     if( !parseOptions(argc, argv, ctx) )
         return EXIT_FAILURE;
 
-    mld::SparkseeManager m(ctx.workDir + L"mysparksee.cfg");
-    m.createDatabase(ctx.workDir + ctx.dbName + L".sparksee", ctx.dbName);
-
-    SessionPtr sess(m.newSession());
+    mld::SparkseeManager sparkseeManager(ctx.workDir + L"mysparksee.cfg");
+    sparkseeManager.openDatabase(ctx.workDir + ctx.dbName + L".sparksee");
+    SessionPtr sess(sparkseeManager.newSession());
     sparksee::gdb::Graph* g = sess->GetGraph();
-    m.createBaseScheme(g);
-    sess->Begin();
-    if( !GraphImporter::fromTimeSeries(g, ctx.nodePath, ctx.edgePath) ) {
-        LOG(logERROR) << "Error parsing timeseries graph";
-        sess->Commit();
+
+    if( !GraphExporter::toTimeSeries(g, ctx.outName, ctx.exportDir) ) {
+        LOG(logERROR) << "Export TS graph failed";
         return EXIT_FAILURE;
     }
-    sess->Commit();
 
     LOG(logINFO) << Timer::dumpTrials();
+    sess.reset();
     return EXIT_SUCCESS;
 }
 

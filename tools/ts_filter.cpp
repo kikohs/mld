@@ -16,7 +16,6 @@
 **
 ****************************************************************************/
 
-
 #include <locale>
 #include <codecvt>
 #include <string>
@@ -28,57 +27,63 @@
 #include <mld/SparkseeManager.h>
 #include <mld/Session.h>
 #include <mld/io/GraphImporter.h>
-#include <mld/GraphTypes.h>
 #include <mld/utils/Timer.h>
+#include <mld/operator/TSOperator.h>
+#include <mld/operator/filter/FilterFactory.h>
 
 using namespace TCLAP;
 using namespace mld;
 
+const double INVALID_WEIGHT = -1.0;
+
 struct InputContext {
     std::wstring dbName;
     std::wstring workDir;
-    std::string nodePath;
-    std::string edgePath;
+    std::string filterName;
+    double lambda;
+    uint32_t twSize;
 };
-
-std::wstring extractDbName( const std::wstring& inputPath )
-{
-    std::vector<std::wstring> strs;
-    boost::algorithm::split(strs, inputPath, boost::is_any_of(L"/"));
-    // Get filename from path /test/sdfds.txt
-    std::wstring filename = strs.back();
-    strs.clear();
-    boost::algorithm::split(strs, filename, boost::is_any_of(L"."));
-    // Remove last part of .txt for instance
-    strs.pop_back();
-    // Remove *.nodes or *.edges
-    strs.pop_back();
-    return boost::algorithm::join(strs, L".");
-}
 
 bool parseOptions( int argc, char *argv[], InputContext& out )
 {
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     try {
         // Define the command line object.
-        CmdLine cmd("TimeSeries graph Parser", ' ', "0.1");
+        CmdLine cmd("Filter", ' ', "0.1");
 
-        // Define a value argument and add it to the command line.
-        ValueArg<std::string> nodeArg("n", "nodes", "nodes data filepath", true, "", "path");
-        cmd.add(nodeArg);
-        ValueArg<std::string> edgeArg("e", "edges", "edges data filepath", true, "", "path");
-        cmd.add(edgeArg);
+        // Working dir
         ValueArg<std::string> wdArg("d", "workDir", "MLD working directory",
                                     false, converter.to_bytes(mld::kRESOURCES_DIR), "path");
         cmd.add(wdArg);
+
+        // Db Name
+        ValueArg<std::string> nameArg("n", "name", "MLD database name (without extension)",
+                                    true, "", "string");
+        cmd.add(nameArg);
+
+        // Filter name
+        ValueArg<std::string> filterNameArg("f", "filter",
+                                       "Filter\n TimeVertexMeanFilter",
+                                       false, "tvm", "string");
+        cmd.add(filterNameArg);
+
+        // Lambda
+        ValueArg<double> lambdaArg("l", "lambda", "InterLayer weight\n ", false, INVALID_WEIGHT, "double");
+        cmd.add(lambdaArg);
+
+        // TimwWindow size
+        ValueArg<uint32_t> twSizeArg("s", "twSize", "TimeWindow size\n ", false, 1, "uint32_t");
+        cmd.add(twSizeArg);
+
         // Parse the args.
         cmd.parse(argc, argv);
 
         // Get the value parsed by each arg.
-        out.nodePath = nodeArg.getValue();
-        out.edgePath = edgeArg.getValue();
         out.workDir = converter.from_bytes(wdArg.getValue());
-        out.dbName = extractDbName(converter.from_bytes(out.nodePath));
+        out.dbName = converter.from_bytes(nameArg.getValue());
+        out.filterName = filterNameArg.getValue();
+        out.lambda = lambdaArg.getValue();
+        out.twSize = twSizeArg.getValue();
     } catch( ArgException& e ) {
         LOG(logERROR) << "error: " << e.error() << " for arg " << e.argId();
         return false;
@@ -93,22 +98,26 @@ int main( int argc, char *argv[] )
     if( !parseOptions(argc, argv, ctx) )
         return EXIT_FAILURE;
 
-    mld::SparkseeManager m(ctx.workDir + L"mysparksee.cfg");
-    m.createDatabase(ctx.workDir + ctx.dbName + L".sparksee", ctx.dbName);
-
-    SessionPtr sess(m.newSession());
+    mld::SparkseeManager sparkseeManager(ctx.workDir + L"mysparksee.cfg");
+    sparkseeManager.openDatabase(ctx.workDir + ctx.dbName + L".sparksee");
+    SessionPtr sess(sparkseeManager.newSession());
     sparksee::gdb::Graph* g = sess->GetGraph();
-    m.createBaseScheme(g);
-    sess->Begin();
-    if( !GraphImporter::fromTimeSeries(g, ctx.nodePath, ctx.edgePath) ) {
-        LOG(logERROR) << "Error parsing timeseries graph";
-        sess->Commit();
-        return EXIT_FAILURE;
-    }
-    sess->Commit();
 
+    {
+        auto* filter = FilterFactory::create(g, ctx.filterName, ctx.lambda, ctx.twSize);
+        TSOperator op(g);
+        op.setFilter(filter);
+
+        sess->Begin();
+        if( !op.run() ) {
+            LOG(logERROR) << "Filtering failed";
+            sess->Commit();
+            return EXIT_FAILURE;
+        }
+        sess->Commit();
+    }
     LOG(logINFO) << Timer::dumpTrials();
+    sess.reset();
     return EXIT_SUCCESS;
 }
-
 

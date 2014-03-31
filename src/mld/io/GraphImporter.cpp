@@ -79,10 +79,6 @@ std::vector<std::string> getNextLineAndSplitIntoTokens( std::istream& str )
 
 } // end namespace anonymous
 
-GraphImporter::GraphImporter()
-{
-}
-
 bool GraphImporter::fromSnapFormat( Graph* g, const std::string& filepath )
 {
     std::unique_ptr<Timer> t(new Timer("Importing snap graph"));
@@ -131,7 +127,7 @@ bool GraphImporter::fromSnapFormat( Graph* g, const std::string& filepath )
 }
 
 bool GraphImporter::fromTimeSeries(sparksee::gdb::Graph* g, const std::string& nodePath,
-                                   const std::string& edgePath , bool autoCreateAttributes )
+                                   const std::string& edgePath, bool autoCreateAttributes )
 {
     std::unique_ptr<Timer> t(new Timer("Importing TimeSeries graph"));
     IndexMap indexMap;

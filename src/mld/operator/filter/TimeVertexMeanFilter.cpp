@@ -24,7 +24,7 @@
 using namespace mld;
 using namespace sparksee::gdb;
 
-TimeVertexMeanFilter::TimeVertexMeanFilter( sparksee::gdb::Graph* g )
+TimeVertexMeanFilter::TimeVertexMeanFilter( Graph* g )
     : AbstractTimeVertexFilter(g)
 {
 }
@@ -115,9 +115,7 @@ OLink TimeVertexMeanFilter::computeNodeWeight( oid_t node, double hlinkWeight, c
     }
 #endif
     // Resistivity coeff
-//    LOG(logDEBUG) << "TimeVertexMeanFilter:: before weight " << olink.weight();
     double c = 1 / (1.0 / hlinkWeight + coeff.second);
-//    LOG(logDEBUG) << "TimeVertexMeanFilter:: c " << c;
     olink.setWeight(c * olink.weight());
     return olink;
 }
