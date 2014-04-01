@@ -26,6 +26,7 @@ using namespace sparksee::gdb;
 
 TimeVertexMeanFilter::TimeVertexMeanFilter( Graph* g )
     : AbstractTimeVertexFilter(g)
+    , m_weightSum(0.0)
 {
 }
 
@@ -66,13 +67,12 @@ OLink TimeVertexMeanFilter::compute( oid_t layerId, oid_t rootId )
         return rootOLink;
     }
 
-//    LOG(logDEBUG) << "TimeVertexMeanFilter::compute: " << rootId;
-
+    m_weightSum = 0.0; // weighted sum of all coeffs
     double total = 0.0;
     int neighborsCount = 0;
     // Compute weight for root node itself (no hlink, set value to 1)
     for( auto& tw: m_coeffs )
-        total += computeNodeWeight(rootId, 1, tw).weight();
+        total += computeNodeSelfWeight(rootId, tw).weight();
 
     if( !m_timeOnly ) {  // Filter in the vertex domain
         // Get current valid neighbors
@@ -90,9 +90,15 @@ OLink TimeVertexMeanFilter::compute( oid_t layerId, oid_t rootId )
         }
     }
 
-    // The final weight is the mean of all weights
-    // do not forget to count the root node coeffs
-    total /= (m_coeffs.size() * neighborsCount) + m_coeffs.size();
+#ifdef MLD_SAFE
+    if( m_weightSum == 0.0 ) {
+        LOG(logERROR) << "TimeVertexMeanFilter::compute invalid weighted sum";
+        m_weightSum = 1.0;
+        return rootOLink;
+    }
+#endif
+
+    total /= m_weightSum;
     rootOLink.setWeight(total);
 
     return rootOLink;
@@ -115,7 +121,30 @@ OLink TimeVertexMeanFilter::computeNodeWeight( oid_t node, double hlinkWeight, c
     }
 #endif
     // Resistivity coeff
-    double c = 1 / (1.0 / hlinkWeight + coeff.second);
+    double c = 1.0 / (1.0 / hlinkWeight + coeff.second);
+    m_weightSum += c;
+    olink.setWeight(c * olink.weight());
+    return olink;
+}
+
+OLink TimeVertexMeanFilter::computeNodeSelfWeight( oid_t node, const TWCoeff& coeff )
+{
+    OLink olink(m_dao->getOLink(coeff.first, node));
+
+#ifdef MLD_SAFE
+    if( olink.id() == Objects::InvalidOID ) {
+        LOG(logERROR) << "TimeVertexMeanFilter::computeNodeSelfWeight invalid Olink " << coeff.first << " " << node;
+        return olink;
+    }
+#endif
+    // Resistivity coeff
+
+    // Special value for self value at current time
+    double c = 1.0;
+    if( coeff.second != 0.0 ) {
+        c = 1.0 / coeff.second;
+    }
+    m_weightSum += c;
     olink.setWeight(c * olink.weight());
     return olink;
 }

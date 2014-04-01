@@ -85,7 +85,7 @@ public:
     bool removeVLink( oid_t vid );
 
     // ***** OLINK ***** //
-    inline type_t ownsType() const { return m_oType; }
+    inline type_t olinkType() const { return m_oType; }
     OLink addOLink( oid_t layer, oid_t node );
     OLink addOLink( oid_t layer, oid_t node, double weight );
     OLink addOLink( oid_t layer, oid_t node, AttrMap& data );

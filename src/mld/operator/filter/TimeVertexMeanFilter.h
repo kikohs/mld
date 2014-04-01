@@ -39,6 +39,10 @@ public:
     virtual std::string name() const override;
     virtual OLink compute( sparksee::gdb::oid_t layerId, sparksee::gdb::oid_t rootId ) override;
     virtual OLink computeNodeWeight( sparksee::gdb::oid_t node, double hlinkWeight, const TWCoeff& coeff ) override;
+    virtual OLink computeNodeSelfWeight( sparksee::gdb::oid_t node, const TWCoeff& coeff ) override;
+
+private:
+    double m_weightSum;
 };
 
 } // end namespace mld

@@ -184,7 +184,7 @@ ObjectsPtr MLGDao::getAllNodeIds( const Layer& l )
 #ifdef MLD_SAFE
     try {
 #endif
-        res.reset(m_g->Neighbors(l.id(), m_link->ownsType(), Outgoing));
+        res.reset(m_g->Neighbors(l.id(), m_link->olinkType(), Outgoing));
 #ifdef MLD_SAFE
     } catch( Error& e ) {
         LOG(logERROR) << "MLGDao::getAllNodes: " << e.Message();
@@ -410,7 +410,7 @@ oid_t MLGDao::getLayerIdForNode( oid_t nid )
 #ifdef MLD_SAFE
     try {
 #endif
-        obj.reset(m_g->Neighbors(nid, m_link->ownsType(), Ingoing));
+        obj.reset(m_g->Neighbors(nid, m_link->olinkType(), Ingoing));
 #ifdef MLD_SAFE
     } catch( Error& ) {
         LOG(logERROR) << "MLGDao::getLayerForNode: invalid supernode";
@@ -632,6 +632,16 @@ bool MLGDao::horizontalCopyLinks( type_t linkType,
         }
     }
     return true;
+}
+
+std::vector<OLink> MLGDao::getAllOLinks( oid_t nodeId )
+{
+    std::vector<OLink> res;
+    auto layers(getAllLayers()); // Get layers ordered bot to top
+    for( auto& l : layers ) {
+        res.push_back(getOLink(l.id(), nodeId));
+    }
+    return res;
 }
 
 // ****** FORWARD METHOD OF SN DAO ****** //
@@ -863,5 +873,5 @@ type_t MLGDao::nodeType() const
 
 type_t MLGDao::olinkType() const
 {
-    return m_link->ownsType();
+    return m_link->olinkType();
 }

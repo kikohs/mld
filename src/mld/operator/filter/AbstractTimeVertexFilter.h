@@ -104,6 +104,7 @@ protected:
     virtual OLink computeNodeWeight( sparksee::gdb::oid_t node,
                                       double hlinkWeight, const TWCoeff& coeff ) = 0;
 
+    virtual OLink computeNodeSelfWeight( sparksee::gdb::oid_t node, const TWCoeff& coeff ) = 0;
 protected:
     std::unique_ptr<MLGDao> m_dao;
     uint32_t m_timeWindowSize;

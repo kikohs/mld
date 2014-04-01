@@ -33,6 +33,7 @@
 #include "mld/SparkseeManager.h"
 
 #include "mld/io/GraphExporter.h"
+#include "mld/utils/ProgressDisplay.h"
 
 using namespace mld;
 using namespace sparksee::gdb;
@@ -85,7 +86,9 @@ bool GraphExporter::toTimeSeries( Graph* g, const std::string& name, std::string
     }
     std::string nodePath = exportFolderPath + name + ".nodes.csv";
 
-    if( writeTSNodes(g, nodePath, indexMap) ) {
+    MLGDao dao(g);
+
+    if( writeTSNodes(dao, nodePath, indexMap) ) {
         LOG(logINFO) << "Wrote: " << nodePath;
     }
     else {
@@ -94,7 +97,7 @@ bool GraphExporter::toTimeSeries( Graph* g, const std::string& name, std::string
     }
 
     std::string edgePath = exportFolderPath + name + ".edges.csv";
-    if( writeTSEdges(g, edgePath, indexMap) ) {
+    if( writeTSEdges(dao, edgePath, indexMap) ) {
         LOG(logINFO) << "Wrote: " << edgePath;
     }
     else {
@@ -105,15 +108,16 @@ bool GraphExporter::toTimeSeries( Graph* g, const std::string& name, std::string
     return true;
 }
 
-bool GraphExporter::writeTSNodes( Graph* g, const std::string& nodePath, RIndexMap& indexMap )
+bool GraphExporter::writeTSNodes( MLGDao& dao, const std::string& nodePath, RIndexMap& indexMap )
 {
+    LOG(logINFO) << "Start writing nodes";
+
     std::wofstream outfile(nodePath);
     if( !outfile ) {
         LOG(logERROR) << "GraphExporter::writeTSNodes cannot open file " << nodePath;
         return false;
     }
 
-    MLGDao dao(g);
     Layer base(dao.baseLayer());
     NodeVec nodes(dao.getAllNodes(base));
 
@@ -121,10 +125,10 @@ bool GraphExporter::writeTSNodes( Graph* g, const std::string& nodePath, RIndexM
         LOG(logERROR) << "GraphExporter::writeTSNodes no nodes in graph";
         return false;
     }
-    bool hasIdField = false;
     Node n1(nodes.front());
 
     // Create header with id field in first position
+    bool hasIdField = false;
     outfile << L"#id,";
     for( auto& kv: n1.data() ) {
         if( kv.first == L"id" ) {
@@ -140,9 +144,11 @@ bool GraphExporter::writeTSNodes( Graph* g, const std::string& nodePath, RIndexM
             writeWStringToFile(outfile, kv.first);
         }
     }
-    // Write TS
+    // Write header TS
     auto lCount = dao.getLayerCount();
     outfile << "ts:" << lCount << L"\n";
+
+    ProgressDisplay display(nodes.size());
 
     // Write data
     for( size_t i = 0; i < nodes.size(); ++i ) {
@@ -165,17 +171,75 @@ bool GraphExporter::writeTSNodes( Graph* g, const std::string& nodePath, RIndexM
         }
 
         // Write TS data
-        // TODO
-
+        outfile << L"\"";
+        auto olinks( dao.getAllOLinks(n.id()));
+        for( size_t i = 0; i < olinks.size() - 1; ++i ) {
+            outfile << olinks.at(i).weight() << L",";
+        }
+        // Write last value
+        outfile << olinks.at(i).weight();
+        outfile << L"\"";
         outfile << L"\n";
+        ++display;
     }
 
     outfile.close();
     return true;
 }
 
-bool GraphExporter::writeTSEdges( Graph* g, const std::string& edgePath, RIndexMap& indexMap )
+bool GraphExporter::writeTSEdges( MLGDao& dao, const std::string& edgePath, RIndexMap& indexMap )
 {
-    // TODO
-    return false;
+    LOG(logINFO) << "Start writing edges";
+
+    std::wofstream outfile(edgePath);
+    if( !outfile ) {
+        LOG(logERROR) << "GraphExporter::writeTSEdges cannot open file " << edgePath;
+        return false;
+    }
+
+    Layer base(dao.baseLayer());
+    auto hlinks = dao.getAllHLinks(base);
+
+    HLink hl1(hlinks.front());
+    // Create header
+    outfile << L"#source,target,";
+    size_t i = 0;
+    size_t dataSize = hl1.data().size();
+    for( auto& kv: hl1.data() ) {
+        std::wstring v;
+        if( kv.first == Attrs::V[HLinkAttr::WEIGHT] )
+            v = L"weight";
+        else
+            v = kv.first;
+
+        if( i < dataSize - 1 )
+            writeWStringToFile(outfile, v);
+        else
+            writeWStringToFile(outfile, v, true);
+        ++i;
+    }
+
+    ProgressDisplay display(hlinks.size());
+    // Write data
+    for( auto& hl: hlinks ) {
+        // Src and target
+        auto src = indexMap.at(hl.source());
+        auto tgt = indexMap.at(hl.target());
+        writeWStringToFile(outfile, src);
+        writeWStringToFile(outfile, tgt);
+
+        // Write HLink data
+        size_t i = 0;
+        size_t dataSize = hl.data().size();
+        for( auto& kv: hl.data() ) {
+            if( i < dataSize - 1 )
+                writeWStringToFile(outfile, convertValueToWString(kv.second));
+            else
+                writeWStringToFile(outfile, convertValueToWString(kv.second), true);
+            ++i;
+        }
+        ++display;
+    }
+
+    return true;
 }

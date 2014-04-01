@@ -114,6 +114,8 @@ TEST( FilterTest, TVMFilterVertexOnly )
         // n1
         oid_t nid = it->Next();
         OLink ol1 = filter->compute(base.id(), nid);
+        auto olinks = dao->getAllOLinks(nid);
+        EXPECT_EQ(size_t(3), olinks.size());
 
         // mean( n1 + n2 * n12 )
         // mean( 10 + 20 * 0.5 )

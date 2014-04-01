@@ -26,6 +26,8 @@
 
 namespace mld {
 
+class MLGDao;
+
 class MLD_API GraphExporter
 {
 public:
@@ -41,9 +43,9 @@ public:
     static bool toTimeSeries( sparksee::gdb::Graph* g,
                               const std::string& name, std::string& exportFolderPath );
 private:
-    static bool writeTSNodes( sparksee::gdb::Graph* g,
+    static bool writeTSNodes( MLGDao& dao,
                               const std::string& nodePath, RIndexMap& indexMap );
-    static bool writeTSEdges( sparksee::gdb::Graph* g,
+    static bool writeTSEdges( MLGDao& dao,
                               const std::string& edgePath, RIndexMap& indexMap );
 };
 

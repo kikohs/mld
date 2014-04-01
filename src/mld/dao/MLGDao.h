@@ -259,6 +259,14 @@ typedef std::map<sparksee::gdb::oid_t, Node> NodeMap;
                              const WeightMergerFunc& f=[](double a, double b) {return a + b;} );
 
     inline Node invalidNode() const { return Node(); }
+
+    /**
+     * @brief Get Olinks
+     * @param nodeId
+     * @return
+     */
+    std::vector<OLink> getAllOLinks( sparksee::gdb::oid_t nodeId );
+
     // Forward to SNDao
     void removeNode( sparksee::gdb::oid_t id );
     bool updateNode( Node& n );
