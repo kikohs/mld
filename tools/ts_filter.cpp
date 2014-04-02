@@ -42,6 +42,7 @@ struct InputContext {
     std::string filterName;
     double lambda;
     uint32_t twSize;
+    uint32_t numIt;
 };
 
 bool parseOptions( int argc, char *argv[], InputContext& out )
@@ -75,6 +76,10 @@ bool parseOptions( int argc, char *argv[], InputContext& out )
         ValueArg<uint32_t> twSizeArg("s", "twSize", "TimeWindow size\n ", false, 1, "uint32_t");
         cmd.add(twSizeArg);
 
+        // TimwWindow size
+        ValueArg<uint32_t> numItArg("i", "iteration", "Number of iterations", false, 1, "uint32_t");
+        cmd.add(numItArg);
+
         // Parse the args.
         cmd.parse(argc, argv);
 
@@ -84,6 +89,7 @@ bool parseOptions( int argc, char *argv[], InputContext& out )
         out.filterName = filterNameArg.getValue();
         out.lambda = lambdaArg.getValue();
         out.twSize = twSizeArg.getValue();
+        out.numIt = numItArg.getValue();
     } catch( ArgException& e ) {
         LOG(logERROR) << "error: " << e.error() << " for arg " << e.argId();
         return false;
@@ -105,16 +111,19 @@ int main( int argc, char *argv[] )
 
     {
         auto* filter = FilterFactory::create(g, ctx.filterName, ctx.lambda, ctx.twSize);
+
         TSOperator op(g);
         op.setFilter(filter);
 
-        sess->Begin();
-        if( !op.run() ) {
-            LOG(logERROR) << "Filtering failed";
+        for( uint32_t i = 0; i < ctx.numIt; ++i ) {
+            sess->Begin();
+            if( !op.run() ) {
+                LOG(logERROR) << "Filtering failed it: " << i;
+                sess->Commit();
+                return EXIT_FAILURE;
+            }
             sess->Commit();
-            return EXIT_FAILURE;
         }
-        sess->Commit();
     }
     LOG(logINFO) << Timer::dumpTrials();
     sess.reset();

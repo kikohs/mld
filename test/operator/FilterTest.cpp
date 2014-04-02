@@ -117,23 +117,29 @@ TEST( FilterTest, TVMFilterVertexOnly )
         auto olinks = dao->getAllOLinks(nid);
         EXPECT_EQ(size_t(3), olinks.size());
 
-        // mean( n1 + n2 * n12 )
-        // mean( 10 + 20 * 0.5 )
-        EXPECT_EQ(10.0, ol1.weight());
+        // value = n1 + n2 * n12
+        // coeff = 1 + n12
+        double v = 10 + 20 * 0.5;
+        double c = 1.0 + 0.5;
+        EXPECT_EQ(v/c, ol1.weight());
 
         // n2
         nid = it->Next();
         OLink ol2 = filter->compute(base.id(), nid);
-        // mean( n1 * n12 + n2 + n3 * n23 )
-        // mean( 10 * 0.5 + 20 + 40 * 0.1 )
-        EXPECT_EQ(29 / 3.0, ol2.weight());
+        // value = n2 + n1 * n12 + n3 * n23
+        // coeff = 1 + n12 + n23;
+        v = 20 + 10 * 0.5 + 40 * 0.1;
+        c = 1 + 0.5 + 0.1;
+        EXPECT_EQ(v/c, ol2.weight());
 
         // n3
         nid = it->Next();
         OLink ol3 = filter->compute(base.id(), nid);
-        // mean( n3 + n2 * n23 )
-        // mean( 40 + 20 * 0.1 )
-        EXPECT_EQ(42 / 2.0, ol3.weight());
+        // value = n3 + n2 * n23
+        // coeff = 1 + n23
+        v = 40 + 20 * 0.1;
+        c =  1 + 0.1;
+        EXPECT_EQ(v/c, ol3.weight());
     }
 
     dao.reset();
@@ -169,35 +175,25 @@ TEST( FilterTest, TVMFilterTimeOnly )
         // Base n1
         oid_t nid = it->Next();
         OLink ol1 = filter->compute(base.id(), nid);
-        // mean[ n1 + n1m / (1 + 1/l1) + n1t / (1 + 1/l1 + 1/l2) ]
-        double v = (10 + 5 + 10/3.0) / 3.0;
-        EXPECT_DOUBLE_EQ(v, ol1.weight());
+        // value = n1 + n1m / (1/l1) + n1t / (1/l1 + 1/l2)
+        // coeff = 1 + 1/(1/l1) + 1/(1/l1 + 1/l2)
+        double v = 10.0 + 10.0 + 10/2.0;
+        double c = 1.0 + 1.0/1.0 + 1.0/(1.0 + 1.0);
+        EXPECT_DOUBLE_EQ(v/c, ol1.weight());
 
-        // Top n1
+        // Top n1t
         filter->computeTWCoeffs(top.id());
         OLink ol1t = filter->compute(top.id(), nid);
         EXPECT_DOUBLE_EQ(ol1.weight(), ol1t.weight());
 
-        // Middle n1
+        // Middle n1m
         filter->computeTWCoeffs(middle.id());
         OLink ol1m = filter->compute(middle.id(), nid);
-        v = (10 + 5 + 5) / 3.0;
-        EXPECT_DOUBLE_EQ(v, ol1m.weight());
-
-        // n2
-        filter->computeTWCoeffs(base.id());
-        nid = it->Next();
-        OLink ol2 = filter->compute(base.id(), nid);
-        // mean[ n2 + n2m / (1 + 1/l1) + n2t / (1 + 1/l1 + 1/l2) ]
-        v = (20 + 10 + 20/3.0) / 3.0;
-        EXPECT_DOUBLE_EQ(v, ol2.weight());
-
-        // n3
-        nid = it->Next();
-        OLink ol3 = filter->compute(base.id(), nid);
-        // mean[ n3 + n3m / (1 + 1/l1) + n3t / (1 + 1/l1 + 1/l2) ]
-        v = (40 + 40 + 160/3.0) / 3.0;
-        EXPECT_DOUBLE_EQ(v, ol3.weight());
+        // value = n1m + n1 / (1/l1) + n1t / (1/l2)
+        // coeff = 1 + 1/(1/l1) + 1/(1/l2)
+        v = 10 + 10 + 10;
+        c = 1 + 1 + 1;
+        EXPECT_DOUBLE_EQ(v/c, ol1m.weight());
     }
 
     dao.reset();
@@ -231,42 +227,65 @@ TEST( FilterTest, TVMFilter1 )
         // Base n1
         oid_t nid = it->Next();
         OLink ol1 = filter->compute(base.id(), nid);
-        // mean[ n1 + n1m / (1 + 1/l1) + n1t / (1 + 1/l1 + 1/l2) +
-        // n12 * n2 + n2m / (1/n12 + 1/l1)) + n2t / (1/n12 + 1/l1 + 1/l2)
-        //  ]
-        double v = (10 + 5 + 10/3.0 + 20*0.5 + 20.0/3.0 + 20/4.0) / 6.0;
-        EXPECT_DOUBLE_EQ(v, ol1.weight());
+        // value = n1 + n1m / (1/l1) + n1t / (1/l1 + 1/l2) +
+        //         n12 * n2 + n2m / (1/n12 + 1/l1)) + n2t / (1/n12 + 1/l1 + 1/l2)
+        // coeff = 1 + 1/(1/l1) + 1/(1/l1 + 1/l2) +
+        //         n12 + 1/(1/n12 + 1/l1) + 1/(1/n12 + 1/l1 + 1/l2)
+        double v = 10 + 10 + 10/2.0 + 20*0.5 + 20.0/3.0 + 20/4.0;
+        double c = 1 + 1 + 1/2.0 + 0.5 + 1/3.0 + 1/4.0;
+        EXPECT_DOUBLE_EQ(v/c, ol1.weight());
 
         // Update lambda weight and switch to n2 node
         nid = it->Next();
         dao->updateCLink(base.id(), middle.id(), 2);
         filter->computeTWCoeffs(middle.id());
         OLink ol2 = filter->compute(middle.id(), nid);
-        // mean[ n2m + n1m*n12 + n3m*n23 +
-        // n2 / (1 + 1/l1) + n2t / (1 + 1/l2) +
-        // n1 / (1/n12 + 1/l1) + n1t / (1/n12 + 1/l2) +
-        // n3 / (1/n23 + 1/l1) + n3t / (1/n23 + 1/l2) ]
-        v = (20 + 10.0*0.5 + 80.0*0.1 +
-             20 / (1 + 1/2.0) + 20 / (1.0 + 1/1) +
-             10 / (1/0.5 + 1/2.0) + 10 / (1/0.5 + 1/1) +
-             40 / (1/0.1 + 1/2.0) + 160 / (1/0.1 + 1/1)
-             ) / 9.0;
-        EXPECT_DOUBLE_EQ(v, ol2.weight());
+        // value = n2m + n1m*n12 + n3m*n23 +
+        //         n2 / (1/l1) + n2t / (1/l2) +
+        //         n1 / (1/n12 + 1/l1) + n1t / (1/n12 + 1/l2) +
+        //         n3 / (1/n23 + 1/l1) + n3t / (1/n23 + 1/l2)
+
+        // coeff = 1 + n12 + n23 +
+        //         1 / (1/l1) + 1 / (1/l2) +
+        //         1 / (1/n12 + 1/l1) + 1 / (1/n12 + 1/l2) +
+        //         1 / (1/n23 + 1/l1) + 1 / (1/n23 + 1/l2)
+
+        v = 20 + 10.0 * 0.5 + 80.0 * 0.1 +
+            20 / (1/2.0) + 20 / 1.0 +
+            10 / (1/0.5 + 1/2.0) + 10 / (1/0.5 + 1/1) +
+            40 / (1/0.1 + 1/2.0) + 160 / (1/0.1 + 1/1);
+
+        c = 1 + 0.5 + 0.1 +
+            1 / 0.5 + 1 +
+            1 / (1/0.5 + 1/2.0) + 1 / (1/0.5 + 1/1) +
+            1 / (1/0.1 + 1/2.0) + 1 / (1/0.1 + 1/1);
+        EXPECT_DOUBLE_EQ(v/c, ol2.weight());
 
         // Test overriding parameters
         filter->setOverrideInterLayerWeight(true, 1.0);
         filter->computeTWCoeffs(middle.id());
         OLink ol2bis = filter->compute(middle.id(), nid);
-        // mean[ n2m + n1m * n12 + n3m * n23 +
-        // n2 / (1 + 1/l1) + n2t / (1 + 1/l2) +
-        // n1 / (1/n12 + 1/l1) + n1t / (1/n12 + 1/l2) +
-        // n3 / (1/n23 + 1/l1) + n3t / (1/n23 + 1/l2) ]
-        v = (20.0 + 10.0 * 0.5 + 80.0 * 0.1 +
-             20.0 / (1.0 + 1/1.0) + 20.0 / (1.0 + 1/1.0) +
-             10.0 / (1/0.5 + 1/1.0) + 10.0 / (1/0.5 + 1/1.0) +
-             40.0 / (1/0.1 + 1/1.0) + 160.0 / (1/0.1 + 1/1.0)
-             ) / 9.0;
-        EXPECT_DOUBLE_EQ(v, ol2bis.weight());
+
+        // value = n2m + n1m*n12 + n3m*n23 +
+        //         n2 / (1/l1) + n2t / (1/l2) +
+        //         n1 / (1/n12 + 1/l1) + n1t / (1/n12 + 1/l2) +
+        //         n3 / (1/n23 + 1/l1) + n3t / (1/n23 + 1/l2)
+
+        // coeff = 1 + n12 + n23 +
+        //         1 / (1/l1) + 1 / (1/l2) +
+        //         1 / (1/n12 + 1/l1) + 1 / (1/n12 + 1/l2) +
+        //         1 / (1/n23 + 1/l1) + 1 / (1/n23 + 1/l2)
+
+        v = 20.0 + 10.0 * 0.5 + 80.0 * 0.1 +
+            20.0 / 1.0 + 20.0 / 1.0 +
+            10.0 / (1/0.5 + 1/1.0) + 10.0 / (1/0.5 + 1/1.0) +
+            40.0 / (1/0.1 + 1/1.0) + 160.0 / (1/0.1 + 1/1.0);
+
+        c = 1 + 0.5 + 0.1 +
+            1 + 1 +
+            1 / (1/0.5 + 1/1.0) + 1 / (1/0.5 + 1/1) +
+            1 / (1/0.1 + 1/1.0) + 1 / (1/0.1 + 1/1);
+        EXPECT_DOUBLE_EQ(v/c, ol2bis.weight());
     }
 
     dao.reset();
