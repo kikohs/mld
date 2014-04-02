@@ -4,6 +4,7 @@ set( MODEL_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/Layer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Node.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Link.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/TimeSeries.cpp
 )
 
 # Add to global variable
@@ -15,6 +16,7 @@ set( MODEL_PUBLIC_HDRS
     Layer.h
     Node.h
     Link.h
+    TimeSeries.h
 )
 
 set( MODEL_PUB_HDRS_DIR

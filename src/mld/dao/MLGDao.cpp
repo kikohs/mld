@@ -44,12 +44,11 @@ MLGDao::~MLGDao()
 
 void MLGDao::setGraph( Graph* g )
 {
-    if( g ) {
-        AbstractDao::setGraph(g);
-        m_node->setGraph(g);
-        m_layer->setGraph(g);
-        m_link->setGraph(g);
-    }
+    assert(g != nullptr);
+    AbstractDao::setGraph(g);
+    m_node->setGraph(g);
+    m_layer->setGraph(g);
+    m_link->setGraph(g);
 }
 
 ObjectsPtr MLGDao::newObjectsPtr() const
