@@ -13,6 +13,10 @@ endmacro(append_test)
 
 
 # APPEND TESTS HERE
+
+# MODEL
+append_test(TimeSeriesTest model/TimeSeriesTest.cpp)
+
 # DAO
 append_test(NodeDaoTest dao/NodeDaoTest.cpp)
 append_test(LayerDaoTest dao/LayerDaoTest.cpp)

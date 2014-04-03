@@ -40,6 +40,7 @@
 
 #define MLD_UNUSED(expr) do { (void)(expr); } while (0)
 
+#include <assert.h>
 #include "mld/utils/log.h"
 
 namespace sparksee {
