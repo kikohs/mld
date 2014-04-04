@@ -37,6 +37,7 @@ template <typename T>
 class TSIndexIt : public std::iterator<std::random_access_iterator_tag, T>
 {
     template <typename U> friend size_t distance( const TSIndexIt<U>& lhs, const TSIndexIt<U>& rhs );
+    template <typename U> friend class TimeSeries;
 public:
     TSIndexIt( TSData<T>& v, std::size_t index ) : m_v(&v), m_index(index) {}
 
@@ -47,12 +48,12 @@ public:
     T* operator ->() const { return &m_v->at(m_index); }
 
     TSIndexIt& operator ++() { ++m_index; return *this; }
-    TSIndexIt& operator ++( int ) { TSIndexIt old(*this); ++*this; return old; }
+//    TSIndexIt& operator ++( int ) { TSIndexIt old(*this); ++*this; return old; }
     TSIndexIt& operator +=( std::ptrdiff_t offset ) { m_index += offset; return *this; }
     TSIndexIt operator +( std::ptrdiff_t offset ) const { TSIndexIt res (*this); res += offset; return res; }
 
     TSIndexIt& operator --() { --m_index; return *this;}
-    TSIndexIt& operator --(int) { TSIndexIt old(*this); --*this; return old; }
+//    TSIndexIt& operator --(int) { TSIndexIt old(*this); --*this; return old; }
     TSIndexIt& operator -=( std::ptrdiff_t offset ) { m_index -= offset; return *this; }
     TSIndexIt operator -( std::ptrdiff_t offset ) const { TSIndexIt res (*this); res -= offset; return res; }
 
@@ -67,10 +68,18 @@ public:
     bool operator <=( const TSIndexIt& rhs ) const { assert(m_v == rhs.m_v); return m_index <= rhs.m_index; }
 
     size_t index() const { return m_index; }
+
 private:
     TSData<T>* m_v;
     size_t m_index;
 };
+
+template <typename T>
+std::ostream& operator <<( std::ostream& out, const TSIndexIt<T>& rhs )
+{
+    out << rhs.index();
+    return out;
+}
 
 template <typename T>
 size_t distance( const TSIndexIt<T>& lhs, const TSIndexIt<T>& rhs )
@@ -104,20 +113,46 @@ public:
         BOTH
     };
 
+
     TimeSeries();
+    TimeSeries( size_t radius );
+    TimeSeries( const TimeSeries<T>& rhs );
+    TimeSeries( TimeSeries&& rhs );
+    TimeSeries& operator =( TimeSeries<T> rhs );
     virtual ~TimeSeries() {}
+
+    friend void swap( TimeSeries& lhs, TimeSeries& rhs )
+    {
+        using std::swap;
+
+        swap(lhs.m_radius, rhs.m_radius);
+        swap(lhs.m_dir, rhs.m_dir);
+        swap(lhs.m_data, rhs.m_data);
+        swap(lhs.m_curPos, rhs.m_curPos);
+        swap(lhs.m_start, rhs.m_start);
+        swap(lhs.m_finish, rhs.m_finish);
+    }
 
     inline TSIt sliceBegin() { return m_start; }
     inline TSIt sliceEnd() { return m_finish; }
     inline TSIt current() { return m_curPos; }
+
+    inline const TSIt csliceBegin() const { return m_start; }
+    inline const TSIt csliceEnd() const { return m_finish; }
+    inline const TSIt ccurrent() const { return m_curPos; }
+
 
     inline TSIt begin() { return TSIndexItBegin(m_data); }
     inline TSIt end() { return TSIndexItEnd(m_data); }
 
     inline bool empty() const { return m_data.empty(); }
 
-    inline size_t timeWindowSize() const { return m_twSize; }
-    void setTimeWindowSize( size_t newSize );
+    inline size_t radius() const { return m_radius; }
+    /**
+     * @brief Set the time window radius for the slices
+     * @param newSize
+     */
+    void setRadius( size_t newSize );
 
     inline TSData<T>& data() { return m_data; }
     inline const TSData<T>& data() const { return m_data; }
@@ -129,11 +164,11 @@ public:
     inline size_t sliceSize() const { return distance<T>(m_finish, m_start); }
 
     /**
-     * @brief Move the slice forward from 1 step
+     * @brief Move the slice forward from 1 step     
      * @param delta
      * @return curPos iterator
      */
-    TSIt move( int delta = 1 );
+    TSIt scroll( int delta = 1 );
     void resetSlice();
     void clear();
 
@@ -144,9 +179,11 @@ public:
 
 private:
     void moveIt( TSIt* it, int delta );
+    void clamp();
+    void moveAll( int delta );
 
 private:
-    size_t m_twSize;
+    size_t m_radius;
     TSDirection m_dir;
     TSData<T> m_data;
 
@@ -161,7 +198,7 @@ private:
 
 template <typename T>
 TimeSeries<T>::TimeSeries()
-    : m_twSize(0)
+    : m_radius(0)
     , m_dir(TSDirection::BOTH)
     , m_data()
     , m_curPos(TSIndexItBegin(m_data))
@@ -170,33 +207,54 @@ TimeSeries<T>::TimeSeries()
 {
 }
 
+template <typename T>
+TimeSeries<T>::TimeSeries( size_t radius )
+    : TimeSeries()
+{
+    m_radius = radius;
+}
 
 template <typename T>
-auto TimeSeries<T>::move( int delta ) -> TSIt
+TimeSeries<T>::TimeSeries( const TimeSeries<T>& rhs )
+    : m_radius(rhs.m_radius)
+    , m_dir(rhs.m_dir)
+    , m_data(rhs.m_data)
+    , m_curPos(TSIt(m_data, rhs.m_curPos.m_index))
+    , m_start(TSIt(m_data, rhs.m_start.m_index))
+    , m_finish(TSIt(m_data, rhs.m_finish.m_index))
 {
-    moveIt(&m_start, delta);
-    moveIt(&m_finish, delta);
-    moveIt(&m_curPos, delta);
+}
 
+template <typename T>
+TimeSeries<T>::TimeSeries( TimeSeries&& rhs )
+    : TimeSeries()
+{
+    swap(*this, rhs);
+}
+
+template <typename T>
+TimeSeries<T>& TimeSeries<T>::operator =( TimeSeries<T> rhs )
+{
+    swap(*this, rhs);
+    return *this;
+}
+
+template <typename T>
+auto TimeSeries<T>::scroll( int delta ) -> TSIt
+{
+    moveAll(delta);
     assert(m_start <= m_curPos && m_curPos <= m_finish);
-
     return m_curPos;
 }
 
 template <typename T>
-void TimeSeries<T>::setTimeWindowSize( size_t newSize )
+void TimeSeries<T>::setRadius( size_t newSize )
 {
-    if( newSize == m_twSize )
+    if( newSize == m_radius )
         return;
 
-    int delta = int(newSize) - int(m_twSize);
-    m_twSize = newSize;
-
-    if( m_dir == TSDirection::FUTURE || m_dir == TSDirection::BOTH )
-        moveIt(&m_finish, delta);
-    if( m_dir == TSDirection::PAST || m_dir == TSDirection::BOTH )
-        moveIt(&m_start, -delta);
-
+    m_radius = newSize;
+    clamp();
     assert(m_start <= m_curPos && m_curPos <= m_finish);
 }
 
@@ -205,40 +263,9 @@ void TimeSeries<T>::setDirection( TSDirection dir )
 {
     if( m_dir == dir )
         return;
-
-    switch( m_dir ) {
-        case TSDirection::PAST:
-            if( dir == TSDirection::FUTURE ) {
-                m_start = TSIt(m_curPos);
-            }
-            // BOTH moves the end cursor
-            moveIt(&m_finish, m_twSize);
-            break;
-
-        case TSDirection::FUTURE:
-            if( dir == TSDirection::PAST ) {
-                m_finish = TSIt(m_curPos);
-            }
-            // BOTH moves the start cursor backwards
-            moveIt(&m_start, -m_twSize);
-            break;
-
-        case TSDirection::BOTH:
-            if( dir == TSDirection::FUTURE ) {
-                m_start = TSIt(m_curPos);
-            } else {  // PAST
-                m_finish = TSIt(m_curPos);
-            }
-            break;
-
-        default:
-            LOG(logERROR) << "TimeSeries<T>::setDirection Invalid direction";
-            return;
-    }
-
-    assert(m_start <= m_curPos && m_curPos <= m_finish);
-    // Update direction
     m_dir = dir;
+    clamp();
+    assert(m_start <= m_curPos && m_curPos <= m_finish);
 }
 
 
@@ -247,104 +274,130 @@ void TimeSeries<T>::clear()
 {
     m_data.clear();
     m_curPos = TSIndexItBegin(m_data);
-    m_start = TSIndexItBegin(m_data);
-    m_finish = TSIndexItEnd(m_data);
+    clamp();
+    assert(m_start <= m_curPos && m_curPos <= m_finish);
 }
 
 template <typename T>
 void TimeSeries<T>::resetSlice()
 {
     m_curPos = TSIndexItBegin(m_data);
-    m_start = TSIndexItBegin(m_data);
-    m_finish = TSIndexItBegin(m_data);
-    if( m_dir != TSDirection::PAST ) {
-        moveIt(&m_finish, m_twSize);
-    } else {  // PAST
-        // Set the end to be curPos + 1
-        m_finish++;
-    }
+    clamp();
+    assert(m_start <= m_curPos && m_curPos <= m_finish);
 }
 
 template <typename T>
 void TimeSeries<T>::push_back( const T& value )
 {
-    assert(m_start <= m_curPos && m_curPos <= m_finish);
     m_data.push_back(value);
-    if( m_dir != TSDirection::PAST ) {
-        if( distance<T>(m_finish, m_curPos) <= m_twSize ) {
-            ++m_finish;
-        }
-    }
+    clamp();
+    assert(m_start <= m_curPos && m_curPos <= m_finish);
 }
 
 template <typename T>
 void TimeSeries<T>::push_front( const T& value )
 {
-    assert(m_start <= m_curPos && m_curPos <= m_finish);
     m_data.push_front(value);
-    // Finish and curPoint point to previous index, we should inc them
-    ++m_finish;
-    ++m_curPos;
-
-    if( m_dir == TSDirection::FUTURE ) {
-        ++m_start;
-    } else {  // PAST or BOTH
-        // Move start bound only if the radius bound is reached
-        if( distance<T>(m_curPos, m_start) > m_twSize ) {
-            ++m_start;
-        }
-    }
+    moveAll(1);
+    assert(m_start <= m_curPos && m_curPos <= m_finish);
 }
 
 template <typename T>
 void TimeSeries<T>::pop_back()
 {
     assert(!m_data.empty());
-    assert(m_start <= m_curPos && m_curPos <= m_finish);
-
-    if( m_finish == end() )
-        --m_finish;
-
-    // Dec curPos it was on the data's last value
-    if( m_curPos == m_finish )
-        --m_curPos;
-
-    // If start is collapsed on curPos at the end of the slice
-    if( m_start == m_finish )
-        --m_start;
-
     m_data.pop_back();
+
+    if( m_curPos == end() )
+        moveAll(-1);
+    else
+        clamp();
+    assert(m_start <= m_curPos && m_curPos <= m_finish);
 }
 
 template <typename T>
 void TimeSeries<T>::pop_front()
 {
     assert(!m_data.empty());
-    assert(m_start <= m_curPos && m_curPos <= m_finish);
-
-    --m_finish;
-    --m_curPos;
-    --m_start;
-
     m_data.pop_front();
+    moveAll(-1);
+    assert(m_start <= m_curPos && m_curPos <= m_finish);
 }
 
 // Private
 template <typename T>
+void TimeSeries<T>::moveAll( int delta )
+{
+    moveIt(&m_curPos, delta);
+    clamp();
+}
+
+template <typename T>
+void TimeSeries<T>::clamp()
+{
+    m_finish = m_curPos;
+    m_start = m_curPos;
+
+    moveIt(&m_finish, m_radius + 1);
+    moveIt(&m_start, -m_radius);
+
+    // Reset start and finish iterator from cur Pos
+    switch( m_dir ) {
+        case TSDirection::PAST: {
+            m_finish = m_curPos;
+            // Finish is always one after curPos if possible
+            moveIt(&m_finish, 1);
+        }
+        break;
+
+        case TSDirection::FUTURE: {
+            m_start = m_curPos;
+        }
+        break;
+
+        case TSDirection::BOTH: {
+            ; // All set
+        }
+        break;
+
+        default:
+            LOG(logERROR) << "TimeSeries<T>::clamp Invalid direction";
+        break;
+    }
+}
+
+template <typename T>
 void TimeSeries<T>::moveIt( TSIt* it, int delta )
 {
-    *it += delta;
-    auto b = begin();
-    auto e = end();
-    if( *it > e ) {
-        *it = e;
+    if( delta > 0 ) {
+        auto e = end();
+        if( (it->index() + delta) > e.index() ) {
+            *it = e;
+        }
+        else {
+            *it += delta;
+        }
     }
-    else if( *it < b ) {
-        *it = b;
+    else {  // delta < 0
+        auto b = begin();
+        int v = it->index() + delta;
+        if( v < int(b.index()) ) {
+            *it = b;
+        }
+        else {
+            *it += delta;
+        }
     }
-    else {
-        ; // do nothing
-    }
+}
+
+template <typename T>
+std::ostream& operator <<( std::ostream& out, const TimeSeries<T>& rhs )
+{
+    out << "start: " << rhs.csliceBegin() << " "
+        << "curPos: " << rhs.ccurrent() << " "
+        << "end: " << rhs.csliceEnd() << " "
+        << "radius: " << rhs.radius();
+    return out;
 }
 
 } // end namespace mld
