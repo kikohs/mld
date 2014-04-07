@@ -42,6 +42,7 @@ namespace mld {
  */
 class MLD_API LayerDao : public AbstractDao
 {
+    friend class MLGDao; // to access parentImpl
 public:
     LayerDao( sparksee::gdb::Graph* g );
     virtual ~LayerDao() override;

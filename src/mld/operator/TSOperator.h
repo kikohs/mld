@@ -64,7 +64,7 @@ protected:
     virtual bool postExec() override;
 
 protected:
-    std::unique_ptr<MLGDao> m_dao;
+    std::shared_ptr<MLGDao> m_dao;
     std::unique_ptr<AbstractTimeVertexFilter> m_filt;
 
     std::vector<OLink> m_buffer; // store OLink to be commited

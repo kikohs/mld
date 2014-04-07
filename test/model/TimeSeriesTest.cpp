@@ -64,6 +64,56 @@ TEST( TimeSeriesTest, Ctor )
     EXPECT_EQ(ts4.sliceBegin().index() + ts4.radius() + 1, ts4.sliceEnd().index());
     TimeSeries<int> ts5(ts4);
     EXPECT_EQ(ts5.sliceBegin().index() + ts5.radius() + 1, ts5.sliceEnd().index());
+
+    ts5.scroll(2);
+    ts5.setRadius(1);
+    EXPECT_EQ(2, *ts5.sliceBegin());
+    TimeSeries<int> ts6 = ts5;
+    EXPECT_EQ(*ts5.current(), *ts6.current());
+}
+
+TEST( TimeSeriesTest, PushPop )
+{
+    TimeSeries<int> ts(3);
+    ts.push_back(1); ts.push_back(2); ts.push_back(3);
+    ts.push_back(4); ts.push_back(5); ts.push_back(6);
+
+    TimeSeries<int> ts2(ts);
+
+    // 6 values before
+    EXPECT_EQ(size_t(6), ts.totalSize());
+    EXPECT_EQ(size_t(4), ts.sliceSize());
+    // Pop back
+    ts.pop_back(); ts.pop_back(); ts.pop_back();
+
+    EXPECT_EQ(size_t(3), ts.totalSize());
+    EXPECT_EQ(size_t(3), ts.sliceSize());
+    // No changes the slice end is before the real end
+    EXPECT_EQ(ts.sliceBegin(), ts.current());
+    EXPECT_EQ(ts.sliceEnd(), ts.end());
+
+    ts.pop_back(); ts.pop_back(); ts.pop_back();
+    EXPECT_EQ(size_t(0), ts.totalSize());
+    EXPECT_EQ(size_t(0), ts.sliceSize());
+    EXPECT_EQ(ts.sliceBegin(), ts.current());
+    EXPECT_EQ(ts.sliceEnd(), ts.end());
+    EXPECT_EQ(ts.sliceEnd(), ts.sliceBegin());
+    EXPECT_EQ(ts.sliceBegin(), ts.begin());
+
+    // Pop front
+    ts2.pop_front();
+    EXPECT_EQ(size_t(5), ts2.totalSize());
+    EXPECT_EQ(size_t(4), ts2.sliceSize());
+    EXPECT_EQ(ts2.sliceBegin(), ts2.current());
+    EXPECT_EQ(ts2.sliceBegin(), ts2.begin());
+    EXPECT_EQ(ts2.current().index() + ts2.radius() + 1, ts2.sliceEnd().index());
+
+    ts2.push_front(1);
+    EXPECT_EQ(size_t(6), ts2.totalSize());
+    EXPECT_EQ(size_t(5), ts2.sliceSize());
+    EXPECT_EQ(ts2.current().index(), ts2.sliceBegin().index() +1);
+    EXPECT_EQ(ts2.sliceBegin(), ts2.begin());
+    EXPECT_EQ(ts2.current().index() + ts2.radius() + 1, ts2.sliceEnd().index());
 }
 
 TEST( TimeSeriesTest, Slices )
@@ -119,49 +169,16 @@ TEST( TimeSeriesTest, Slices )
     ts.resetSlice();
     EXPECT_EQ(ts.sliceBegin(), ts.current());
     EXPECT_EQ(ts.current() + ts.radius() + 1, ts.sliceEnd());
-}
 
-TEST( TimeSeriesTest, pop )
-{
-    TimeSeries<int> ts(3);
-    ts.push_back(1); ts.push_back(2); ts.push_back(3);
-    ts.push_back(4); ts.push_back(5); ts.push_back(6);
-
-    TimeSeries<int> ts2(ts);
-
-    // 6 values before
+    // Shrink
+    ts.scroll(2);
+    ts.shrink(); // do nothing all data are in radius
     EXPECT_EQ(size_t(6), ts.totalSize());
-    EXPECT_EQ(size_t(4), ts.sliceSize());
-    // Pop back
-    ts.pop_back(); ts.pop_back(); ts.pop_back();
 
-    EXPECT_EQ(size_t(3), ts.totalSize());
-    EXPECT_EQ(size_t(3), ts.sliceSize());
-    // No changes the slice end is before the real end
-    EXPECT_EQ(ts.sliceBegin(), ts.current());
-    EXPECT_EQ(ts.sliceEnd(), ts.end());
+    ts.push_front(0);
+    ts.push_back(7); ts.push_back(8);
+    EXPECT_EQ(size_t(9), ts.totalSize());
 
-    ts.pop_back(); ts.pop_back(); ts.pop_back();
-    EXPECT_EQ(size_t(0), ts.totalSize());
-    EXPECT_EQ(size_t(0), ts.sliceSize());
-    EXPECT_EQ(ts.sliceBegin(), ts.current());
-    EXPECT_EQ(ts.sliceEnd(), ts.end());
-    EXPECT_EQ(ts.sliceEnd(), ts.sliceBegin());
-    EXPECT_EQ(ts.sliceBegin(), ts.begin());
-
-    // Pop front
-    ts2.pop_front();
-    EXPECT_EQ(size_t(5), ts2.totalSize());
-    EXPECT_EQ(size_t(4), ts2.sliceSize());
-    EXPECT_EQ(ts2.sliceBegin(), ts2.current());
-    EXPECT_EQ(ts2.sliceBegin(), ts2.begin());
-    EXPECT_EQ(ts2.current().index() + ts2.radius() + 1, ts2.sliceEnd().index());
-
-    ts2.push_front(1);
-    EXPECT_EQ(size_t(6), ts2.totalSize());
-    EXPECT_EQ(size_t(5), ts2.sliceSize());
-    EXPECT_EQ(ts2.current().index(), ts2.sliceBegin().index() +1);
-    EXPECT_EQ(ts2.sliceBegin(), ts2.begin());
-    EXPECT_EQ(ts2.current().index() + ts2.radius() + 1, ts2.sliceEnd().index());
-
+    ts.shrink();
+    EXPECT_EQ(size_t(7), ts.totalSize());
 }

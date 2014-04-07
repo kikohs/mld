@@ -643,6 +643,85 @@ std::vector<OLink> MLGDao::getAllOLinks( oid_t nodeId )
     return res;
 }
 
+TimeSeries<double> MLGDao::getSignal( oid_t nodeId, oid_t bottomLayer, oid_t topLayer )
+{
+#ifdef MLD_SAFE
+    if( bottomLayer == Objects::InvalidOID
+        || topLayer == Objects::InvalidOID
+        || nodeId == Objects::InvalidOID ) {
+
+        LOG(logERROR) << "MLGDao::getSignal: invalid ids";
+        return TimeSeries<double>();
+    }
+#endif
+
+    // Use as less overhead as possible
+    TimeSeries<double> res;
+    oid_t layer = bottomLayer;
+    type_t oType = m_link->olinkType();
+    Value v;
+    while( layer != topLayer ) {
+        oid_t eid = findEdge(oType, layer, nodeId);
+        m_g->GetAttribute(eid, m_g->FindAttribute(oType, Attrs::V[OLinkAttr::WEIGHT]), v);
+        res.data().push_back(v.GetDouble());
+        layer = m_layer->parentImpl(layer);
+    }
+
+    // Don't forget last layer, it is inclusive
+    oid_t eid = findEdge(oType, layer, nodeId);
+    m_g->GetAttribute(eid, m_g->FindAttribute(oType, Attrs::V[OLinkAttr::WEIGHT]), v);
+    res.data().push_back(v.GetDouble());
+    res.clamp();
+    return res;
+}
+
+TimeSeries<double> MLGDao::getSignal( oid_t nodeId, oid_t currentLayer, TSDirection dir, size_t radius )
+{
+#ifdef MLD_SAFE
+    if( nodeId == Objects::InvalidOID || currentLayer == Objects::InvalidOID ) {
+        LOG(logERROR) << "MLGDao::getSignal invalid ids";
+        return TimeSeries<double>();
+    }
+#endif
+    oid_t bot = currentLayer;
+    oid_t top = currentLayer;
+
+    if( dir != TSDirection::FUTURE ) {  // PAST or BOTH
+        bool stop = false;
+        size_t level = 0;
+        while( !stop && level != radius ) {
+            auto tmp = m_layer->childImpl(bot);
+            if( tmp == Objects::InvalidOID ) {
+                stop = true;
+            }
+            else {
+                bot = tmp;
+                level++;
+            }
+        }
+    }
+
+    if( dir != TSDirection::PAST ) {  // FUTURE or BOTH
+        bool stop = false;
+        size_t level = 0;
+        while( !stop && level != radius ) {
+            auto tmp = m_layer->parentImpl(top);
+            if( tmp == Objects::InvalidOID ) {
+                stop = true;
+            }
+            else {
+                top = tmp;
+                level++;
+            }
+        }
+    }
+
+    auto res(getSignal(nodeId, bot, top));
+    res.setRadius(radius);
+    res.setDirection(dir);
+    return res;
+}
+
 // ****** FORWARD METHOD OF SN DAO ****** //
 
 void MLGDao::removeNode( oid_t id )

@@ -48,12 +48,10 @@ public:
     T* operator ->() const { return &m_v->at(m_index); }
 
     TSIndexIt& operator ++() { ++m_index; return *this; }
-//    TSIndexIt& operator ++( int ) { TSIndexIt old(*this); ++*this; return old; }
     TSIndexIt& operator +=( std::ptrdiff_t offset ) { m_index += offset; return *this; }
     TSIndexIt operator +( std::ptrdiff_t offset ) const { TSIndexIt res (*this); res += offset; return res; }
 
     TSIndexIt& operator --() { --m_index; return *this;}
-//    TSIndexIt& operator --(int) { TSIndexIt old(*this); --*this; return old; }
     TSIndexIt& operator -=( std::ptrdiff_t offset ) { m_index -= offset; return *this; }
     TSIndexIt operator -( std::ptrdiff_t offset ) const { TSIndexIt res (*this); res -= offset; return res; }
 
@@ -75,13 +73,6 @@ private:
 };
 
 template <typename T>
-std::ostream& operator <<( std::ostream& out, const TSIndexIt<T>& rhs )
-{
-    out << rhs.index();
-    return out;
-}
-
-template <typename T>
 size_t distance( const TSIndexIt<T>& lhs, const TSIndexIt<T>& rhs )
 {
     if( lhs > rhs )
@@ -101,21 +92,22 @@ TSIndexIt<T> TSIndexItEnd( TSData<T>& v )
     return TSIndexIt<T>(v, v.size());
 }
 
+enum class TSDirection {
+    PAST,
+    FUTURE,
+    BOTH
+};
+
 template <typename T>
 class MLD_API TimeSeries
 {
 public:
     using TSIt = TSIndexIt<T>;
 
-    enum class TSDirection {
-        PAST,
-        FUTURE,
-        BOTH
-    };
-
-
     TimeSeries();
     TimeSeries( size_t radius );
+    TimeSeries( TSDirection dir );
+    TimeSeries( size_t radius, TSDirection dir );
     TimeSeries( const TimeSeries<T>& rhs );
     TimeSeries( TimeSeries&& rhs );
     TimeSeries& operator =( TimeSeries<T> rhs );
@@ -128,9 +120,9 @@ public:
         swap(lhs.m_radius, rhs.m_radius);
         swap(lhs.m_dir, rhs.m_dir);
         swap(lhs.m_data, rhs.m_data);
-        swap(lhs.m_curPos, rhs.m_curPos);
-        swap(lhs.m_start, rhs.m_start);
-        swap(lhs.m_finish, rhs.m_finish);
+        swap(lhs.m_curPos.m_index, rhs.m_curPos.m_index);
+        swap(lhs.m_start.m_index, rhs.m_start.m_index);
+        swap(lhs.m_finish.m_index, rhs.m_finish.m_index);
     }
 
     inline TSIt sliceBegin() { return m_start; }
@@ -171,15 +163,22 @@ public:
     TSIt scroll( int delta = 1 );
     void resetSlice();
     void clear();
+    /**
+     * @brief Drop values from TSData to only keep those in the slice
+     */
+    void shrink();
 
     void push_back( const T& value );
     void push_front( const T& value );
     void pop_back();
     void pop_front();
 
+    /**
+     * @brief Adjust slice after the structure of the underlying has been modified
+     */
+    void clamp();
 private:
     void moveIt( TSIt* it, int delta );
-    void clamp();
     void moveAll( int delta );
 
 private:
@@ -215,6 +214,21 @@ TimeSeries<T>::TimeSeries( size_t radius )
 }
 
 template <typename T>
+TimeSeries<T>::TimeSeries( TSDirection dir )
+    : TimeSeries()
+{
+    m_dir = dir;
+}
+
+template <typename T>
+TimeSeries<T>::TimeSeries( size_t radius, TSDirection dir )
+    : TimeSeries()
+{
+    m_radius = radius;
+    m_dir = dir;
+}
+
+template <typename T>
 TimeSeries<T>::TimeSeries( const TimeSeries<T>& rhs )
     : m_radius(rhs.m_radius)
     , m_dir(rhs.m_dir)
@@ -243,19 +257,16 @@ template <typename T>
 auto TimeSeries<T>::scroll( int delta ) -> TSIt
 {
     moveAll(delta);
-    assert(m_start <= m_curPos && m_curPos <= m_finish);
     return m_curPos;
 }
 
 template <typename T>
 void TimeSeries<T>::setRadius( size_t newSize )
 {
-    if( newSize == m_radius )
+    if( m_radius == newSize )
         return;
-
     m_radius = newSize;
     clamp();
-    assert(m_start <= m_curPos && m_curPos <= m_finish);
 }
 
 template <typename T>
@@ -265,7 +276,6 @@ void TimeSeries<T>::setDirection( TSDirection dir )
         return;
     m_dir = dir;
     clamp();
-    assert(m_start <= m_curPos && m_curPos <= m_finish);
 }
 
 
@@ -275,7 +285,6 @@ void TimeSeries<T>::clear()
     m_data.clear();
     m_curPos = TSIndexItBegin(m_data);
     clamp();
-    assert(m_start <= m_curPos && m_curPos <= m_finish);
 }
 
 template <typename T>
@@ -283,7 +292,6 @@ void TimeSeries<T>::resetSlice()
 {
     m_curPos = TSIndexItBegin(m_data);
     clamp();
-    assert(m_start <= m_curPos && m_curPos <= m_finish);
 }
 
 template <typename T>
@@ -291,7 +299,6 @@ void TimeSeries<T>::push_back( const T& value )
 {
     m_data.push_back(value);
     clamp();
-    assert(m_start <= m_curPos && m_curPos <= m_finish);
 }
 
 template <typename T>
@@ -299,7 +306,6 @@ void TimeSeries<T>::push_front( const T& value )
 {
     m_data.push_front(value);
     moveAll(1);
-    assert(m_start <= m_curPos && m_curPos <= m_finish);
 }
 
 template <typename T>
@@ -312,7 +318,6 @@ void TimeSeries<T>::pop_back()
         moveAll(-1);
     else
         clamp();
-    assert(m_start <= m_curPos && m_curPos <= m_finish);
 }
 
 template <typename T>
@@ -321,7 +326,20 @@ void TimeSeries<T>::pop_front()
     assert(!m_data.empty());
     m_data.pop_front();
     moveAll(-1);
-    assert(m_start <= m_curPos && m_curPos <= m_finish);
+}
+
+template <typename T>
+void TimeSeries<T>::shrink()
+{
+    size_t startIdx = m_start.index();
+    for( size_t i = 0; i < startIdx; ++i )
+        m_data.pop_front();
+
+    size_t endDelta = distance(end(), m_finish);
+    for( size_t i = 0; i < endDelta; ++i )
+        m_data.pop_back();
+
+    clamp();
 }
 
 // Private
@@ -390,16 +408,27 @@ void TimeSeries<T>::moveIt( TSIt* it, int delta )
     }
 }
 
+} // end namespace mld
+
 template <typename T>
-std::ostream& operator <<( std::ostream& out, const TimeSeries<T>& rhs )
+std::ostream& operator <<( std::ostream& out, const mld::TSIndexIt<T>& rhs )
 {
-    out << "start: " << rhs.csliceBegin() << " "
-        << "curPos: " << rhs.ccurrent() << " "
-        << "end: " << rhs.csliceEnd() << " "
-        << "radius: " << rhs.radius();
+    out << "index:" << rhs.index() << " ";
     return out;
 }
 
-} // end namespace mld
+template <typename T>
+std::ostream& operator <<( std::ostream& out, const mld::TimeSeries<T>& rhs )
+{
+    out << "start:{" << rhs.csliceBegin() << "} "
+        << "curPos:{" << rhs.ccurrent() << "} "
+        << "end:{" << rhs.csliceEnd() << "} "
+        << "radius:" << rhs.radius() << " ";
+
+    out << " sliced data:";
+    for( auto it = rhs.csliceBegin(); it != rhs.csliceEnd(); ++it )
+        out << " " << *it;
+    return out;
+}
 
 #endif // MLD_TIMESERIES_H

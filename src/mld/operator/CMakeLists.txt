@@ -2,6 +2,7 @@
 set( OPERATOR_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/AbstractOperator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/TSOperator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/TSCache.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/coarseners.h
     ${CMAKE_CURRENT_SOURCE_DIR}/mergers.h
     ${CMAKE_CURRENT_SOURCE_DIR}/selectors.h
@@ -15,6 +16,7 @@ set( PROJECT_SRCS ${PROJECT_SRCS} ${OPERATOR_SRCS} CACHE STRING "Sources Files" 
 set( OPERATOR_PUBLIC_HDRS
     AbstractOperator.h
     TSOperator.h
+    TSCache.h
     coarseners.h
     mergers.h
     selectors.h

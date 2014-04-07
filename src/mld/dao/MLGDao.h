@@ -27,6 +27,7 @@
 #include "mld/model/Node.h"
 #include "mld/model/Layer.h"
 #include "mld/model/Link.h"
+#include "mld/model/TimeSeries.h"
 
 namespace sparksee {
 namespace gdb {
@@ -266,6 +267,14 @@ typedef std::map<sparksee::gdb::oid_t, Node> NodeMap;
      * @return
      */
     std::vector<OLink> getAllOLinks( sparksee::gdb::oid_t nodeId );
+
+    TimeSeries<double> getSignal( sparksee::gdb::oid_t nodeId,
+                                  sparksee::gdb::oid_t bottomLayer,
+                                  sparksee::gdb::oid_t topLayer );
+
+    TimeSeries<double> getSignal( sparksee::gdb::oid_t nodeId,
+                                  sparksee::gdb::oid_t currentLayer,
+                                  TSDirection dir, size_t radius );
 
     // Forward to SNDao
     void removeNode( sparksee::gdb::oid_t id );

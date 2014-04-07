@@ -68,9 +68,9 @@ TEST( MLGDaoTest, CRUD )
     // Check node count
     EXPECT_EQ(dao->getNodeCount(top), 1);
 
-    // Not on the same layer
-    HLink hl13 = dao->addHLink(n1, n3);
-    EXPECT_EQ(hl13.id(), Objects::InvalidOID);
+//    // Not on the same layer
+//    HLink hl13 = dao->addHLink(n1, n3);
+//    EXPECT_EQ(hl13.id(), Objects::InvalidOID);
 
     // Check that node are on consecutive layers
     VLink vl13 = dao->addVLink(n1, n3);
@@ -116,7 +116,7 @@ TEST( MLGDaoTest, CRUD )
 
     // Get HLink for base layer
     auto hlinkIds = dao->getAllHLinkIds(base);
-    EXPECT_EQ(hlinkIds->Count(), 1);
+    EXPECT_EQ(1, hlinkIds->Count());
     hlinkIds.reset();
 
     // Should return HLink n1 - n2
@@ -399,4 +399,95 @@ TEST( MLGDaoTest, copyAndMergeLinks )
 
     dao.reset();
     sess.reset();
+}
+
+TEST( MLGDaoTest, GetSignal )
+{
+    mld::SparkseeManager sparkseeManager(mld::kRESOURCES_DIR + L"mysparksee.cfg");
+    sparkseeManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.sparksee", L"MLDTest");
+
+    SessionPtr sess = sparkseeManager.newSession();
+    Graph* g = sess->GetGraph();
+    // Create Db scheme
+    sparkseeManager.createBaseScheme(g);
+
+    std::unique_ptr<MLGDao> dao( new MLGDao(g) );
+    Layer base = dao->addBaseLayer();
+
+    // Add OLinks
+    mld::Node n1 = dao->addNodeToLayer(base);
+    Layer l2 = dao->addLayerOnTop();
+    AttrMap data;
+    data[Attrs::V[OLinkAttr::WEIGHT]].SetDoubleVoid(2);
+    dao->addOLink(l2, n1, data);
+
+    Layer l3 = dao->addLayerOnTop();
+    data[Attrs::V[OLinkAttr::WEIGHT]].SetDoubleVoid(3);
+    dao->addOLink(l3, n1, data);
+
+    Layer l4 = dao->addLayerOnTop();
+    data[Attrs::V[OLinkAttr::WEIGHT]].SetDoubleVoid(4);
+    dao->addOLink(l4, n1, data);
+
+    Layer l5 = dao->addLayerOnTop();
+    data[Attrs::V[OLinkAttr::WEIGHT]].SetDoubleVoid(5);
+    dao->addOLink(l5, n1, data);
+
+    auto signal = dao->getSignal(n1.id(), base.id(), l5.id());
+    EXPECT_EQ(size_t(5), signal.totalSize());
+    EXPECT_DOUBLE_EQ(5.0, signal.data().back());
+
+    signal = dao->getSignal(n1.id(), l3.id(), l4.id());
+    EXPECT_EQ(size_t(2), signal.totalSize());
+    EXPECT_DOUBLE_EQ(4.0, signal.data().back());
+
+    signal = dao->getSignal(n1.id(), l4.id(), l4.id());
+    EXPECT_EQ(size_t(1), signal.totalSize());
+    EXPECT_DOUBLE_EQ(4.0, signal.data().back());
+
+    // Test second api with a radius
+
+    // FUTURE
+
+    signal = dao->getSignal(n1.id(), l2.id(), TSDirection::FUTURE, 0);
+    EXPECT_EQ(size_t(1), signal.totalSize());
+    EXPECT_DOUBLE_EQ(2.0, signal.data().back());
+
+    signal = dao->getSignal(n1.id(), l2.id(), TSDirection::FUTURE, 1);
+    EXPECT_EQ(size_t(2), signal.totalSize());
+    EXPECT_DOUBLE_EQ(3.0, signal.data().back());
+
+    signal = dao->getSignal(n1.id(), l2.id(), TSDirection::FUTURE, 10);
+    EXPECT_EQ(size_t(4), signal.totalSize());
+    EXPECT_DOUBLE_EQ(5.0, signal.data().back());
+
+    // PAST
+
+    signal = dao->getSignal(n1.id(), l2.id(), TSDirection::PAST, 0);
+    EXPECT_EQ(size_t(1), signal.totalSize());
+    EXPECT_DOUBLE_EQ(2.0, signal.data().back());
+
+    signal = dao->getSignal(n1.id(), l2.id(), TSDirection::PAST, 1);
+    EXPECT_EQ(size_t(2), signal.totalSize());
+    EXPECT_DOUBLE_EQ(2.0, signal.data().back());
+
+    signal = dao->getSignal(n1.id(), l2.id(), TSDirection::PAST, 10);
+    EXPECT_EQ(size_t(2), signal.totalSize());
+    EXPECT_DOUBLE_EQ(2.0, signal.data().back());
+
+    // BOTH
+
+    signal = dao->getSignal(n1.id(), l2.id(), TSDirection::BOTH, 0);
+    EXPECT_EQ(size_t(1), signal.totalSize());
+    EXPECT_DOUBLE_EQ(2.0, signal.data().back());
+
+    signal = dao->getSignal(n1.id(), l2.id(), TSDirection::BOTH, 1);
+    EXPECT_EQ(size_t(3), signal.totalSize());
+    EXPECT_DOUBLE_EQ(0.0, signal.data().front());
+    EXPECT_DOUBLE_EQ(3.0, signal.data().back());
+
+    signal = dao->getSignal(n1.id(), l2.id(), TSDirection::BOTH, 10);
+    EXPECT_EQ(size_t(5), signal.totalSize());
+    EXPECT_DOUBLE_EQ(0.0, signal.data().front());
+    EXPECT_DOUBLE_EQ(5.0, signal.data().back());
 }
