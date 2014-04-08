@@ -106,6 +106,8 @@ public:
 
     TimeSeries();
     TimeSeries( size_t radius );
+    TimeSeries( TSDirection dir );
+    TimeSeries( size_t radius, TSDirection dir );
     TimeSeries( const TimeSeries<T>& rhs );
     TimeSeries( TimeSeries&& rhs );
     TimeSeries& operator =( TimeSeries<T> rhs );
@@ -209,6 +211,21 @@ TimeSeries<T>::TimeSeries( size_t radius )
     : TimeSeries()
 {
     m_radius = radius;
+}
+
+template <typename T>
+TimeSeries<T>::TimeSeries( TSDirection dir )
+    : TimeSeries()
+{
+    m_dir = dir;
+}
+
+template <typename T>
+TimeSeries<T>::TimeSeries( size_t radius, TSDirection dir )
+    : TimeSeries()
+{
+    m_radius = radius;
+    m_dir = dir;
 }
 
 template <typename T>

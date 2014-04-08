@@ -664,7 +664,7 @@ TimeSeries<double> MLGDao::getSignal( oid_t nodeId, oid_t bottomLayer, oid_t top
         oid_t eid = findEdge(oType, layer, nodeId);
         m_g->GetAttribute(eid, m_g->FindAttribute(oType, Attrs::V[OLinkAttr::WEIGHT]), v);
         res.data().push_back(v.GetDouble());
-        layer = m_layer->parentImpl(layer);
+        layer = m_layer->parent(layer);
     }
 
     // Don't forget last layer, it is inclusive
@@ -675,27 +675,35 @@ TimeSeries<double> MLGDao::getSignal( oid_t nodeId, oid_t bottomLayer, oid_t top
     return res;
 }
 
-TimeSeries<double> MLGDao::getSignal( oid_t nodeId, oid_t currentLayer, TSDirection dir, size_t radius )
+TimeSeries<double> MLGDao::getSignal( oid_t nodeId, oid_t curLayer, TSDirection dir, size_t radius )
 {
 #ifdef MLD_SAFE
-    if( nodeId == Objects::InvalidOID || currentLayer == Objects::InvalidOID ) {
+    if( nodeId == Objects::InvalidOID || curLayer == Objects::InvalidOID ) {
         LOG(logERROR) << "MLGDao::getSignal invalid ids";
         return TimeSeries<double>();
     }
 #endif
-    oid_t bot = currentLayer;
-    oid_t top = currentLayer;
+    LayerIdPair bounds(getLayerBounds(curLayer, dir, radius));
 
+    auto res(getSignal(nodeId, bounds.first, bounds.second));
+    res.setRadius(radius);
+    res.setDirection(dir);
+    return res;
+}
+
+LayerIdPair MLGDao::getLayerBounds( oid_t curLayer, TSDirection dir, size_t radius )
+{
+    LayerIdPair res(curLayer, curLayer);
     if( dir != TSDirection::FUTURE ) {  // PAST or BOTH
         bool stop = false;
         size_t level = 0;
         while( !stop && level != radius ) {
-            auto tmp = m_layer->childImpl(bot);
+            auto tmp = m_layer->child(res.first);
             if( tmp == Objects::InvalidOID ) {
                 stop = true;
             }
             else {
-                bot = tmp;
+                res.first = tmp;
                 level++;
             }
         }
@@ -705,20 +713,16 @@ TimeSeries<double> MLGDao::getSignal( oid_t nodeId, oid_t currentLayer, TSDirect
         bool stop = false;
         size_t level = 0;
         while( !stop && level != radius ) {
-            auto tmp = m_layer->parentImpl(top);
+            auto tmp = m_layer->parent(res.second);
             if( tmp == Objects::InvalidOID ) {
                 stop = true;
             }
             else {
-                top = tmp;
+                res.second = tmp;
                 level++;
             }
         }
     }
-
-    auto res(getSignal(nodeId, bot, top));
-    res.setRadius(radius);
-    res.setDirection(dir);
     return res;
 }
 
@@ -863,9 +867,19 @@ Layer MLGDao::parent( const Layer& layer )
     return m_layer->parent(layer);
 }
 
+oid_t MLGDao::parent( oid_t lid )
+{
+    return m_layer->parent(lid);
+}
+
 Layer MLGDao::child( const Layer& layer )
 {
     return m_layer->child(layer);
+}
+
+oid_t MLGDao::child( oid_t lid )
+{
+    return m_layer->child(lid);
 }
 
 int64_t MLGDao::getLayerCount()

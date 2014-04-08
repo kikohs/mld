@@ -44,8 +44,9 @@ namespace mld {
 
 namespace mld {
 
-typedef std::function<double (double, double)>  WeightMergerFunc;
-typedef std::vector<Node> NodeVec;
+using WeightMergerFunc =  std::function<double (double, double)>;
+using NodeVec = std::vector<Node>;
+using LayerIdPair = std::pair<sparksee::gdb::oid_t, sparksee::gdb::oid_t>;
 
 /**
  * @brief The MultiLayerGraph (MLG) dao
@@ -276,6 +277,8 @@ typedef std::map<sparksee::gdb::oid_t, Node> NodeMap;
                                   sparksee::gdb::oid_t currentLayer,
                                   TSDirection dir, size_t radius );
 
+    LayerIdPair getLayerBounds( sparksee::gdb::oid_t source, TSDirection dir, size_t radius );
+
     // Forward to SNDao
     void removeNode( sparksee::gdb::oid_t id );
     bool updateNode( Node& n );
@@ -379,6 +382,8 @@ typedef std::map<sparksee::gdb::oid_t, Node> NodeMap;
      * @return parent Layer
      */
     Layer parent( const Layer& layer );
+    sparksee::gdb::oid_t parent( sparksee::gdb::oid_t lid );
+
     /**
      * @brief Get child layer.
      * Follow the CHILD_OF edge relationship.
@@ -386,6 +391,7 @@ typedef std::map<sparksee::gdb::oid_t, Node> NodeMap;
      * @return child Layer
      */
     Layer child( const Layer& layer );
+    sparksee::gdb::oid_t child( sparksee::gdb::oid_t lid );
 
     /**
      * @brief Get numbers of layer in the MLG`

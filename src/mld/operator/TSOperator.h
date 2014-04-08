@@ -21,6 +21,7 @@
 
 #include "mld/operator/AbstractOperator.h"
 #include "mld/model/Link.h"
+#include "mld/operator/TSCache.h"
 
 namespace sparksee {
 namespace gdb {
@@ -65,8 +66,8 @@ protected:
 
 protected:
     std::shared_ptr<MLGDao> m_dao;
+    std::shared_ptr<TSCache> m_cache;
     std::unique_ptr<AbstractTimeVertexFilter> m_filt;
-
     std::vector<OLink> m_buffer; // store OLink to be commited
 };
 

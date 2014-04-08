@@ -31,6 +31,7 @@ using namespace sparksee::gdb;
 
 TSOperator::TSOperator( Graph* g )
     : m_dao(new MLGDao(g))
+    , m_cache(new TSCache(m_dao))
     , m_filt(nullptr)
 {
 }

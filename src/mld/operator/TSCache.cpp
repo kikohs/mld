@@ -16,22 +16,93 @@
 **
 ****************************************************************************/
 
+#include <algorithm>
 #include <sparksee/gdb/Objects.h>
+
 #include "mld/operator/TSCache.h"
+#include "mld/dao/MLGDao.h"
 
 using namespace mld;
 using namespace sparksee::gdb;
 
+const uint64_t MAXUINT = UINT64_MAX;
+// here to remove bug in QtCreator's linter
+
 TSCache::TSCache( const std::shared_ptr<MLGDao>& dao )
     : m_dao(dao)
+    , m_dir(TSDirection::BOTH)
+    , m_radius(0)
+    , m_activeLayer(Objects::InvalidOID)
     , m_entries(0)
-    , m_maxEntries(UINT64_MAX)
+    , m_maxEntries(MAXUINT)
 {
+}
+
+void TSCache::reset( oid_t startLayer, TSDirection dir, size_t radius )
+{
+    clear();
+    m_activeLayer = startLayer;
+    m_dir = dir;
+    m_radius = radius;
+}
+
+void TSCache::clear()
+{
+    m_cacheMap.clear();
+    m_cacheList.clear();
+    m_entries = 0;
+    m_activeLayer = Objects::InvalidOID;
+    m_radius = 0;
+    m_dir = TSDirection::BOTH;
+}
+
+void TSCache::scrollUp()
+{
+    auto parent = m_dao->parent(m_activeLayer);
+
+    if( parent == Objects::InvalidOID ) {
+        for( auto& p: m_cacheList ) {
+            p.second.scroll(); // scroll iterators
+            p.second.shrink(); // remove olds values
+        }
+        return;
+    }
+
+    // Update cache entries
+    type_t oType = m_dao->olinkType();
+    Value v;
+
+    for( auto& p: m_cacheList ) {
+        // Get OLink weight
+        oid_t eid = m_dao->findEdge(oType, parent, p.first);
+        m_dao->graph()->GetAttribute(eid, m_dao->graph()->FindAttribute(oType, Attrs::V[OLinkAttr::WEIGHT]), v);
+        // Add new value
+        p.second.push_back(v.GetDouble());
+        p.second.scroll(); // scroll iterators
+        p.second.shrink(); // remove olds values
+    }
+}
+
+EntryPair TSCache::get( oid_t nid )
+{
+    auto it = m_cacheMap.find(nid);
+    if( it != m_cacheMap.end() ) {  // found in cache
+        // it->second is itself an iterator on a cachelist element
+        return *it->second;
+    }
+
+    auto ts(m_dao->getSignal(nid, m_activeLayer, m_dir, m_radius));
+    if( ts.empty() ) {
+        LOG(logERROR) << "TSCache::get error nid: " << nid << " lid: " << m_activeLayer;
+        return std::make_pair(Objects::InvalidOID, TimeSeries<double>());
+    }
+
+    insert(nid, ts);  // insert in cache
+    return EntryPair(nid, ts);
 }
 
 void TSCache::insert( oid_t nid, const TimeSeries<double>& ts )
 {
-    // WriteLock w_lock(m_lock);
     // push it to the front;
     m_cacheList.push_front( std::make_pair(nid, ts) );
 
@@ -54,15 +125,5 @@ void TSCache::insert( oid_t nid, const TimeSeries<double>& ts )
     }
 }
 
-EntryPair TSCache::get( oid_t nid )
-{
-    // ReadLock r_lock(m_lock);
-    auto it = m_cacheMap.find(nid);
-    if( it != m_cacheMap.end() ) {
-        // it->second is itself an iterator on a cachelist element
-        return *it->second;
-    }
-    else {
-        return std::make_pair(Objects::InvalidOID, TimeSeries<double>());
-    }
-}
+
+

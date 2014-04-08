@@ -42,7 +42,6 @@ namespace mld {
  */
 class MLD_API LayerDao : public AbstractDao
 {
-    friend class MLGDao; // to access parentImpl
 public:
     LayerDao( sparksee::gdb::Graph* g );
     virtual ~LayerDao() override;
@@ -65,6 +64,8 @@ public:
 
     Layer parent( const Layer& layer );
     Layer child( const Layer& layer );
+    sparksee::gdb::oid_t parent( sparksee::gdb::oid_t lid );
+    sparksee::gdb::oid_t child( sparksee::gdb::oid_t lid );
 
     int64_t getLayerCount();
     void updateLayer( Layer& layer );
@@ -104,8 +105,6 @@ private:
     sparksee::gdb::oid_t topLayerImpl();
     sparksee::gdb::oid_t bottomLayerImpl();
 
-    sparksee::gdb::oid_t parentImpl( sparksee::gdb::oid_t lid );
-    sparksee::gdb::oid_t childImpl( sparksee::gdb::oid_t lid );
 
 private:
     sparksee::gdb::type_t m_layerType;

@@ -45,16 +45,29 @@ class MLD_API TSCache
 public:
     TSCache( const std::shared_ptr<MLGDao>& dao );
 
-    void insert( sparksee::gdb::oid_t nid, const TimeSeries<double>& ts );
+    void reset( sparksee::gdb::oid_t startLayer, TSDirection dir, size_t radius );
+    void clear();
+
+    /**
+     * @brief Move to next layer, all the entries are modified accordingly
+     */
+    void scrollUp();
     EntryPair get( sparksee::gdb::oid_t nid );
 
 private:
+    void insert( sparksee::gdb::oid_t nid, const TimeSeries<double>& ts );
+
+private:
     std::shared_ptr<MLGDao> m_dao;
+    TSDirection m_dir;
+    size_t m_radius;
+    sparksee::gdb::oid_t m_activeLayer;
+
     uint64_t m_entries;
     uint64_t m_maxEntries;
     CacheList m_cacheList;
     CacheMap m_cacheMap;
-    //Lock myLock;
+    //Lock m_lock;
 };
 
 } // end namespace mld

@@ -167,12 +167,12 @@ Layer LayerDao::baseLayer()
 
 Layer LayerDao::parent( const Layer& layer )
 {
-    return getLayer(parentImpl(layer.id()));
+    return getLayer(parent(layer.id()));
 }
 
 Layer LayerDao::child( const Layer& layer )
 {
-    return getLayer(childImpl(layer.id()));
+    return getLayer(child(layer.id()));
 }
 
 Layer LayerDao::addBaseLayer()
@@ -224,7 +224,7 @@ std::vector<Layer> LayerDao::getAllLayers()
     // Loop through all parent layers from the bottom
     oid_t pId = bot.id();
     while( pId != Objects::InvalidOID ) {
-        pId = parentImpl(pId);
+        pId = parent(pId);
         if( pId != Objects::InvalidOID )
             res.push_back(getLayer(pId));
     }
@@ -256,7 +256,7 @@ bool LayerDao::affiliated( oid_t layer1, oid_t layer2 )
 
 CLink LayerDao::topCLink( oid_t lid )
 {
-    oid_t top = parentImpl(lid);
+    oid_t top = parent(lid);
     if( top == Objects::InvalidOID )
         return CLink();
     return getCLink(lid, top);
@@ -264,10 +264,10 @@ CLink LayerDao::topCLink( oid_t lid )
 
 CLink LayerDao::bottomCLink( oid_t lid )
 {
-    oid_t child = childImpl(lid);
-    if( child == Objects::InvalidOID )
+    oid_t c = child(lid);
+    if( c == Objects::InvalidOID )
         return CLink();
-    return getCLink(child, lid);
+    return getCLink(c, lid);
 }
 
 CLink LayerDao::getCLink( oid_t src, oid_t tgt )
@@ -382,7 +382,7 @@ oid_t LayerDao::topLayerImpl()
 
     bool stop = false;
     while( !stop ) {
-        auto tmp = parentImpl(lid);
+        auto tmp = parent(lid);
         if( tmp == Objects::InvalidOID )
             stop = true;
         else
@@ -401,7 +401,7 @@ oid_t LayerDao::bottomLayerImpl()
 
     bool stop = false;
     while( !stop ) {
-        auto tmp = childImpl(lid);
+        auto tmp = child(lid);
         if( tmp == Objects::InvalidOID )
             stop = true;
         else
@@ -410,7 +410,7 @@ oid_t LayerDao::bottomLayerImpl()
     return lid;
 }
 
-oid_t LayerDao::parentImpl( oid_t lid )
+oid_t LayerDao::parent( oid_t lid )
 {
     if( lid == Objects::InvalidOID )
         return Objects::InvalidOID;
@@ -424,7 +424,7 @@ oid_t LayerDao::parentImpl( oid_t lid )
         return obj->Any();
 }
 
-oid_t LayerDao::childImpl( oid_t lid )
+oid_t LayerDao::child( oid_t lid )
 {
     if( lid == Objects::InvalidOID ) {
         return Objects::InvalidOID;
