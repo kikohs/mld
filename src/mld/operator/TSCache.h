@@ -44,6 +44,8 @@ class MLD_API TSCache
 {
 public:
     TSCache( const std::shared_ptr<MLGDao>& dao );
+    TSCache( const TSCache& ) = delete;
+    TSCache& operator =( TSCache ) = delete;
 
     void reset( sparksee::gdb::oid_t startLayer, TSDirection dir, size_t radius );
     void clear();
@@ -62,6 +64,7 @@ private:
     TSDirection m_dir;
     size_t m_radius;
     sparksee::gdb::oid_t m_activeLayer;
+    sparksee::gdb::oid_t m_upperBoundLayer;
 
     uint64_t m_entries;
     uint64_t m_maxEntries;

@@ -67,6 +67,12 @@ static const double NODE_DEF_VALUE = 1.0;
 static const int64_t INVALID_NODE_COUNT = -1;
 static const int64_t INVALID_EDGE_COUNT = -1;
 
+enum class TSDirection {
+    PAST,
+    FUTURE,
+    BOTH
+};
+
 } // end namespace mld
 
 #endif // MLD_COMMON_H

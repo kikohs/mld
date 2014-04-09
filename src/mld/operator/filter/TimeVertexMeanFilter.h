@@ -38,8 +38,12 @@ public:
 
     virtual std::string name() const override;
     virtual OLink compute( sparksee::gdb::oid_t layerId, sparksee::gdb::oid_t rootId ) override;
-    virtual OLink computeNodeWeight( sparksee::gdb::oid_t node, double hlinkWeight, const TWCoeff& coeff ) override;
-    virtual OLink computeNodeSelfWeight( sparksee::gdb::oid_t node, const TWCoeff& coeff ) override;
+    virtual double computeNodeWeight( sparksee::gdb::oid_t node, double hlinkWeight ) override;
+    virtual double computeNodeSelfWeight( sparksee::gdb::oid_t node ) override;
+
+//private:
+//    double computeNodeSelfWeightWithCache( sparksee::gdb::oid_t node, const TWCoeff& coeff );
+//    double computeNodeSelfWeightNoCache( sparksee::gdb::oid_t node, const TWCoeff& coeff );
 
 private:
     double m_weightSum;

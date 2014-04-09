@@ -33,6 +33,7 @@ TSCache::TSCache( const std::shared_ptr<MLGDao>& dao )
     , m_dir(TSDirection::BOTH)
     , m_radius(0)
     , m_activeLayer(Objects::InvalidOID)
+    , m_upperBoundLayer(Objects::InvalidOID)
     , m_entries(0)
     , m_maxEntries(MAXUINT)
 {
@@ -52,6 +53,7 @@ void TSCache::clear()
     m_cacheList.clear();
     m_entries = 0;
     m_activeLayer = Objects::InvalidOID;
+    m_upperBoundLayer = Objects::InvalidOID;
     m_radius = 0;
     m_dir = TSDirection::BOTH;
 }
@@ -68,13 +70,27 @@ void TSCache::scrollUp()
         return;
     }
 
+    // Update active layer
+    m_activeLayer = parent;
+    auto bounds = m_dao->getLayerBounds(m_activeLayer, m_dir, m_radius);
+
+    // Already reached top layer
+    if( bounds.second == m_upperBoundLayer ) {
+        for( auto& p: m_cacheList ) {
+            p.second.scroll(); // scroll iterators
+            p.second.shrink(); // remove olds values
+        }
+        return;
+    }
+
+    m_upperBoundLayer = bounds.second;
     // Update cache entries
     type_t oType = m_dao->olinkType();
     Value v;
 
     for( auto& p: m_cacheList ) {
         // Get OLink weight
-        oid_t eid = m_dao->findEdge(oType, parent, p.first);
+        oid_t eid = m_dao->findEdge(oType, m_upperBoundLayer, p.first);
         m_dao->graph()->GetAttribute(eid, m_dao->graph()->FindAttribute(oType, Attrs::V[OLinkAttr::WEIGHT]), v);
         // Add new value
         p.second.push_back(v.GetDouble());

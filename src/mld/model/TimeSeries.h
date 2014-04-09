@@ -92,12 +92,6 @@ TSIndexIt<T> TSIndexItEnd( TSData<T>& v )
     return TSIndexIt<T>(v, v.size());
 }
 
-enum class TSDirection {
-    PAST,
-    FUTURE,
-    BOTH
-};
-
 template <typename T>
 class MLD_API TimeSeries
 {
@@ -136,6 +130,9 @@ public:
 
     inline TSIt begin() { return TSIndexItBegin(m_data); }
     inline TSIt end() { return TSIndexItEnd(m_data); }
+    inline const TSIt cbegin() const { return TSIndexItBegin(m_data); }
+    inline const TSIt cend() const { return TSIndexItEnd(m_data); }
+
 
     inline bool empty() const { return m_data.empty(); }
 
@@ -184,7 +181,7 @@ private:
 private:
     size_t m_radius;
     TSDirection m_dir;
-    TSData<T> m_data;
+    mutable TSData<T> m_data;
 
     // Iterators to move in TSData
     TSIt m_curPos;
@@ -333,13 +330,11 @@ void TimeSeries<T>::shrink()
 {
     size_t startIdx = m_start.index();
     for( size_t i = 0; i < startIdx; ++i )
-        m_data.pop_front();
+        pop_front();
 
     size_t endDelta = distance(end(), m_finish);
     for( size_t i = 0; i < endDelta; ++i )
-        m_data.pop_back();
-
-    clamp();
+        pop_back();
 }
 
 // Private
@@ -413,21 +408,46 @@ void TimeSeries<T>::moveIt( TSIt* it, int delta )
 template <typename T>
 std::ostream& operator <<( std::ostream& out, const mld::TSIndexIt<T>& rhs )
 {
-    out << "index:" << rhs.index() << " ";
+    out << rhs.index();
     return out;
 }
 
 template <typename T>
 std::ostream& operator <<( std::ostream& out, const mld::TimeSeries<T>& rhs )
 {
-    out << "start:{" << rhs.csliceBegin() << "} "
-        << "curPos:{" << rhs.ccurrent() << "} "
-        << "end:{" << rhs.csliceEnd() << "} "
-        << "radius:" << rhs.radius() << " ";
+    out << "radius:" << rhs.radius() << " "
+        << "iterators:(" << rhs.csliceBegin() << ", "
+        << rhs.ccurrent() << ", "
+        << rhs.csliceEnd() << ") "
+        ;
 
-    out << " sliced data:";
-    for( auto it = rhs.csliceBegin(); it != rhs.csliceEnd(); ++it )
-        out << " " << *it;
+    out << "data: ";
+    for( auto it = rhs.cbegin(); it != rhs.cend(); ++it ) {
+
+        if( it == rhs.csliceBegin() ) {
+            if( it == rhs.cbegin() )
+                out << "[";
+            else
+                out << " [";
+        }
+
+        if( it == rhs.ccurrent() ) {
+            if( it != rhs.csliceBegin() )
+                out << " {" << *it << "}";
+            else
+                out << "{" << *it << "}";
+        }
+        else {
+            if( it == rhs.csliceBegin() || it == rhs.cbegin() )
+                out << *it;
+            else
+                out << " " << *it;
+        }
+    }
+
+    if( rhs.csliceEnd() == rhs.cend() )
+        out << "]";
+
     return out;
 }
 

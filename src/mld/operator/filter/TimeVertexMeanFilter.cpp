@@ -19,6 +19,7 @@
 #include <vector>
 #include <algorithm>
 #include "mld/operator/filter/TimeVertexMeanFilter.h"
+#include "mld/operator/TSCache.h"
 #include "mld/dao/MLGDao.h"
 
 using namespace mld;
@@ -42,12 +43,29 @@ std::string TimeVertexMeanFilter::name() const
         return name;
     }
 
-    if( m_timeWindowSize == 0 ) {
+    if( m_radius == 0 ) {
         name += " filter on vertex domain only";
         return name;
     }
 
-    name += "timewindow size: " + std::to_string(m_timeWindowSize);
+    name += "radius: " + std::to_string(m_radius);
+
+    name += " direction: ";
+    switch(m_dir) {
+        case TSDirection::PAST:
+            name += "past";
+            break;
+        case TSDirection::FUTURE:
+            name += "future";
+            break;
+        case TSDirection::BOTH:
+            name += "both";
+            break;
+        default:
+            LOG(logERROR) << "Unsupported direction";
+            break;
+    }
+
     if( m_override )
         name += " overriden lambda: " + std::to_string(m_lambda);
 
@@ -71,8 +89,7 @@ OLink TimeVertexMeanFilter::compute( oid_t layerId, oid_t rootId )
     double total = 0.0;
     int neighborsCount = 0;
     // Compute weight for root node itself (no hlink, set value to 1)
-    for( auto& tw: m_coeffs )
-        total += computeNodeSelfWeight(rootId, tw).weight();
+    total += computeNodeSelfWeight(rootId);
 
     if( !m_timeOnly ) {  // Filter in the vertex domain
         // Get current valid neighbors
@@ -84,9 +101,7 @@ OLink TimeVertexMeanFilter::compute( oid_t layerId, oid_t rootId )
         while( it->HasNext() ) {  // Iterate through each neighbors
             oid_t current = it->Next();
             HLink currentHLink(m_dao->getHLink(rootId, current));
-            for( auto& tw: m_coeffs ) { // Loop through each layer to get node weight
-                total += computeNodeWeight(current, currentHLink.weight(), tw).weight();
-            }
+            total += computeNodeWeight(current, currentHLink.weight());
         }
     }
 
@@ -104,47 +119,85 @@ OLink TimeVertexMeanFilter::compute( oid_t layerId, oid_t rootId )
     return rootOLink;
 }
 
-OLink TimeVertexMeanFilter::computeNodeWeight( oid_t node, double hlinkWeight, const TWCoeff& coeff )
+double TimeVertexMeanFilter::computeNodeWeight( oid_t node, double hlinkWeight )
 {
-    OLink olink(m_dao->getOLink(coeff.first, node));
+    double total = 0.0;
+
+    if( m_cache ) { // use cache and TimeSeries
+        // Get TimeSeries
+        auto entry = m_cache->get(node);
+        size_t i = 0;
+        for( auto it = entry.second.sliceBegin(); it != entry.second.sliceEnd(); ++it ) {
+            // Resistivity coeff
+            double c = 1.0 / (1.0 / hlinkWeight + m_coeffs.at(i).second);
+            m_weightSum += c;
+            total += c * (*it);
+            ++i;
+        }
+    }
+    else {  // No cache
+        for( auto& coeff: m_coeffs ) {
+            OLink olink(m_dao->getOLink(coeff.first, node));
 
 #ifdef MLD_SAFE
-    if( olink.id() == Objects::InvalidOID ) {
-        LOG(logERROR) << "TimeVertexMeanFilter::computeNodeWeight invalid Olink " << coeff.first << " " << node;
-        return olink;
+            if( olink.id() == Objects::InvalidOID ) {
+                LOG(logERROR) << "TimeVertexMeanFilter::computeNodeWeight invalid Olink " << coeff.first << " " << node;
+                return 0.0;
+            }
+
+            if( hlinkWeight == 0.0 ) {
+                LOG(logERROR) << "TimeVertexMeanFilter::computeNodeWeight: HLink weight = 0";
+                return 0.0;
+            }
+#endif
+            // Resistivity coeff
+            double c = 1.0 / (1.0 / hlinkWeight + coeff.second);
+            m_weightSum += c;
+            total += c * olink.weight();
+        }
     }
 
-    if( hlinkWeight == 0.0 ) {
-        LOG(logERROR) << "TimeVertexMeanFilter::computeNodeWeight: HLink weight = 0";
-        olink.setWeight(0.0);
-        return olink;
-    }
-#endif
-    // Resistivity coeff
-    double c = 1.0 / (1.0 / hlinkWeight + coeff.second);
-    m_weightSum += c;
-    olink.setWeight(c * olink.weight());
-    return olink;
+    return total;
 }
 
-OLink TimeVertexMeanFilter::computeNodeSelfWeight( oid_t node, const TWCoeff& coeff )
+double TimeVertexMeanFilter::computeNodeSelfWeight( oid_t node )
 {
-    OLink olink(m_dao->getOLink(coeff.first, node));
-
-#ifdef MLD_SAFE
-    if( olink.id() == Objects::InvalidOID ) {
-        LOG(logERROR) << "TimeVertexMeanFilter::computeNodeSelfWeight invalid Olink " << coeff.first << " " << node;
-        return olink;
+    double total = 0.0;
+    if( m_cache ) {
+        // Get TimeSeries
+        auto entry = m_cache->get(node);
+        size_t i = 0;
+        for( auto it = entry.second.sliceBegin(); it != entry.second.sliceEnd(); ++it ) {
+            double c = 1.0;
+            if( m_coeffs.at(i).second != 0.0 ) {
+                c = 1.0 / m_coeffs.at(i).second;
+            }
+            m_weightSum += c;
+            total += c * (*it);
+            ++i;
+        }
     }
-#endif
-    // Resistivity coeff
+    else {  // No cache
+        for( auto& coeff: m_coeffs ) {
+            OLink olink(m_dao->getOLink(coeff.first, node));
 
-    // Special value for self value at current time
-    double c = 1.0;
-    if( coeff.second != 0.0 ) {
-        c = 1.0 / coeff.second;
+        #ifdef MLD_SAFE
+            if( olink.id() == Objects::InvalidOID ) {
+                LOG(logERROR) << "TimeVertexMeanFilter::computeNodeSelfWeight invalid Olink " << coeff.first << " " << node;
+                return 0.0;
+            }
+        #endif
+            // Resistivity coeff
+
+            // Special value for self value at current time
+            double c = 1.0;
+            if( coeff.second != 0.0 ) {
+                c = 1.0 / coeff.second;
+            }
+            m_weightSum += c;
+            total += c * olink.weight();
+        }
     }
-    m_weightSum += c;
-    olink.setWeight(c * olink.weight());
-    return olink;
+
+    return total;
 }

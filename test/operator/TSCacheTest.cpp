@@ -69,5 +69,44 @@ TEST( TSCacheTest, CRUD )
     dao->addOLink(l5, n2, data);
 
     TSCache cache(dao);
-    // TODO
+    cache.reset(base.id(), TSDirection::BOTH, 2);
+
+    auto p = cache.get(n1.id());
+    EXPECT_EQ(n1.id(), p.first);
+    EXPECT_EQ(size_t(3), p.second.totalSize());
+    EXPECT_EQ(size_t(3), p.second.sliceSize());
+//    LOG(logDEBUG) << p.first << " " << p.second;
+
+    cache.scrollUp();
+    p = cache.get(n1.id());
+    EXPECT_EQ(n1.id(), p.first);
+    EXPECT_EQ(size_t(4), p.second.totalSize());
+    EXPECT_EQ(size_t(4), p.second.sliceSize());
+//    LOG(logDEBUG) << p.first << " " << p.second;
+
+    cache.scrollUp();
+    p = cache.get(n1.id());
+    EXPECT_EQ(size_t(5), p.second.totalSize());
+    EXPECT_EQ(size_t(5), p.second.sliceSize());
+//    LOG(logDEBUG) << p.first << " " << p.second;
+
+    // Max radius is reached, shrink useless values
+    // scroll current it up, top layer is reached
+    cache.scrollUp();
+    p = cache.get(n1.id());
+    EXPECT_EQ(size_t(4), p.second.totalSize());
+    EXPECT_EQ(size_t(4), p.second.sliceSize());
+//    LOG(logDEBUG) << p.first << " " << p.second;
+
+    cache.scrollUp();
+//    p = cache.get(n1.id());
+//    LOG(logDEBUG) << p.first << " " << p.second;
+
+    // Invalid from here. current it is invalid, radius size values stays in the tiemseries
+    cache.scrollUp();
+    p = cache.get(n1.id());
+    EXPECT_EQ(size_t(2), p.second.totalSize());
+    EXPECT_EQ(size_t(2), p.second.sliceSize());
+//    LOG(logDEBUG) << p.first << " " << p.second;
+
 }

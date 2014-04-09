@@ -30,7 +30,7 @@ AbstractTimeVertexFilter* FilterFactory::create( sparksee::gdb::Graph* g, const 
     auto s = ba::to_lower_copy(name);
     if( s == "tvm" ) {
         filter = new TimeVertexMeanFilter(g);
-        filter->setTimeWindowSize(twSize);
+        filter->setRadius(twSize);
         if( lambda > 0.0 )
             filter->setOverrideInterLayerWeight(true, lambda);
     }

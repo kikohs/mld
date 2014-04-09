@@ -24,7 +24,8 @@ using namespace sparksee::gdb;
 
 AbstractTimeVertexFilter::AbstractTimeVertexFilter( Graph* g )
     : m_dao( new MLGDao(g) )
-    , m_timeWindowSize(0)
+    , m_radius(0)
+    , m_dir(TSDirection::BOTH)
     , m_override(false)
     , m_lambda(0.0)
     , m_timeOnly(false)
@@ -52,11 +53,6 @@ void AbstractTimeVertexFilter::setOverrideInterLayerWeight( bool override, doubl
     m_lambda = w;
 }
 
-void AbstractTimeVertexFilter::setTimeWindowSize( uint32_t nbHops )
-{
-    m_timeWindowSize = nbHops;
-}
-
 void AbstractTimeVertexFilter::computeTWCoeffs( oid_t layerId )
 {
     m_coeffs.clear();
@@ -67,55 +63,59 @@ void AbstractTimeVertexFilter::computeTWCoeffs( oid_t layerId )
     m_coeffs.push_back(TWCoeff(layerId, lastLambda));
 
     // No need to compute any coeffs
-    if( m_timeWindowSize == 0 )
+    if( m_radius == 0 )
         return;
 
-    // Bottom layers
-    for( uint32_t i = 0; i < m_timeWindowSize; ++i ) {
-        CLink link(m_dao->bottomCLink(curLayerId));
-        if( link.id() == Objects::InvalidOID )
-            break;
-        if( !m_override ) {
-            if( link.weight() == 0.0 ) {
-                LOG(logERROR) << "AbstractTimeVertexFilter::computeTWCoeffs CLink weight = 0";
-                link.setWeight(1.0);
+    if( m_dir != TSDirection::FUTURE ) {
+        // Bottom layers
+        for( uint32_t i = 0; i < m_radius; ++i ) {
+            CLink link(m_dao->bottomCLink(curLayerId));
+            if( link.id() == Objects::InvalidOID )
+                break;
+            if( !m_override ) {
+                if( link.weight() == 0.0 ) {
+                    LOG(logERROR) << "AbstractTimeVertexFilter::computeTWCoeffs CLink weight = 0";
+                    link.setWeight(1.0);
+                }
+                lastLambda += 1 / link.weight();
+                // Go down 1 layer
             }
-            lastLambda += 1 / link.weight();
-            // Go down 1 layer
+            else {
+                lastLambda += 1 / m_lambda;
+            }
+            curLayerId = link.source();
+            m_coeffs.push_back(TWCoeff(curLayerId, lastLambda));
         }
-        else {
-            lastLambda += 1 / m_lambda;
-        }
-        curLayerId = link.source();
-        m_coeffs.push_back(TWCoeff(curLayerId, lastLambda));
+
+        // Reverse vector to have [bot2, bot1, 1] and pushback upper layers
+        std::reverse(m_coeffs.begin(), m_coeffs.end());
     }
 
-    // Reverse vector to have [bot2, bot1, 1] and pushback upper layers
-    std::reverse(m_coeffs.begin(), m_coeffs.end());
+    if( m_dir != TSDirection::PAST ) {
+        // Reset variable for upper layers
+        curLayerId = layerId;
+        lastLambda = 0.0;
 
-    // Reset variable for upper layers
-    curLayerId = layerId;
-    lastLambda = 0.0;
-
-    // Top layers
-    for( uint32_t i = 0; i < m_timeWindowSize; ++i ) {
-        CLink link(m_dao->topCLink(curLayerId));
-        if( link.id() == Objects::InvalidOID )
-            break;
-        if( !m_override ) {
-            if( link.weight() == 0.0 ) {
-                LOG(logERROR) << "AbstractTimeVertexFilter::computeTWCoeffs CLink weight = 0";
-                link.setWeight(1.0);
+        // Top layers
+        for( uint32_t i = 0; i < m_radius; ++i ) {
+            CLink link(m_dao->topCLink(curLayerId));
+            if( link.id() == Objects::InvalidOID )
+                break;
+            if( !m_override ) {
+                if( link.weight() == 0.0 ) {
+                    LOG(logERROR) << "AbstractTimeVertexFilter::computeTWCoeffs CLink weight = 0";
+                    link.setWeight(1.0);
+                }
+                lastLambda += 1 / link.weight();
             }
-            lastLambda += 1 / link.weight();
-        }
-        else {
-            lastLambda += 1 / m_lambda;
-        }
+            else {
+                lastLambda += 1 / m_lambda;
+            }
 
-        // Go up 1 layer
-        curLayerId = link.target();
-        m_coeffs.push_back(TWCoeff(curLayerId, lastLambda));
+            // Go up 1 layer
+            curLayerId = link.target();
+            m_coeffs.push_back(TWCoeff(curLayerId, lastLambda));
+        }
     }
 }
 

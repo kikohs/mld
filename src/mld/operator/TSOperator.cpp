@@ -68,6 +68,11 @@ bool TSOperator::exec()
     size_t oLinkCount = layers.size() * nodes->Count();
     m_buffer.reserve(oLinkCount);
 
+    // Setup cache
+    Layer base = m_dao->baseLayer();
+    m_cache->reset(base.id(), m_filt->direction(), m_filt->radius());
+    m_filt->setCache(m_cache);
+
     LOG(logINFO) << "Start filtering, " << oLinkCount << " timeseries values to process";
     LOG(logINFO) << *m_filt;
     ProgressDisplay display(oLinkCount);
@@ -88,6 +93,7 @@ bool TSOperator::exec()
             m_buffer.push_back(olink);
             ++display;
         }
+        m_cache->scrollUp();
     }
     return true;
 }

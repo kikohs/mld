@@ -28,6 +28,7 @@
 
 #include <mld/operator/filters.h>
 #include <mld/dao/MLGDao.h>
+#include <mld/operator/TSCache.h>
 
 using namespace mld;
 using namespace sparksee::gdb;
@@ -159,7 +160,7 @@ TEST( FilterTest, TVMFilterTimeOnly )
     std::unique_ptr<MLGDao> dao( new MLGDao(g) );
     std::unique_ptr<TimeVertexMeanFilter> filter( new TimeVertexMeanFilter(g) );
     filter->setFilterOnlyInTimeDomain(true);
-    filter->setTimeWindowSize(2);
+    filter->setRadius(2);
 
     Layer base = dao->baseLayer();
     Layer middle = dao->parent(base);
@@ -210,9 +211,9 @@ TEST( FilterTest, TVMFilter1 )
     SessionPtr sess = sparkseeManager.newSession();
     Graph* g = sess->GetGraph();
 
-    std::unique_ptr<MLGDao> dao( new MLGDao(g) );
+    std::shared_ptr<MLGDao> dao( new MLGDao(g) );
     std::unique_ptr<TimeVertexMeanFilter> filter( new TimeVertexMeanFilter(g) );
-    filter->setTimeWindowSize(2);
+    filter->setRadius(2);
 
     Layer base = dao->baseLayer();
     Layer middle = dao->parent(base);
@@ -222,6 +223,10 @@ TEST( FilterTest, TVMFilter1 )
     LOG(logINFO) << *filter;
 
     {
+        // WITH CACHE
+        std::shared_ptr<TSCache> cache( new TSCache(dao) );
+        cache->reset(base.id(), filter->direction(), filter->radius());
+
         ObjectsPtr nodes = dao->getAllNodeIds(base);
         ObjectsIt it( nodes->Iterator() ); // sorted by oid so n1 is the first node
         // Base n1
@@ -234,6 +239,11 @@ TEST( FilterTest, TVMFilter1 )
         double v = 10 + 10 + 10/2.0 + 20*0.5 + 20.0/3.0 + 20/4.0;
         double c = 1 + 1 + 1/2.0 + 0.5 + 1/3.0 + 1/4.0;
         EXPECT_DOUBLE_EQ(v/c, ol1.weight());
+
+        // Use cache from now on
+        filter->setCache(cache);
+        OLink ol1bis = filter->compute(base.id(), nid);
+        EXPECT_DOUBLE_EQ(ol1.weight(), ol1bis.weight());
 
         // Update lambda weight and switch to n2 node
         nid = it->Next();

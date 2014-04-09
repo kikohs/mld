@@ -31,6 +31,7 @@ namespace mld {
 
 class MLGDao;
 class AbstractTimeVertexFilter;
+class TSCache;
 
 class MLD_API AbstractTimeVertexFilter
 {
@@ -56,11 +57,22 @@ public:
     void setOverrideInterLayerWeight( bool override, double w );
 
     /**
-     * @brief Set the size (or height) for the time window size
+     * @brief Set the radius (or height) for the time window size
      * Default is 1-hop
      * @param nbHops
      */
-    void setTimeWindowSize( uint32_t nbHops );
+    inline void setRadius( size_t nbHops ) { m_radius = nbHops; }
+    inline size_t radius() const { return m_radius; }
+
+    /**
+     * @brief Set filter direction, Causal filter is PAST,
+     * Default is BOTH (PAST and FUTURE data are used to compute the new value)
+     * @param dir
+     */
+    inline void setDirection( TSDirection dir ) { m_dir = dir; }
+    inline TSDirection direction() const { return m_dir; }
+
+    inline void setCache( const std::shared_ptr<TSCache>& cache ) { m_cache = cache; }
 
     /**
      * @brief If true, the filter only use signal values on the nodes
@@ -101,19 +113,20 @@ protected:
      * @param coeff
      * @return node score
      */
-    virtual OLink computeNodeWeight( sparksee::gdb::oid_t node,
-                                      double hlinkWeight, const TWCoeff& coeff ) = 0;
+    virtual double computeNodeWeight( sparksee::gdb::oid_t node, double hlinkWeight) = 0;
+    virtual double computeNodeSelfWeight( sparksee::gdb::oid_t node ) = 0;
 
-    virtual OLink computeNodeSelfWeight( sparksee::gdb::oid_t node, const TWCoeff& coeff ) = 0;
 protected:
     std::unique_ptr<MLGDao> m_dao;
-    uint32_t m_timeWindowSize;
+    size_t m_radius;
+    TSDirection m_dir;
     bool m_override;
     double m_lambda;
     bool m_timeOnly;
 
     ObjectsPtr m_excludedNodes;
     TWCoeffVec m_coeffs;
+    std::shared_ptr<TSCache> m_cache;
 };
 
 } // end namespace mld
