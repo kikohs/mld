@@ -25,6 +25,10 @@
 #include <boost/range/algorithm/remove_if.hpp>
 #include <sparksee/gdb/Objects.h>
 
+#ifdef MLD_USE_JSON
+    #include <json_spirit.h>
+#endif
+
 #include "mld/io/GraphImporter.h"
 #include "mld/GraphTypes.h"
 #include "mld/utils/Timer.h"
@@ -38,11 +42,26 @@
 using namespace mld;
 using namespace sparksee::gdb;
 namespace ba = boost::algorithm;
+#ifdef MLD_USE_JSON
+    namespace js = json_spirit;
+#endif
 
 using Converter = std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>>;
 Converter converter;
 
 namespace {
+
+#ifdef MLD_USE_JSON
+//const js::mValue& findValue( const std::string& name, const js::mObject& obj )
+//{
+//    js::mObject::const_iterator i = obj.find(name);
+
+//    assert( i != obj.end() );
+//    assert( i->first == name );
+
+//    return i->second;
+//}
+#endif
 
 std::wstring convertValueToWString( Value& v )
 {

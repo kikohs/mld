@@ -30,6 +30,9 @@ append_test(XSelectorTest operator/XSelectorTest.cpp)
 append_test(FilterTest operator/FilterTest.cpp)
 append_test(TSCacheTest operator/TSCacheTest.cpp)
 
+# ANALYTICS
+append_test(ComponentExtractorTest analytics/ComponentExtractorTest.cpp)
+
 # TOP level test
 append_test(MLGBuilderTest MLGBuilderTest.cpp)
 append_test(TimerTest TimerTest.cpp)

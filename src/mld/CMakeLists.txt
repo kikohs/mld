@@ -12,6 +12,7 @@ add_subdirectory(model)
 add_subdirectory(operator)
 add_subdirectory(utils)
 add_subdirectory(io)
+add_subdirectory(analytics)
 
 set( CUR_SRCS
     common.h
@@ -46,6 +47,7 @@ set( ALL_SRCS
 set( LIBS_TO_LINK
     ${SPARKSEE_LIBRARIES}
     ${LIBCPLUSPLUS}
+    ${JSON_SPIRIT_LIBRARIES}
 #    ${Boost_LIBRARIES}
 )
 

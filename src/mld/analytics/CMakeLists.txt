@@ -1,0 +1,21 @@
+# ANALYTICS SRCS
+set( ANALYTICS_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/ComponentExtractor.cpp
+)
+
+# Add to global variable
+set( PROJECT_SRCS ${PROJECT_SRCS} ${ANALYTICS_SRCS} CACHE STRING "Sources Files" FORCE )
+
+# Public headers
+set( ANALYTICS_PUBLIC_HDRS
+    ComponentExtractor.h
+)
+
+set( ANALYTICS_PUB_HDRS_DIR
+    ${PUBLIC_HDRS_DIR}/analytics
+)
+
+if( NOT EXISTS ${ANALYTICS_PUB_HDRS_DIR} )
+    file( MAKE_DIRECTORY ${ANALYTICS_PUB_HDRS_DIR} )
+endif()
+file( COPY ${ANALYTICS_PUBLIC_HDRS} DESTINATION ${ANALYTICS_PUB_HDRS_DIR} )

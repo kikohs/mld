@@ -15,6 +15,16 @@ set( ${PROJECT_NAME}_VERSION "${${PROJECT_NAME}_MAJOR_VERSION}.${${PROJECT_NAME}
 set( PROJECT_VERSION ${${PROJECT_NAME}_VERSION} )
 set( PROJECT_SOVERSION ${${PROJECT_NAME}_MAJOR_VERSION} )
 
+#
+# OPTIONS
+#
+option( BUILD_TESTS "Build the test suite" ON )
+option( BUILD_TOOLS "Build standard tools" ON )
+option( BUILD_DOC "Build documentation" ON )
+option( SAFE_CHECKS "Enable safety checks for the project" ON )
+option( USE_JSON "Use json export on the project" ON )
+
+
 # Always include the source and build directories in the include path
 # to save doing so manually in every subdirectory.
 set( CMAKE_INCLUDE_CURRENT_DIR ON )
@@ -99,13 +109,18 @@ file( GLOB SPARKSEE_LIB_FILES ${SPARKSEE_LIB_DIR}/*.* )
 # Copy SPARKSEE libs to /lib because install name id is @loader_path
 file( COPY ${SPARKSEE_LIB_FILES} DESTINATION ${LIBRARY_OUTPUT_PATH} )
 
-#
-# OPTIONS
-#
-option( BUILD_TESTS "Build the test suite" ON )
-option( BUILD_TOOLS "Build standard tools" ON )
-option( BUILD_DOC "Build documentation" ON )
-option( SAFE_CHECKS "Enable safe checking" ON )
+## JSON_SPIRIT
+if( USE_JSON )
+    message( STATUS "Use json_spirit" )
+    add_definitions( -DMLD_USE_JSON )
+    if( JSON_SPIRIT_ROOT )  # if overriden by user
+        set( JSON_SPIRIT_INCLUDE_DIR ${JSON_SPIRIT_ROOT}/include )
+        set( JSON_SPIRIT_LIB_DIR ${JSON_SPIRIT_ROOT}/lib )
+        link_directories( ${JSON_SPIRIT_LIB_DIR} )
+    endif()
+    set( JSON_SPIRIT_LIBRARIES -ljson_spirit )
+endif()
+
 #
 # PROJECT SETTINGS
 #
@@ -152,7 +167,7 @@ endif( BUILD_TOOLS )
 
 # TESTS
 if( BUILD_TESTS )
-    add_definitions(-DGTEST_USE_OWN_TR1_TUPLE=1 -DGTEST_HAS_TR1_TUPLE=1 -std=c++11 -stdlib=libc++ -Wno-narrowing )
+    add_definitions( -DGTEST_USE_OWN_TR1_TUPLE=1 -DGTEST_HAS_TR1_TUPLE=1 -std=c++11 -stdlib=libc++ -Wno-narrowing )
     add_subdirectory( ${3RDPARTY_DIR}/gtest-1.6.0 )
     enable_testing()
     include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
