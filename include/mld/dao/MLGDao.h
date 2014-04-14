@@ -19,7 +19,7 @@
 #ifndef MLD_MLGDAO_H
 #define MLD_MLGDAO_H
 
-#include <map>
+#include <unordered_map>
 #include <functional>
 
 #include "mld/common.h"
@@ -60,7 +60,7 @@ public:
         BOTTOM
     };
 
-typedef std::map<sparksee::gdb::oid_t, Node> NodeMap;
+    using NodeMap = std::unordered_map<sparksee::gdb::oid_t, Node>;
 
     MLGDao( sparksee::gdb::Graph* g );
     virtual ~MLGDao() override;

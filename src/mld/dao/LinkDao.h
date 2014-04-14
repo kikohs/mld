@@ -103,9 +103,6 @@ public:
     bool removeOLink( oid_t eid );
 
 private:
-
-
-private:
     type_t m_hType; // hlinkType
     type_t m_vType; // vlinkType
     type_t m_oType; // ownsType

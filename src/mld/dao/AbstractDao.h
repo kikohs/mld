@@ -43,7 +43,7 @@ public:
      * @brief Give access to the inner sparksee graph handle
      * @return Graph
      */
-    sparksee::gdb::Graph* graph() const { return m_g; }
+    inline sparksee::gdb::Graph* graph() const { return m_g; }
 
     /**
      * @brief Read the attribute map of a GraphObject

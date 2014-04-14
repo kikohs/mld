@@ -19,6 +19,7 @@
 #ifndef MLD_COMPONENTEXTRACTOR_H
 #define MLD_COMPONENTEXTRACTOR_H
 
+#include <sparksee/gdb/common.h>
 #include "mld/common.h"
 
 namespace sparksee {
@@ -26,14 +27,20 @@ namespace gdb {
     class Graph;
     class Value;
     class Objects;
+    class OIDList;
 }}
 
 namespace mld {
 
 class MLGDao;
+class Layer;
+class VirtualGraph;
+
+using VirtualGraphPtr = std::shared_ptr<VirtualGraph>;
 
 class MLD_API ComponentExtractor
 {
+    using OIDVec = std::vector<sparksee::gdb::oid_t>;
 public:
     explicit ComponentExtractor( sparksee::gdb::Graph* g );
     ComponentExtractor( const ComponentExtractor& ) = delete;
@@ -41,13 +48,35 @@ public:
     ~ComponentExtractor();
 
     inline void setOverrideThreshold( bool override, double value ) { m_override = override; m_alpha = value; }
-    bool run();
+    VirtualGraphPtr run();
+
+private:
+    /**
+     * @brief Compute threashold if not overrided by user
+     * @return
+     */
+    double computeThreshold();
+
+    /**
+     * @brief Filter nodes of a layer return only those whose TS value for the input layer
+     * is above threshold or inferior to - threshold
+     * @param layer Current layer
+     * @param threshold
+     * @return nodeset
+     */
+    ObjectsPtr filterNodes( const Layer& layer, double threshold );
+
+    void addVirtualNodes( const Layer& layer, const ObjectsPtr& nodes );
+    void addVirtualVLinks( const Layer& lSrc,
+                           const OIDVec& srcs,
+                           const Layer& lTgt,
+                           const OIDVec& tgts );
 
 private:
     std::unique_ptr<MLGDao> m_dao;
     bool m_override;
     double m_alpha;
-    ObjectsPtr m_olinkSet;
+    VirtualGraphPtr m_vgraph;
 };
 
 } // end namespace mld

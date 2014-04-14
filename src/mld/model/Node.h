@@ -27,17 +27,9 @@ namespace mld {
  */
 class MLD_API Node: public GraphObject
 {
-    friend class MLGDao;
-    friend class NodeDao;
+//    friend class MLGDao;
+//    friend class NodeDao;
 public:
-    virtual ~Node() override;
-
-    inline double weight() const { return m_data[Attrs::V[NodeAttr::WEIGHT]].GetDouble(); }
-    void setWeight( double v );
-    inline std::wstring label() const { return m_data[Attrs::V[NodeAttr::LABEL]].GetString(); }
-    void setLabel( const std::wstring& label );
-
-protected:
     explicit Node();
     /**
      * @brief Node ctor called by the Dao
@@ -47,6 +39,12 @@ protected:
     explicit Node( sparksee::gdb::oid_t id, const AttrMap& data );
     // "Hide" setId method
     using GraphObject::setId;
+    virtual ~Node() override;
+
+    inline double weight() const { return m_data[Attrs::V[NodeAttr::WEIGHT]].GetDouble(); }
+    void setWeight( double v );
+    inline std::wstring label() const { return m_data[Attrs::V[NodeAttr::LABEL]].GetString(); }
+    void setLabel( const std::wstring& label );
 };
 
 } // end namespace mld
