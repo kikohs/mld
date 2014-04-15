@@ -39,7 +39,12 @@ Enum2Wstring Attrs::V {
     {HLinkAttr::WEIGHT, L"MLD_HLINK_WEIGHT"},
     {VLinkAttr::WEIGHT, L"MLD_VLINK_WEIGHT"},
     {OLinkAttr::WEIGHT, L"MLD_OLINK_WEIGHT"},
-    {CLinkAttr::WEIGHT, L"MLD_CLINK_WEIGHT"}
+    {CLinkAttr::WEIGHT, L"MLD_CLINK_WEIGHT"},
+    {VNodeAttr::LAYERID, L"MLD_VNODE_LAYERID"},
+    {VNodeAttr::LAYERPOS, L"MLD_VNODE_LAYERPOS"},
+    {VNodeAttr::SLICEPOS, L"MLD_VNODE_SLICEPOS"},
+    {VNodeAttr::X, L"MLD_VNODE_X"},
+    {VNodeAttr::Y, L"MLD_VNODE_Y"}
 };
 
 } // end namespace mld

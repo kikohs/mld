@@ -158,6 +158,20 @@ struct MLD_API CLinkAttr
     };
 };
 
+struct MLD_API VNodeAttr
+{
+    enum Attrs
+    {
+        LAYERID = CLinkAttr::CLINKATTR_MAX,
+        LAYERPOS,
+        SLICEPOS,
+        X,
+        Y,
+        VNODEATTR_MAX
+    };
+};
+
+
 } // end namespace mld
 
 /** @} */

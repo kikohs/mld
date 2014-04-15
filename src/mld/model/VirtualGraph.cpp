@@ -25,12 +25,14 @@ VirtualGraph::VirtualGraph()
 {
 }
 
-void VirtualGraph::addVNode( const VNode& vn )
+void VirtualGraph::addVNode( oid_t layer, const Node& vn )
 {
     VNodeId vnid = boost::add_vertex(m_g);
     m_g[vnid] = vn;
+    // Add layer id in vnode data
+    m_g[vnid].data()[Attrs::V[VNodeAttr::LAYERID]].SetLongVoid(layer);
     // update index map
-    m_index[vn.first][vn.second.id()] = vnid;
+    m_index[layer][vn.id()] = vnid;
 }
 
 void VirtualGraph::addVEdge( oid_t lSrc, oid_t src, oid_t lTgt, oid_t tgt )
@@ -48,10 +50,4 @@ void VirtualGraph::addVEdge( oid_t lSrc, oid_t src, oid_t lTgt, oid_t tgt )
     if( !success ) {
         LOG(logERROR) << "VirtualGraph::addVEdge failed to add edge";
     }
-}
-
-std::ostream& operator <<( std::ostream& out, const mld::VNode& vn )
-{
-    out << "{l:" << vn.first << ", id:" << vn.second.id() << '}';
-    return out;
 }

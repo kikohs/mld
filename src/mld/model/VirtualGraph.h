@@ -27,7 +27,8 @@
 
 namespace mld {
 
-using VNode = std::pair<sparksee::gdb::oid_t, Node>;
+//using VNode = std::pair<sparksee::gdb::oid_t, Node>;
+using VNode = Node;
 using VGraph = boost::adjacency_list<boost::vecS, // edge container
                                      boost::vecS, // node container
                                      boost::undirectedS, // type of the graph
@@ -43,16 +44,18 @@ using VEdgeIter = VGraphTraits::edge_iterator;
 using VNodeIter = VGraphTraits::vertex_iterator;
 using VIndexMap = boost::property_map<VGraph, boost::vertex_index_t>::type;
 
-// Map Node oid to boost VGraph
+/// Map Node oid to boost VGraph
 using LayerIndex = std::unordered_map<sparksee::gdb::oid_t, VNodeId>;
-// Map Layer to LayerIndex in order
-using GraphIndex = std::map<sparksee::gdb::oid_t, LayerIndex>;
+/// Map Layer to LayerIndex in order
+using GraphIndex = std::unordered_map<sparksee::gdb::oid_t, LayerIndex>;
+/// Map layers id to their respective index to their position (base is 0 for instance)
+using LayerMap = std::map<sparksee::gdb::oid_t, int>;
 
 class MLD_API VirtualGraph
 {
 public:
     VirtualGraph();
-    void addVNode( const VNode& vn );
+    void addVNode( sparksee::gdb::oid_t layer, const Node& vn );
     void addVEdge( sparksee::gdb::oid_t lSrc, sparksee::gdb::oid_t src,
                    sparksee::gdb::oid_t lTgt, sparksee::gdb::oid_t tgt );
 
@@ -62,13 +65,15 @@ public:
     inline GraphIndex& index() { return m_index; }
     inline const GraphIndex& index() const { return m_index; }
 
+    inline LayerMap& layerMap() { return m_layerMap; }
+    inline const LayerMap& layerMap() const { return m_layerMap; }
+
 private:
     GraphIndex m_index;
     VGraph m_g;
+    LayerMap m_layerMap;
 };
 
 } // end namespace mld
-
-std::ostream& operator <<( std::ostream& out, const mld::VNode& vn );
 
 #endif // MLD_VIRTUALGRAPH_H

@@ -22,9 +22,14 @@
 #include "mld/analytics/ComponentExtractor.h"
 #include "mld/dao/MLGDao.h"
 #include "mld/model/VirtualGraph.h"
+#include "mld/utils/Timer.h"
+#include "mld/utils/ProgressDisplay.h"
 
 using namespace mld;
 using namespace sparksee::gdb;
+
+const int NODE_X_SPACING = 50;
+const int NODE_Y_SPACING = 20;
 
 namespace {
 } // end namespace anonymous
@@ -41,8 +46,18 @@ ComponentExtractor::~ComponentExtractor()
 {
 }
 
-VirtualGraphPtr ComponentExtractor::run()
+bool ComponentExtractor::run()
 {
+    if( createVGraph() )
+        return layout();
+
+    return false;
+}
+
+bool ComponentExtractor::createVGraph()
+{
+    std::unique_ptr<Timer> t(new Timer("Extracting virtual graph"));
+    LOG(logINFO) << "Extracting virtual graph";
     m_vgraph.reset( new VirtualGraph );
     if( !m_override )
         m_alpha = computeThreshold();
@@ -53,12 +68,19 @@ VirtualGraphPtr ComponentExtractor::run()
     ObjectsPtr currentNodes(filterNodes(layers.at(0), m_alpha));
     ObjectsPtr currentHlinks(m_dao->graph()->Explode(currentNodes.get(), m_dao->hlinkType(), Any));
 
+    ProgressDisplay display(layers.size());
+
+    if( currentNodes->Count() != 0 )
+        m_vgraph->layerMap()[layers.at(0).id()] = 0;
     addVirtualNodes(layers.at(0), currentNodes);
+    ++display;
 
     for( size_t i = 1; i < layers.size(); ++i ) {
         ObjectsPtr nextNodes(filterNodes(layers.at(i), m_alpha));
 
         // Add next layer nodes in virtual graph
+        if( nextNodes->Count() != 0 )
+            m_vgraph->layerMap()[layers.at(i).id()] = i;
         addVirtualNodes(layers.at(i), nextNodes);
 
         // Add self vlinks between nodes activated in the two layers
@@ -90,16 +112,18 @@ VirtualGraphPtr ComponentExtractor::run()
         // Switch to next layer
         currentNodes = nextNodes;
         currentHlinks = nextHlinks;
+
+        ++display;
     }
 
-    return m_vgraph;
+    return true;
 }
 
 void ComponentExtractor::addVirtualNodes( const Layer& layer, const ObjectsPtr& nodes )
 {
     ObjectsIt it(nodes->Iterator());
     while( it->HasNext() ) {
-        m_vgraph->addVNode(VNode(layer.id(), m_dao->getNode(it->Next())));
+        m_vgraph->addVNode(layer.id(), m_dao->getNode(it->Next()));
     }
 }
 
@@ -139,4 +163,38 @@ ObjectsPtr ComponentExtractor::filterNodes( const Layer& layer, double threshold
 
     // Return targets of olinks (Nodes)
     return ObjectsPtr(m_dao->graph()->Heads(filterOl.get()));
+}
+
+bool ComponentExtractor::layout()
+{
+    std::unique_ptr<Timer> t(new Timer("Layouting virtual graph"));
+    LOG(logINFO) << "Layouting virtual graph";
+    if( !m_vgraph ) {
+        LOG(logERROR) << "ComponentExtractor::layout: vgraph is null";
+        return false;
+    }
+
+    VGraph& g = m_vgraph->data();
+    GraphIndex& gIdx = m_vgraph->index();
+
+    ProgressDisplay display(gIdx.size());
+
+    uint32_t lCount = 0;
+    for( auto& lp: m_vgraph->layerMap() ) {  // iterate through layer in correct order
+        uint32_t nodeLayoutIdx = 0;
+        for( auto& vnPair: gIdx.at(lp.first) ) { // for each layer in index
+            VNode& vn = g[vnPair.second]; // get bundled property
+            // override id with VGraph NodeId
+            vn.setId(static_cast<oid_t>(vnPair.second));
+            vn.data()[Attrs::V[VNodeAttr::LAYERPOS]].SetIntegerVoid(lp.second);
+            vn.data()[Attrs::V[VNodeAttr::SLICEPOS]].SetLongVoid(lCount);
+            vn.data()[Attrs::V[VNodeAttr::X]].SetLongVoid(nodeLayoutIdx * NODE_X_SPACING);
+            vn.data()[Attrs::V[VNodeAttr::Y]].SetLongVoid(lCount * NODE_Y_SPACING);
+            ++nodeLayoutIdx;
+        }
+        ++lCount;
+        ++display;
+    }
+
+    return true;
 }

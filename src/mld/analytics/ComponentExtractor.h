@@ -48,9 +48,14 @@ public:
     ~ComponentExtractor();
 
     inline void setOverrideThreshold( bool override, double value ) { m_override = override; m_alpha = value; }
-    VirtualGraphPtr run();
+    bool run();
+
+    inline VirtualGraphPtr vgraph() const { return m_vgraph; }
 
 private:
+    bool createVGraph();
+    bool layout();
+
     void addVirtualNodes( const Layer& layer, const ObjectsPtr& nodes );
     void addVirtualSelfVLinks( const Layer& lSrc, const Layer& lTgt, const ObjectsPtr& nodes );
 

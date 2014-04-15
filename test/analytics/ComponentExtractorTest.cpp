@@ -80,36 +80,26 @@ TEST( ComponentExtractorTest, ExtractComponentGraph )
     std::shared_ptr<ComponentExtractor> extract(new ComponentExtractor(g));
 
     // Auto threshold should be at 3.5
-    VirtualGraphPtr vg = extract->run();
+    bool ok = extract->run();
+    EXPECT_TRUE(ok);
 
-    if( !vg ) {
-        LOG(logERROR) << "ComponentExtractorTest vg is null";
+    VirtualGraphPtr vgraph = extract->vgraph();
+    if( !vgraph ) {
+        LOG(logERROR) << "Vgraph is null";
         EXPECT_TRUE(false);
         return;
     }
 
-    // For each layer
-//    for( const auto& l: vg->index() ) {
-//        LOG(logDEBUG) << "Layer: " << l.first;
-//        for( const auto& n: l.second ) {
-//            LOG(logDEBUG) << "    oid: " << n.first << " vgraph id: " << n.second;
-//        }
-//    }
-
-    auto d = vg->data();
+    auto d = vgraph->data();
     EXPECT_EQ(uint32_t(5), boost::num_vertices(d));
     EXPECT_EQ(uint32_t(5), boost::num_edges(d));
 
-    VIndexMap index = boost::get(boost::vertex_index, d);
-//    for( auto vp = boost::vertices(d); vp.first != vp.second; ++vp.first ) {
-//        LOG(logDEBUG) << d[index[*vp.first]];
+//    VIndexMap index = boost::get(boost::vertex_index, d);
+//    VEdgeIter ei, ei_end;
+//    for( boost::tie(ei, ei_end) = boost::edges(d); ei != ei_end; ++ei ) {
+//        LOG(logDEBUG) << "{" << d[index[boost::source(*ei, d)]]
+//                      << " - " << d[index[boost::target(*ei, d)]] << "} \n";
 //    }
-
-    VEdgeIter ei, ei_end;
-    for( boost::tie(ei, ei_end) = boost::edges(d); ei != ei_end; ++ei ) {
-        LOG(logDEBUG) << d[index[boost::source(*ei, d)]]
-                      << " - " << d[index[boost::target(*ei, d)]];
-    }
 
     extract.reset();
     dao.reset();
