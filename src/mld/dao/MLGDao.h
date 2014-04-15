@@ -279,7 +279,7 @@ public:
 
     LayerIdPair getLayerBounds( sparksee::gdb::oid_t source, TSDirection dir, size_t radius );
 
-    // Forward to SNDao
+    // Forward to NodeDao
     void removeNode( sparksee::gdb::oid_t id );
     bool updateNode( Node& n );
     Node getNode( sparksee::gdb::oid_t id );

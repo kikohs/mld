@@ -41,6 +41,7 @@ using VAdjIter = VGraphTraits::adjacency_iterator;
 using VOutEdgeIter = VGraphTraits::out_edge_iterator;
 using VEdgeIter = VGraphTraits::edge_iterator;
 using VNodeIter = VGraphTraits::vertex_iterator;
+using VIndexMap = boost::property_map<VGraph, boost::vertex_index_t>::type;
 
 // Map Node oid to boost VGraph
 using LayerIndex = std::unordered_map<sparksee::gdb::oid_t, VNodeId>;
@@ -58,11 +59,16 @@ public:
     inline VGraph& data() { return m_g; }
     inline const VGraph& data() const { return m_g; }
 
+    inline GraphIndex& index() { return m_index; }
+    inline const GraphIndex& index() const { return m_index; }
+
 private:
     GraphIndex m_index;
     VGraph m_g;
 };
 
 } // end namespace mld
+
+std::ostream& operator <<( std::ostream& out, const mld::VNode& vn );
 
 #endif // MLD_VIRTUALGRAPH_H

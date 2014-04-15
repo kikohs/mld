@@ -49,3 +49,9 @@ void VirtualGraph::addVEdge( oid_t lSrc, oid_t src, oid_t lTgt, oid_t tgt )
         LOG(logERROR) << "VirtualGraph::addVEdge failed to add edge";
     }
 }
+
+std::ostream& operator <<( std::ostream& out, const mld::VNode& vn )
+{
+    out << "{l:" << vn.first << ", id:" << vn.second.id() << '}';
+    return out;
+}

@@ -51,6 +51,9 @@ public:
     VirtualGraphPtr run();
 
 private:
+    void addVirtualNodes( const Layer& layer, const ObjectsPtr& nodes );
+    void addVirtualSelfVLinks( const Layer& lSrc, const Layer& lTgt, const ObjectsPtr& nodes );
+
     /**
      * @brief Compute threashold if not overrided by user
      * @return
@@ -65,12 +68,6 @@ private:
      * @return nodeset
      */
     ObjectsPtr filterNodes( const Layer& layer, double threshold );
-
-    void addVirtualNodes( const Layer& layer, const ObjectsPtr& nodes );
-    void addVirtualVLinks( const Layer& lSrc,
-                           const OIDVec& srcs,
-                           const Layer& lTgt,
-                           const OIDVec& tgts );
 
 private:
     std::unique_ptr<MLGDao> m_dao;

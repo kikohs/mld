@@ -75,6 +75,11 @@ void NodeDao::removeNode( oid_t id )
 #ifdef MLD_SAFE
     if( id == Objects::InvalidOID )
         return;
+
+    if( m_g->GetObjectType(id) != m_nType ) {
+        LOG(logERROR) << "NodeDao::removeNode oid is not a Node";
+        return;
+    }
 #endif
 #ifdef MLD_SAFE
     try {
@@ -97,6 +102,11 @@ mld::Node NodeDao::getNode( oid_t id )
 #ifdef MLD_SAFE
     if( id == Objects::InvalidOID )
         return Node();
+
+    if( m_g->GetObjectType(id) != m_nType ) {
+        LOG(logERROR) << "NodeDao::getNode: " << id << " is not a Node";
+        return Node();
+    }
 #endif
 
     AttrMap data;

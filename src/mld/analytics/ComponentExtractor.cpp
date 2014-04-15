@@ -51,7 +51,7 @@ VirtualGraphPtr ComponentExtractor::run()
 
     // Get base layer thresholded nodes and hlinks
     ObjectsPtr currentNodes(filterNodes(layers.at(0), m_alpha));
-    ObjectsPtr currentHlinks(m_dao->graph()->Neighbors(currentNodes.get(), m_dao->hlinkType(), Any));
+    ObjectsPtr currentHlinks(m_dao->graph()->Explode(currentNodes.get(), m_dao->hlinkType(), Any));
 
     addVirtualNodes(layers.at(0), currentNodes);
 
@@ -61,44 +61,55 @@ VirtualGraphPtr ComponentExtractor::run()
         // Add next layer nodes in virtual graph
         addVirtualNodes(layers.at(i), nextNodes);
 
-        // Get HLinks for next layer on thresholded nodes
-        ObjectsPtr nextHlinks(m_dao->graph()->Neighbors(nextNodes.get(), m_dao->hlinkType(), Any));
+        // Add self vlinks between nodes activated in the two layers
+        ObjectsPtr commonNodes(Objects::CombineIntersection(currentNodes.get(), nextNodes.get()));
+        addVirtualSelfVLinks(layers.at(i-1), layers.at(i), commonNodes);
 
+        // Get HLinks for next layer on thresholded nodes
+        ObjectsPtr nextHlinks(m_dao->graph()->Explode(nextNodes.get(), m_dao->hlinkType(), Any));
         // Get common hlinks
         ObjectsPtr commonHl(Objects::CombineIntersection(currentHlinks.get(), nextHlinks.get()));
         ObjectsIt it(commonHl->Iterator());
         while( it->HasNext() ) {
             oid_t eid = it->Next();
             std::unique_ptr<EdgeData> eData(m_dao->graph()->GetEdgeData(eid));
-            oid_t src = eData->GetHead();
-            oid_t tgt = eData->GetTail();
+            oid_t src = eData->GetTail();
+            oid_t tgt = eData->GetHead();
 
-            OIDVec srcs;
-            OIDVec tgts;
-            // Check if any of the hlink ends is in the current layer
-            if( currentNodes->Exists(src) )
-                srcs.push_back(src);
+            // Create VLinks
+            if( currentNodes->Exists(src) ) {
+                if( nextNodes->Exists(tgt) )
+                    m_vgraph->addVEdge(layers.at(i-1).id(), src, layers.at(i).id(), tgt);
+            }
 
-            if( currentNodes->Exists(tgt) )
-                srcs.push_back(tgt);
-
-            // Check if any of the hlink ends is in the next layer
-            if( nextNodes->Exists(src) )
-                tgts.push_back(src);
-
-            if( nextNodes->Exists(tgt) )
-                tgts.push_back(tgt);
-
-            // Add vlinks in the virtual graph
-            addVirtualVLinks(layers.at(i-1), srcs, layers.at(i), tgts);
-
-            // Switch to next layer
-            currentNodes = nextNodes;
-            currentHlinks = nextHlinks;
+            if( currentNodes->Exists(tgt) ) {
+                if( nextNodes->Exists(src) )
+                    m_vgraph->addVEdge(layers.at(i-1).id(), tgt, layers.at(i).id(), src);
+            }
         }
+        // Switch to next layer
+        currentNodes = nextNodes;
+        currentHlinks = nextHlinks;
     }
 
     return m_vgraph;
+}
+
+void ComponentExtractor::addVirtualNodes( const Layer& layer, const ObjectsPtr& nodes )
+{
+    ObjectsIt it(nodes->Iterator());
+    while( it->HasNext() ) {
+        m_vgraph->addVNode(VNode(layer.id(), m_dao->getNode(it->Next())));
+    }
+}
+
+void ComponentExtractor::addVirtualSelfVLinks( const Layer& lSrc, const Layer& lTgt, const ObjectsPtr& nodes )
+{
+    ObjectsIt it(nodes->Iterator());
+    while( it->HasNext() ) {
+        auto nid = it->Next();
+        m_vgraph->addVEdge(lSrc.id(), nid, lTgt.id(), nid);
+    }
 }
 
 double ComponentExtractor::computeThreshold()
@@ -123,24 +134,9 @@ ObjectsPtr ComponentExtractor::filterNodes( const Layer& layer, double threshold
     ObjectsPtr filterOl(m_dao->graph()->Select(attr, GreaterEqual, v, olinks.get()));
     // Get olinks with value x <= -threshold
     v.SetDoubleVoid(-threshold);
-    filterOl->Union(m_dao->graph()->Select(attr, LessEqual, v, olinks.get()));
+    ObjectsPtr filterOl2(m_dao->graph()->Select(attr, LessEqual, v, olinks.get()));
+    filterOl->Union(filterOl2.get());
 
     // Return targets of olinks (Nodes)
-    return ObjectsPtr(m_dao->graph()->Tails(filterOl.get()));
-}
-
-void ComponentExtractor::addVirtualNodes( const Layer& layer, const ObjectsPtr& nodes )
-{
-    ObjectsIt it(nodes->Iterator());
-    while( it->HasNext() )
-        m_vgraph->addVNode(VNode(layer.id(), m_dao->getNode(it->Next())));
-}
-
-void ComponentExtractor::addVirtualVLinks( const Layer& lSrc, const OIDVec& srcs, const Layer& lTgt, const OIDVec& tgts )
-{
-    for( auto src: srcs ) {
-        for( auto tgt: tgts ) {
-            m_vgraph->addVEdge(lSrc.id(), src, lTgt.id(), tgt);
-        }
-    }
+    return ObjectsPtr(m_dao->graph()->Heads(filterOl.get()));
 }
