@@ -111,8 +111,9 @@ file( COPY ${SPARKSEE_LIB_FILES} DESTINATION ${LIBRARY_OUTPUT_PATH} )
 
 ## JSON_SPIRIT
 if( USE_JSON )
-    message( STATUS "Use json_spirit" )
+    message( STATUS "Using json_spirit" )
     add_definitions( -DMLD_USE_JSON )
+    add_definitions( -DJSON_SPIRIT_WMVALUE_ENABLED )
     if( JSON_SPIRIT_ROOT )  # if overriden by user
         set( JSON_SPIRIT_INCLUDE_DIR ${JSON_SPIRIT_ROOT}/include )
         set( JSON_SPIRIT_LIB_DIR ${JSON_SPIRIT_ROOT}/lib )

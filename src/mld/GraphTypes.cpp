@@ -41,6 +41,7 @@ Enum2Wstring Attrs::V {
     {OLinkAttr::WEIGHT, L"MLD_OLINK_WEIGHT"},
     {CLinkAttr::WEIGHT, L"MLD_CLINK_WEIGHT"},
     {VNodeAttr::LAYERID, L"MLD_VNODE_LAYERID"},
+    {VNodeAttr::BASEID, L"MLD_VNODE_BASEID"},
     {VNodeAttr::LAYERPOS, L"MLD_VNODE_LAYERPOS"},
     {VNodeAttr::SLICEPOS, L"MLD_VNODE_SLICEPOS"},
     {VNodeAttr::X, L"MLD_VNODE_X"},

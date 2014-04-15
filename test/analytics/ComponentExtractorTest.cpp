@@ -18,6 +18,9 @@
 
 #include <gtest/gtest.h>
 
+#include <locale>
+#include <codecvt>
+
 #include <mld/config.h>
 #include <mld/SparkseeManager.h>
 #include <boost/property_map/property_map.hpp>
@@ -25,6 +28,7 @@
 #include <mld/dao/MLGDao.h>
 #include <mld/analytics/ComponentExtractor.h>
 #include <mld/model/VirtualGraph.h>
+#include <mld/io/GraphExporter.h>
 
 using namespace mld;
 using namespace sparksee::gdb;
@@ -94,12 +98,12 @@ TEST( ComponentExtractorTest, ExtractComponentGraph )
     EXPECT_EQ(uint32_t(5), boost::num_vertices(d));
     EXPECT_EQ(uint32_t(5), boost::num_edges(d));
 
-//    VIndexMap index = boost::get(boost::vertex_index, d);
-//    VEdgeIter ei, ei_end;
-//    for( boost::tie(ei, ei_end) = boost::edges(d); ei != ei_end; ++ei ) {
-//        LOG(logDEBUG) << "{" << d[index[boost::source(*ei, d)]]
-//                      << " - " << d[index[boost::target(*ei, d)]] << "} \n";
-//    }
+    // Export
+    using Converter = std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>>;
+    Converter converter;
+
+    ok = GraphExporter::exportVGraphAsJson(vgraph, converter.to_bytes(mld::kRESOURCES_DIR) + "mld_vgraph.json");
+    EXPECT_TRUE(ok);
 
     extract.reset();
     dao.reset();

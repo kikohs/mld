@@ -42,6 +42,15 @@ public:
      */
     static bool toTimeSeries( sparksee::gdb::Graph* g,
                               const std::string& name, std::string& exportFolderPath );
+
+    /**
+     * @brief Export VirtualGraph created by ComponentExtractor as Json
+     * @param vgraph
+     * @param filename
+     * @return success
+     */
+    static bool exportVGraphAsJson( const VirtualGraphPtr& vgraph, const std::string& filename );
+
 private:
     static bool writeTSNodes( MLGDao& dao,
                               const std::string& nodePath, RIndexMap& indexMap );

@@ -186,10 +186,10 @@ bool ComponentExtractor::layout()
             VNode& vn = g[vnPair.second]; // get bundled property
             // override id with VGraph NodeId
             vn.setId(static_cast<oid_t>(vnPair.second));
-            vn.data()[Attrs::V[VNodeAttr::LAYERPOS]].SetIntegerVoid(lp.second);
+            vn.data()[Attrs::V[VNodeAttr::LAYERPOS]].SetLongVoid(lp.second);
             vn.data()[Attrs::V[VNodeAttr::SLICEPOS]].SetLongVoid(lCount);
-            vn.data()[Attrs::V[VNodeAttr::X]].SetLongVoid(nodeLayoutIdx * NODE_X_SPACING);
-            vn.data()[Attrs::V[VNodeAttr::Y]].SetLongVoid(lCount * NODE_Y_SPACING);
+            vn.data()[Attrs::V[VNodeAttr::X]].SetLongVoid(lCount * NODE_X_SPACING);
+            vn.data()[Attrs::V[VNodeAttr::Y]].SetLongVoid(nodeLayoutIdx * NODE_Y_SPACING);
             ++nodeLayoutIdx;
         }
         ++lCount;

@@ -31,6 +31,7 @@ void VirtualGraph::addVNode( oid_t layer, const Node& vn )
     m_g[vnid] = vn;
     // Add layer id in vnode data
     m_g[vnid].data()[Attrs::V[VNodeAttr::LAYERID]].SetLongVoid(layer);
+    m_g[vnid].data()[Attrs::V[VNodeAttr::BASEID]].SetLongVoid(vn.id());
     // update index map
     m_index[layer][vn.id()] = vnid;
 }

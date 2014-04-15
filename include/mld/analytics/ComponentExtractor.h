@@ -34,9 +34,13 @@ namespace mld {
 
 class MLGDao;
 class Layer;
+class VirtualGraph;
+
+using VirtualGraphPtr = std::shared_ptr<VirtualGraph>;
 
 class MLD_API ComponentExtractor
 {
+    using OIDVec = std::vector<sparksee::gdb::oid_t>;
 public:
     explicit ComponentExtractor( sparksee::gdb::Graph* g );
     ComponentExtractor( const ComponentExtractor& ) = delete;
@@ -45,6 +49,15 @@ public:
 
     inline void setOverrideThreshold( bool override, double value ) { m_override = override; m_alpha = value; }
     bool run();
+
+    inline VirtualGraphPtr vgraph() const { return m_vgraph; }
+
+private:
+    bool createVGraph();
+    bool layout();
+
+    void addVirtualNodes( const Layer& layer, const ObjectsPtr& nodes );
+    void addVirtualSelfVLinks( const Layer& lSrc, const Layer& lTgt, const ObjectsPtr& nodes );
 
     /**
      * @brief Compute threashold if not overrided by user
@@ -61,14 +74,11 @@ public:
      */
     ObjectsPtr filterNodes( const Layer& layer, double threshold );
 
-    void addVirtualNodes( const ObjectsPtr& nodes );
-    void addVirtualVLinks( const sparksee::gdb::OIDList& srcs, const sparksee::gdb::OIDList& tgts );
-
 private:
     std::unique_ptr<MLGDao> m_dao;
     bool m_override;
     double m_alpha;
-
+    VirtualGraphPtr m_vgraph;
 };
 
 } // end namespace mld

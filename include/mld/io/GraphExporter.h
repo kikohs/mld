@@ -26,10 +26,13 @@
 
 namespace mld {
 
+class MLGDao;
+class VirtualGraphPtr;
+
 class MLD_API GraphExporter
 {
 public:
-    using RIndexMap = std::map<sparksee::gdb::oid_t, uint64_t>;
+    using RIndexMap = std::map<sparksee::gdb::oid_t, std::wstring>;
     /**
      * @brief Export the multigraph to the timeseries format (2 CSV files)
      * @param g
@@ -40,10 +43,19 @@ public:
      */
     static bool toTimeSeries( sparksee::gdb::Graph* g,
                               const std::string& name, std::string& exportFolderPath );
+
+    /**
+     * @brief Export VirtualGraph created by ComponentExtractor as Json
+     * @param vgraph
+     * @param filename
+     * @return success
+     */
+    static bool exportVGraphAsJson( const VirtualGraphPtr& vgraph, const std::string& filename );
+
 private:
-    static bool writeTSNodes( sparksee::gdb::Graph* g,
+    static bool writeTSNodes( MLGDao& dao,
                               const std::string& nodePath, RIndexMap& indexMap );
-    static bool writeTSEdges( sparksee::gdb::Graph* g,
+    static bool writeTSEdges( MLGDao& dao,
                               const std::string& edgePath, RIndexMap& indexMap );
 };
 
