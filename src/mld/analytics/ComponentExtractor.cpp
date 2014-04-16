@@ -28,8 +28,10 @@
 using namespace mld;
 using namespace sparksee::gdb;
 
-const int NODE_X_SPACING = 50;
-const int NODE_Y_SPACING = 20;
+const int NODE_X_SPACING = 2;
+const int NODE_Y_SPACING = 1;
+const double NODE_SIZE = 5.0;
+const std::wstring NODE_COLOR = L"rgb(220, 220, 220)";
 
 namespace {
 } // end namespace anonymous
@@ -177,20 +179,39 @@ bool ComponentExtractor::layout()
     VGraph& g = m_vgraph->data();
     GraphIndex& gIdx = m_vgraph->index();
 
-    ProgressDisplay display(gIdx.size());
+    ProgressDisplay display(gIdx.size() + boost::num_vertices(g));
 
+    // Loop through all unique base_id to layout the y coordinate
+    std::unordered_map<int64_t, int64_t> yCoordMap;
+    VIndexMap vindex = boost::get(boost::vertex_index, g);
+
+    int64_t yCount = 0;
+    for( auto vp = boost::vertices(g); vp.first != vp.second; ++vp.first ) {
+        VNode& n = g[vindex[*vp.first]];
+        int64_t baseId = n.data()[Attrs::V[VNodeAttr::BASEID]].GetLong();
+        auto it = yCoordMap.find(baseId);
+        if( it == yCoordMap.end() ) {
+            yCoordMap[baseId] = yCount;
+            yCount++;
+        }
+        ++display;
+    }
+
+    // Loop through all layers to set the rest of the properties
     uint32_t lCount = 0;
     for( auto& lp: m_vgraph->layerMap() ) {  // iterate through layer in correct order
-        uint32_t nodeLayoutIdx = 0;
         for( auto& vnPair: gIdx.at(lp.first) ) { // for each layer in index
             VNode& vn = g[vnPair.second]; // get bundled property
             // override id with VGraph NodeId
             vn.setId(static_cast<oid_t>(vnPair.second));
             vn.data()[Attrs::V[VNodeAttr::LAYERPOS]].SetLongVoid(lp.second);
             vn.data()[Attrs::V[VNodeAttr::SLICEPOS]].SetLongVoid(lCount);
+            vn.data()[Attrs::V[VNodeAttr::SIZE]].SetDoubleVoid(NODE_SIZE);
+            vn.data()[Attrs::V[VNodeAttr::COLOR]].SetStringVoid(NODE_COLOR);
             vn.data()[Attrs::V[VNodeAttr::X]].SetLongVoid(lCount * NODE_X_SPACING);
-            vn.data()[Attrs::V[VNodeAttr::Y]].SetLongVoid(nodeLayoutIdx * NODE_Y_SPACING);
-            ++nodeLayoutIdx;
+
+            int64_t baseId = vn.data()[Attrs::V[VNodeAttr::BASEID]].GetLong();
+            vn.data()[Attrs::V[VNodeAttr::Y]].SetLongVoid(yCoordMap.at(baseId) * NODE_Y_SPACING);
         }
         ++lCount;
         ++display;

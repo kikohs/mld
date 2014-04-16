@@ -163,10 +163,13 @@ struct MLD_API VNodeAttr
     enum Attrs
     {
         LAYERID = CLinkAttr::CLINKATTR_MAX,
+        BASEID,
         LAYERPOS,
         SLICEPOS,
         X,
         Y,
+        SIZE,
+        COLOR,
         VNODEATTR_MAX
     };
 };

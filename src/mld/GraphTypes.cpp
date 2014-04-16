@@ -45,7 +45,10 @@ Enum2Wstring Attrs::V {
     {VNodeAttr::LAYERPOS, L"MLD_VNODE_LAYERPOS"},
     {VNodeAttr::SLICEPOS, L"MLD_VNODE_SLICEPOS"},
     {VNodeAttr::X, L"MLD_VNODE_X"},
-    {VNodeAttr::Y, L"MLD_VNODE_Y"}
+    {VNodeAttr::Y, L"MLD_VNODE_Y"},
+    {VNodeAttr::SIZE, L"MLD_VNODE_SIZE"},
+    {VNodeAttr::COLOR, L"MLD_VNODE_COLOR"},
+    {VNodeAttr::INPUTID, L"MLD_VNODE_INPUTID"},
 };
 
 } // end namespace mld

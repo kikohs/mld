@@ -80,7 +80,9 @@ void writeVNode( js::wmArray& nodes, const mld::Node& n )
     js::wmObject nodeObj;
     auto it = n.data().find(L"id");
     if( it == n.data().end() ) {
-        nodeObj[L"id"] = n.id();
+        // nodeObj[L"id"] = n.id();
+        // Should convert as string for sigma js
+        nodeObj[L"id"] = std::to_wstring(n.id());
     }
 
     for( auto& kv: n.data() ) {
@@ -88,7 +90,11 @@ void writeVNode( js::wmArray& nodes, const mld::Node& n )
             nodeObj[L"id"] = kv.second.GetString();
         }
         else if( kv.first == Attrs::V[NodeAttr::LABEL] ) {
-            nodeObj[L"label"] = kv.second.GetString();
+            std::wstring label(kv.second.GetString());
+            if( label != L"" )
+                nodeObj[L"label"] = label;
+            else
+                nodeObj[L"label"] = std::to_wstring(n.id());
         }
         else if( kv.first == Attrs::V[NodeAttr::WEIGHT] ) {
             nodeObj[L"weight"] = kv.second.GetDouble();
@@ -100,7 +106,7 @@ void writeVNode( js::wmArray& nodes, const mld::Node& n )
             nodeObj[L"base_id"] = kv.second.GetLong();
         }
         else if( kv.first == Attrs::V[VNodeAttr::LAYERPOS] ) {
-            nodeObj[L"base_id"] = kv.second.GetLong();
+            nodeObj[L"layer_pos"] = kv.second.GetLong();
         }
         else if( kv.first == Attrs::V[VNodeAttr::SLICEPOS] ) {
             nodeObj[L"slice_pos"] = kv.second.GetLong();
@@ -111,6 +117,15 @@ void writeVNode( js::wmArray& nodes, const mld::Node& n )
         else if( kv.first == Attrs::V[VNodeAttr::Y] ) {
             nodeObj[L"y"] = kv.second.GetLong();
         }
+        else if( kv.first == Attrs::V[VNodeAttr::SIZE] ) {
+            nodeObj[L"size"] = kv.second.GetDouble();
+        }
+        else if( kv.first == Attrs::V[VNodeAttr::COLOR] ) {
+            nodeObj[L"color"] = kv.second.GetString();
+        }
+        else if( kv.first == Attrs::V[VNodeAttr::INPUTID] ) {
+            nodeObj[L"input_id"] = kv.second.GetString();
+        }
         else {
             nodeObj[kv.first] = convertValueToWString(kv.second);
         }
@@ -120,11 +135,12 @@ void writeVNode( js::wmArray& nodes, const mld::Node& n )
     nodes.push_back(nodeObj);
 }
 
-void writeVEdge( js::wmArray& edges, const VNodeId src, const VNodeId tgt )
+void writeVEdge( js::wmArray& edges, const uint32_t eid, const VNodeId src, const VNodeId tgt )
 {
     js::wmObject edgeObj;
-    edgeObj[L"source"] = static_cast<int>(src);
-    edgeObj[L"target"] = static_cast<int>(tgt);
+    edgeObj[L"source"] = std::to_wstring(static_cast<int>(src));
+    edgeObj[L"target"] = std::to_wstring(static_cast<int>(tgt));
+    edgeObj[L"id"] = std::to_wstring(static_cast<int>(eid));
     // Append to the list of edges
     edges.push_back(edgeObj);
 }
@@ -318,26 +334,34 @@ bool GraphExporter::exportVGraphAsJson( const VirtualGraphPtr& vgraph, const std
     return false;
 #endif
 
+    std::unique_ptr<Timer> t(new Timer("Exporting VirtualGraph as json"));
     LOG(logINFO) << "Exporting VirtualGraph as json to: " << filename;
+
+    if( !vgraph ) {
+        LOG(logERROR) << "GraphExporter::exportVGraphAsJson vgraph is null";
+        return false;
+    }
+
     std::wofstream out(filename);
 
     VGraph& g = vgraph->data();
     auto numVertices = boost::num_vertices(g);
     auto numEdges = boost::num_edges(g);
 
-    ProgressDisplay display(numVertices + numEdges);
+    ProgressDisplay display(numVertices + numEdges + 1); // account for write file
 
     js::wmObject graphObj;
 
     // General properties
-    graphObj[L"node_count"] = static_cast<int>(numVertices);
-    graphObj[L"edge_count"] = static_cast<int>(numEdges);
-    graphObj[L"layer_count"] = static_cast<int>(vgraph->layerMap().size());
+    graphObj[L"node_count"] = static_cast<uint32_t>(numVertices);
+    graphObj[L"edge_count"] = static_cast<uint32_t>(numEdges);
+    graphObj[L"layer_count"] = static_cast<uint32_t>(vgraph->layerMap().size());
 
     // Nodes
     js::wmArray nodes;
     // Iterate through nodes and serialize them into nodesObj
     VIndexMap vindex = boost::get(boost::vertex_index, g);
+
     for( auto vp = boost::vertices(g); vp.first != vp.second; ++vp.first ) {
         writeVNode(nodes, g[vindex[*vp.first]]);
         ++display;
@@ -347,13 +371,16 @@ bool GraphExporter::exportVGraphAsJson( const VirtualGraphPtr& vgraph, const std
     // Edges
     js::wmArray edges;
     VEdgeIter ei, ei_end;
+    uint32_t edgeIdx = 0;
     for( boost::tie(ei, ei_end) = boost::edges(g); ei != ei_end; ++ei ) {
-        writeVEdge(edges, vindex[boost::source(*ei, g)], vindex[boost::target(*ei, g)]);
+        writeVEdge(edges, edgeIdx, vindex[boost::source(*ei, g)], vindex[boost::target(*ei, g)]);
+        ++edgeIdx;
         ++display;
     }
     graphObj[L"edges"] = edges;
 
     js::write_formatted(graphObj, out);
+    ++display;
     out.close();
 
     return true;

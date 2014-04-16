@@ -92,12 +92,6 @@ TSIndexIt<T> TSIndexItEnd( TSData<T>& v )
     return TSIndexIt<T>(v, v.size());
 }
 
-enum class TSDirection {
-    PAST,
-    FUTURE,
-    BOTH
-};
-
 template <typename T>
 class MLD_API TimeSeries
 {

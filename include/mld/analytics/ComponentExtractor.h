@@ -36,8 +36,6 @@ class MLGDao;
 class Layer;
 class VirtualGraph;
 
-using VirtualGraphPtr = std::shared_ptr<VirtualGraph>;
-
 class MLD_API ComponentExtractor
 {
     using OIDVec = std::vector<sparksee::gdb::oid_t>;

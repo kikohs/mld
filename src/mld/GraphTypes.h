@@ -168,6 +168,9 @@ struct MLD_API VNodeAttr
         SLICEPOS,
         X,
         Y,
+        SIZE,
+        COLOR,
+        INPUTID,
         VNODEATTR_MAX
     };
 };

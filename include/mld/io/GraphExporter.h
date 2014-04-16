@@ -27,7 +27,6 @@
 namespace mld {
 
 class MLGDao;
-class VirtualGraphPtr;
 
 class MLD_API GraphExporter
 {

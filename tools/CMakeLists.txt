@@ -15,6 +15,7 @@ append_tool(Coarsener coarsener.cpp)
 append_tool(TSParser ts_parser.cpp)
 append_tool(TSFilter ts_filter.cpp)
 append_tool(TSExport ts_export.cpp)
+append_tool(TSComponent ts_component.cpp)
 
 
 # Create executable for each tool

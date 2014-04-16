@@ -29,9 +29,19 @@ void VirtualGraph::addVNode( oid_t layer, const Node& vn )
 {
     VNodeId vnid = boost::add_vertex(m_g);
     m_g[vnid] = vn;
+    AttrMap& d(m_g[vnid].data());
     // Add layer id in vnode data
-    m_g[vnid].data()[Attrs::V[VNodeAttr::LAYERID]].SetLongVoid(layer);
-    m_g[vnid].data()[Attrs::V[VNodeAttr::BASEID]].SetLongVoid(vn.id());
+    d[Attrs::V[VNodeAttr::LAYERID]].SetLongVoid(layer);
+    d[Attrs::V[VNodeAttr::BASEID]].SetLongVoid(vn.id());
+
+    // If an id exist in the map, modify it to differentiate i
+    auto it = d.find(L"id");
+    if( it != d.end() ) {
+        std::wstring newId = it->second.GetString() + std::wstring(L"_") + std::to_wstring(layer);
+        d.erase(it);
+        d[Attrs::V[VNodeAttr::INPUTID]].SetStringVoid(newId);
+    }
+
     // update index map
     m_index[layer][vn.id()] = vnid;
 }

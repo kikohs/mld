@@ -49,7 +49,7 @@ using LayerIndex = std::unordered_map<sparksee::gdb::oid_t, VNodeId>;
 /// Map Layer to LayerIndex in order
 using GraphIndex = std::unordered_map<sparksee::gdb::oid_t, LayerIndex>;
 /// Map layers id to their respective index to their position (base is 0 for instance)
-using LayerMap = std::map<sparksee::gdb::oid_t, int>;
+using LayerMap = std::map<sparksee::gdb::oid_t, int64_t>;
 
 class MLD_API VirtualGraph
 {
