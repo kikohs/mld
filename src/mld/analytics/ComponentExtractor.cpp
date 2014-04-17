@@ -28,10 +28,10 @@
 using namespace mld;
 using namespace sparksee::gdb;
 
-const int NODE_X_SPACING = 1;
-const int NODE_Y_SPACING = 1;
+const int NODE_X_SPACING = 3;
+const int NODE_Y_SPACING = 5;
 const double NODE_SIZE = 5.0;
-const std::wstring NODE_COLOR = L"rgb(220, 220, 220)";
+const std::wstring NODE_COLOR = L"#888";
 
 namespace {
 } // end namespace anonymous
