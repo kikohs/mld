@@ -170,6 +170,7 @@ struct MLD_API VNodeAttr
         Y,
         SIZE,
         COLOR,
+        INPUTID,
         VNODEATTR_MAX
     };
 };

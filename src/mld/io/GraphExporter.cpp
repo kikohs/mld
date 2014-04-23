@@ -44,6 +44,7 @@ using namespace sparksee::gdb;
 namespace ba = boost::algorithm;
 #ifdef MLD_USE_JSON
     namespace js = json_spirit;
+    const int DOUBLE_PRECISION = 8;
 #endif
 
 using Converter = std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>>;
@@ -100,10 +101,12 @@ void writeVNode( js::wmArray& nodes, const mld::Node& n )
             nodeObj[L"weight"] = kv.second.GetDouble();
         }
         else if( kv.first == Attrs::V[VNodeAttr::LAYERID] ) {
-            nodeObj[L"layer_id"] = kv.second.GetLong();
+            // nodeObj[L"layer_id"] = kv.second.GetLong();
+            ;  // do not export
         }
         else if( kv.first == Attrs::V[VNodeAttr::BASEID] ) {
-            nodeObj[L"base_id"] = kv.second.GetLong();
+            // nodeObj[L"base_id"] = kv.second.GetLong();
+            ;  // do not export
         }
         else if( kv.first == Attrs::V[VNodeAttr::LAYERPOS] ) {
             nodeObj[L"layer_pos"] = kv.second.GetLong();
@@ -117,12 +120,12 @@ void writeVNode( js::wmArray& nodes, const mld::Node& n )
         else if( kv.first == Attrs::V[VNodeAttr::Y] ) {
             nodeObj[L"y"] = kv.second.GetLong();
         }
-        else if( kv.first == Attrs::V[VNodeAttr::SIZE] ) {
-            nodeObj[L"size"] = kv.second.GetDouble();
-        }
-        else if( kv.first == Attrs::V[VNodeAttr::COLOR] ) {
-            nodeObj[L"color"] = kv.second.GetString();
-        }
+//        else if( kv.first == Attrs::V[VNodeAttr::SIZE] ) {
+//            nodeObj[L"size"] = kv.second.GetDouble();
+//        }
+//        else if( kv.first == Attrs::V[VNodeAttr::COLOR] ) {
+//            nodeObj[L"color"] = kv.second.GetString();
+//        }
         else if( kv.first == Attrs::V[VNodeAttr::INPUTID] ) {
             nodeObj[L"input_id"] = kv.second.GetString();
         }
@@ -353,9 +356,9 @@ bool GraphExporter::exportVGraphAsJson( const VirtualGraphPtr& vgraph, const std
     js::wmObject graphObj;
 
     // General properties
-    graphObj[L"node_count"] = static_cast<uint32_t>(numVertices);
-    graphObj[L"edge_count"] = static_cast<uint32_t>(numEdges);
-    graphObj[L"layer_count"] = static_cast<uint32_t>(vgraph->layerMap().size());
+    graphObj[L"node_count"] = static_cast<int64_t>(numVertices);
+    graphObj[L"edge_count"] = static_cast<int64_t>(numEdges);
+    graphObj[L"layer_count"] = static_cast<int64_t>(vgraph->layerMap().size());
 
     // Nodes
     js::wmArray nodes;
@@ -379,7 +382,7 @@ bool GraphExporter::exportVGraphAsJson( const VirtualGraphPtr& vgraph, const std
     }
     graphObj[L"edges"] = edges;
 
-    js::write_formatted(graphObj, out);
+    js::write_formatted(graphObj, out, DOUBLE_PRECISION);
     ++display;
     out.close();
 

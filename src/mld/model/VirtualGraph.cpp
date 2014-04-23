@@ -37,7 +37,7 @@ void VirtualGraph::addVNode( oid_t layer, const Node& vn )
     // If an id exist in the map, modify it to differentiate i
     auto it = d.find(L"id");
     if( it != d.end() ) {
-        std::wstring newId = it->second.GetString() + std::wstring(L"_") + std::to_wstring(layer);
+        std::wstring newId = it->second.GetString();
         d.erase(it);
         d[Attrs::V[VNodeAttr::INPUTID]].SetStringVoid(newId);
     }

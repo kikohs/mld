@@ -30,8 +30,8 @@ using namespace sparksee::gdb;
 
 const int NODE_X_SPACING = 3;
 const int NODE_Y_SPACING = 5;
-const double NODE_SIZE = 5.0;
-const std::wstring NODE_COLOR = L"#888";
+//const double NODE_SIZE = 5.0;
+//const std::wstring NODE_COLOR = L"#888";
 
 namespace {
 } // end namespace anonymous
@@ -74,6 +74,7 @@ bool ComponentExtractor::createVGraph()
 
     if( currentNodes->Count() != 0 )
         m_vgraph->layerMap()[layers.at(0).id()] = 0;
+
     addVirtualNodes(layers.at(0), currentNodes);
     ++display;
 
@@ -83,6 +84,7 @@ bool ComponentExtractor::createVGraph()
         // Add next layer nodes in virtual graph
         if( nextNodes->Count() != 0 )
             m_vgraph->layerMap()[layers.at(i).id()] = i;
+
         addVirtualNodes(layers.at(i), nextNodes);
 
         // Add self vlinks between nodes activated in the two layers
@@ -125,7 +127,21 @@ void ComponentExtractor::addVirtualNodes( const Layer& layer, const ObjectsPtr& 
 {
     ObjectsIt it(nodes->Iterator());
     while( it->HasNext() ) {
-        m_vgraph->addVNode(layer.id(), m_dao->getNode(it->Next()));
+        auto nid = it->Next();
+        OLink ol(m_dao->getOLink(layer.id(), nid));
+        Node n(m_dao->getNode(nid));
+
+        // Set Node weight
+        n.setWeight(ol.weight());
+
+        // Remove weight attribute from olink
+        auto wIt = ol.data().find(Attrs::V[OLinkAttr::WEIGHT]);
+        if( wIt != ol.data().end() )
+            ol.data().erase(wIt);
+
+        // Merge attribute maps
+        n.data().insert(ol.data().begin(), ol.data().end());
+        m_vgraph->addVNode(layer.id(), n);
     }
 }
 
@@ -206,12 +222,12 @@ bool ComponentExtractor::layout()
             vn.setId(static_cast<oid_t>(vnPair.second));
             vn.data()[Attrs::V[VNodeAttr::LAYERPOS]].SetLongVoid(lp.second);
             vn.data()[Attrs::V[VNodeAttr::SLICEPOS]].SetLongVoid(lCount);
-            vn.data()[Attrs::V[VNodeAttr::SIZE]].SetDoubleVoid(NODE_SIZE);
-            vn.data()[Attrs::V[VNodeAttr::COLOR]].SetStringVoid(NODE_COLOR);
             vn.data()[Attrs::V[VNodeAttr::X]].SetLongVoid(lCount * NODE_X_SPACING);
-
             int64_t baseId = vn.data()[Attrs::V[VNodeAttr::BASEID]].GetLong();
             vn.data()[Attrs::V[VNodeAttr::Y]].SetLongVoid(yCoordMap.at(baseId) * NODE_Y_SPACING);
+
+            // vn.data()[Attrs::V[VNodeAttr::SIZE]].SetDoubleVoid(NODE_SIZE);
+            // vn.data()[Attrs::V[VNodeAttr::COLOR]].SetStringVoid(NODE_COLOR);
         }
         ++lCount;
         ++display;

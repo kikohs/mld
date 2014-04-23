@@ -72,8 +72,9 @@ include_directories( ${Boost_INCLUDE_DIRS} )
 
 ## SPARKSEE
 if( NOT SPARKSEE_ROOT_DIR )
-    if( EXISTS ${3RDPARTY_DIR}/sparkseecpp-5.0.0/ )
-        set( SPARKSEE_ROOT_DIR ${3RDPARTY_DIR}/sparkseecpp-5.0.0 CACHE PATH "Location of SPARKSEE root folder" )
+    set( SPARKSEE_DIR_NAME sparkseecpp-5.0.0 )  # change name here
+    if( EXISTS ${3RDPARTY_DIR}/${SPARKSEE_DIR_NAME}/ )
+        set( SPARKSEE_ROOT_DIR ${3RDPARTY_DIR}/${SPARKSEE_DIR_NAME} CACHE PATH "Location of SPARKSEE root folder" )
     else()
         message( FATAL " Unable to find SPARKSEE root directory" )
     endif()
@@ -113,13 +114,23 @@ file( COPY ${SPARKSEE_LIB_FILES} DESTINATION ${LIBRARY_OUTPUT_PATH} )
 if( USE_JSON )
     message( STATUS "Using json_spirit" )
     add_definitions( -DMLD_USE_JSON )
-    add_definitions( -DJSON_SPIRIT_WMVALUE_ENABLED )
     if( JSON_SPIRIT_ROOT )  # if overriden by user
+        add_definitions( -DJSON_SPIRIT_WMVALUE_ENABLED )
         set( JSON_SPIRIT_INCLUDE_DIR ${JSON_SPIRIT_ROOT}/include )
         set( JSON_SPIRIT_LIB_DIR ${JSON_SPIRIT_ROOT}/lib )
         link_directories( ${JSON_SPIRIT_LIB_DIR} )
+        set( JSON_SPIRIT_LIBRARIES -ljson_spirit )
+    else()
+        set( JSON_SPIRIT_DIR ${3RDPARTY_DIR}/json-spirit-4.0.7/ )
+        if( EXISTS ${JSON_SPIRIT_DIR} )
+            add_subdirectory( ${JSON_SPIRIT_DIR} )
+            include_directories( ${JSON_SPIRIT_DIR}/json_spirit )
+            set( JSON_SPIRIT_LIBRARIES json_spirit )
+        else()
+            message( FATAL " Unable to find JSON_SPIRIT root directory" ${JSON_SPIRIT_DIR} )
+        endif()
     endif()
-    set( JSON_SPIRIT_LIBRARIES -ljson_spirit )
+
 endif()
 
 #
