@@ -68,7 +68,7 @@ bool ComponentExtractor::createVGraph()
 
     // Get base layer thresholded nodes and hlinks
     ObjectsPtr currentNodes(filterNodes(layers.at(0), m_alpha));
-    ObjectsPtr currentHlinks(m_dao->graph()->Explode(currentNodes.get(), m_dao->hlinkType(), Any));
+    ObjectsPtr currentHlinks(m_dao->graph()->Explode(currentNodes.get(), m_dao->hlinkType(), Outgoing));
 
     ProgressDisplay display(layers.size());
 
@@ -92,7 +92,7 @@ bool ComponentExtractor::createVGraph()
         addVirtualSelfVLinks(layers.at(i-1), layers.at(i), commonNodes);
 
         // Get HLinks for next layer on thresholded nodes
-        ObjectsPtr nextHlinks(m_dao->graph()->Explode(nextNodes.get(), m_dao->hlinkType(), Any));
+        ObjectsPtr nextHlinks(m_dao->graph()->Explode(nextNodes.get(), m_dao->hlinkType(), Outgoing));
         // Get common hlinks
         ObjectsPtr commonHl(Objects::CombineIntersection(currentHlinks.get(), nextHlinks.get()));
         ObjectsIt it(commonHl->Iterator());
