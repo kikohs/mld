@@ -53,14 +53,14 @@ namespace gdb {
 
 namespace mld {
 
-class VirtualGraph;
+class DynamicGraph;
 
 typedef std::shared_ptr<sparksee::gdb::Objects> ObjectsPtr;
 typedef std::unique_ptr<sparksee::gdb::ObjectsIterator> ObjectsIt;
 typedef std::unique_ptr<sparksee::gdb::AttributeList> AttributeListPtr;
 typedef std::unique_ptr<sparksee::gdb::AttributeListIterator> AttributeListIt;
 
-using VirtualGraphPtr = std::shared_ptr<VirtualGraph>;
+using DynGraphPtr = std::shared_ptr<DynamicGraph>;
 
 static const double HLINK_DEF_VALUE = 1.0;
 static const double VLINK_DEF_VALUE = 1.0;

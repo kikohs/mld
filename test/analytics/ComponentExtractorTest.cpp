@@ -27,7 +27,7 @@
 
 #include <mld/dao/MLGDao.h>
 #include <mld/analytics/ComponentExtractor.h>
-#include <mld/model/VirtualGraph.h>
+#include <mld/model/DynamicGraph.h>
 #include <mld/io/GraphExporter.h>
 
 using namespace mld;
@@ -87,7 +87,7 @@ TEST( ComponentExtractorTest, ExtractComponentGraph )
     bool ok = extract->run();
     EXPECT_TRUE(ok);
 
-    VirtualGraphPtr vgraph = extract->vgraph();
+    DynGraphPtr vgraph = extract->dynGraph();
     if( !vgraph ) {
         LOG(logERROR) << "Vgraph is null";
         EXPECT_TRUE(false);
@@ -98,11 +98,31 @@ TEST( ComponentExtractorTest, ExtractComponentGraph )
     EXPECT_EQ(uint32_t(5), boost::num_vertices(d));
     EXPECT_EQ(uint32_t(5), boost::num_edges(d));
 
+    // Node n2_l2 should be in the graph
+    ok = vgraph->exist(l4.id(), n3.id());
+    EXPECT_TRUE(ok);
+
+    // Valid ids but under threshold
+    ok = vgraph->exist(l4.id(), n2.id());
+    EXPECT_FALSE(ok);
+
+    auto vn2 = vgraph->getNode(l2.id(), n2.id());
+    EXPECT_TRUE(vn2.second);
+    EXPECT_DOUBLE_EQ(-5, vn2.first.weight());
+
+    // Test with invalid data
+    auto vnInvalid = vgraph->getNode(8, n2.id());
+    EXPECT_FALSE(vnInvalid.second);
+
+    vnInvalid = vgraph->getNode(l4.id(), 56);
+    EXPECT_FALSE(vnInvalid.second);
+
+
     // Export
     using Converter = std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>>;
     Converter converter;
 
-    ok = GraphExporter::exportVGraphAsJson(vgraph, converter.to_bytes(mld::kRESOURCES_DIR) + "mld_vgraph.json");
+    ok = GraphExporter::exportDynamicGraphAsJson(vgraph, converter.to_bytes(mld::kRESOURCES_DIR) + "mld_vgraph_test.json");
     EXPECT_TRUE(ok);
 
     extract.reset();

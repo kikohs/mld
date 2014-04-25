@@ -16,8 +16,8 @@
 **
 ****************************************************************************/
 
-#ifndef MLD_VIRTUALGRAPH_H
-#define MLD_VIRTUALGRAPH_H
+#ifndef MLD_DYNAMICGRAPH_H
+#define MLD_DYNAMICGRAPH_H
 
 #include <unordered_map>
 #include <boost/graph/adjacency_list.hpp>
@@ -27,40 +27,42 @@
 
 namespace mld {
 
-//using VNode = std::pair<sparksee::gdb::oid_t, Node>;
-using VNode = Node;
-using VGraph = boost::adjacency_list<boost::vecS, // edge container
+using DyNode = Node;
+using DyGraph = boost::adjacency_list<boost::vecS, // edge container
                                      boost::vecS, // node container
-                                     boost::undirectedS, // type of the graph
-                                     VNode, // VertexType
+                                     boost::directedS, // type of the graph
+                                     DyNode, // VertexType
                                      boost::no_property>;
 
-using VNodeId = VGraph::vertex_descriptor;
-using VEdgeId = VGraph::edge_descriptor;
-using VGraphTraits = boost::graph_traits<VGraph>;
-using VAdjIter = VGraphTraits::adjacency_iterator;
-using VOutEdgeIter = VGraphTraits::out_edge_iterator;
-using VEdgeIter = VGraphTraits::edge_iterator;
-using VNodeIter = VGraphTraits::vertex_iterator;
-using VIndexMap = boost::property_map<VGraph, boost::vertex_index_t>::type;
+using DyNodeId = DyGraph::vertex_descriptor;
+using DyEdgeId = DyGraph::edge_descriptor;
+using DyGraphTraits = boost::graph_traits<DyGraph>;
+using DyAdjIter = DyGraphTraits::adjacency_iterator;
+using DyOutEdgeIter = DyGraphTraits::out_edge_iterator;
+using DyEdgeIter = DyGraphTraits::edge_iterator;
+using DyNodeIter = DyGraphTraits::vertex_iterator;
+using DyIndexMap = boost::property_map<DyGraph, boost::vertex_index_t>::type;
 
-/// Map Node oid to boost VGraph
-using LayerIndex = std::unordered_map<sparksee::gdb::oid_t, VNodeId>;
+/// Map Node oid to VNodeId
+using LayerIndex = std::unordered_map<sparksee::gdb::oid_t, DyNodeId>;
 /// Map Layer to LayerIndex in order
 using GraphIndex = std::unordered_map<sparksee::gdb::oid_t, LayerIndex>;
 /// Map layers id to their respective index to their position (base is 0 for instance)
 using LayerMap = std::map<sparksee::gdb::oid_t, int64_t>;
 
-class MLD_API VirtualGraph
+class MLD_API DynamicGraph
 {
 public:
-    VirtualGraph();
-    void addVNode( sparksee::gdb::oid_t layer, const Node& vn );
-    void addVEdge( sparksee::gdb::oid_t lSrc, sparksee::gdb::oid_t src,
+    DynamicGraph();
+    void addDyNode( sparksee::gdb::oid_t layer, const Node& vn );
+    void addDyEdge( sparksee::gdb::oid_t lSrc, sparksee::gdb::oid_t src,
                    sparksee::gdb::oid_t lTgt, sparksee::gdb::oid_t tgt );
 
-    inline VGraph& data() { return m_g; }
-    inline const VGraph& data() const { return m_g; }
+    std::pair<DyNode, bool> getNode( sparksee::gdb::oid_t layer, sparksee::gdb::oid_t src );
+    bool exist( sparksee::gdb::oid_t layer, sparksee::gdb::oid_t src );
+
+    inline DyGraph& data() { return m_g; }
+    inline const DyGraph& data() const { return m_g; }
 
     inline GraphIndex& index() { return m_index; }
     inline const GraphIndex& index() const { return m_index; }
@@ -69,11 +71,12 @@ public:
     inline const LayerMap& layerMap() const { return m_layerMap; }
 
 private:
+    int64_t m_layerLastPos;
     GraphIndex m_index;
-    VGraph m_g;
+    DyGraph m_g;
     LayerMap m_layerMap;
 };
 
 } // end namespace mld
 
-#endif // MLD_VIRTUALGRAPH_H
+#endif // MLD_DYNAMICGRAPH_H

@@ -49,7 +49,7 @@ public:
      * @param filename
      * @return success
      */
-    static bool exportVGraphAsJson( const VirtualGraphPtr& vgraph, const std::string& filename );
+    static bool exportDynamicGraphAsJson( const DynGraphPtr& vgraph, const std::string& filename );
 
 private:
     static bool writeTSNodes( MLGDao& dao,

@@ -96,7 +96,7 @@ int main( int argc, char *argv[] )
         return EXIT_FAILURE;
     }
 
-    if( !GraphExporter::exportVGraphAsJson(extractor->vgraph(), ctx.outName) ) {
+    if( !GraphExporter::exportDynamicGraphAsJson(extractor->dynGraph(), ctx.outName) ) {
         LOG(logERROR) << "Export TS virtual graph failed";
         return EXIT_FAILURE;
     }

@@ -158,7 +158,7 @@ struct MLD_API CLinkAttr
     };
 };
 
-struct MLD_API VNodeAttr
+struct MLD_API DyNodeAttr
 {
     enum Attrs
     {
@@ -171,7 +171,8 @@ struct MLD_API VNodeAttr
         SIZE,
         COLOR,
         INPUTID,
-        VNODEATTR_MAX
+        PATTERNID,
+        DYNODEATTR_MAX
     };
 };
 

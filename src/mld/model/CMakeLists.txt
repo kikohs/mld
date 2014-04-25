@@ -5,7 +5,7 @@ set( MODEL_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/Node.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Link.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/TimeSeries.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/VirtualGraph.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/DynamicGraph.cpp
 )
 
 # Add to global variable
@@ -18,7 +18,7 @@ set( MODEL_PUBLIC_HDRS
     Node.h
     Link.h
     TimeSeries.h
-    VirtualGraph.h
+    DynamicGraph.h
 )
 
 set( MODEL_PUB_HDRS_DIR

@@ -34,7 +34,7 @@ namespace mld {
 
 class MLGDao;
 class Layer;
-class VirtualGraph;
+class DynamicGraph;
 
 class MLD_API ComponentExtractor
 {
@@ -46,20 +46,45 @@ public:
     ~ComponentExtractor();
 
     inline void setOverrideThreshold( bool override, double value ) { m_override = override; m_alpha = value; }
+    /**
+     * @brief Run the component extractor algorithm:
+     * - createDynamicGraph
+     * - extractPatterns
+     * - layout graph
+     * @return success
+     */
     bool run();
 
-    inline VirtualGraphPtr vgraph() const { return m_vgraph; }
+    inline DynGraphPtr dynGraph() const { return m_dg; }
 
 private:
-    bool createVGraph();
-    bool layout();
+    /**
+     * @brief Create dynamic graph of nodes, each active node on a layer t is connected
+     * to its neighbors only if the neighbors are themselves activated on layer t+1.
+     * Note: to be active, a node should its current weight (the associated OLink weight)
+     * above a threshold, given by the user or calculated via computeThreshold.
+     * The graph minimal degree is 1.
+     * @return success
+     */
+    bool createDynamicGraph();
 
-    void addVirtualNodes( const Layer& layer, const ObjectsPtr& nodes );
-    void addVirtualSelfVLinks( const Layer& lSrc, const Layer& lTgt, const ObjectsPtr& nodes );
+    void addSelfDyEdges( const Layer& lSrc, const Layer& lTgt, const ObjectsPtr& nodes );
+
+    /**
+     * @brief Add edge between 2 node and create Node if it does not exist
+     * @param lSrc
+     * @param src
+     * @param lTgt
+     * @param tgt
+     */
+    void addSafeDyEdge( sparksee::gdb::oid_t lSrc, sparksee::gdb::oid_t src,
+                       sparksee::gdb::oid_t lTgt, sparksee::gdb::oid_t tgt );
+
 
     /**
      * @brief Compute threashold if not overrided by user
-     * @return
+     * By default, it is equal to 0.5 * max(abs(X)). Where is X is the vector of olink weights.
+     * @return threshold
      */
     double computeThreshold();
 
@@ -72,11 +97,14 @@ private:
      */
     ObjectsPtr filterNodes( const Layer& layer, double threshold );
 
+    bool extractPatterns();
+    bool layout();
+
 private:
     std::unique_ptr<MLGDao> m_dao;
     bool m_override;
     double m_alpha;
-    VirtualGraphPtr m_vgraph;
+    DynGraphPtr m_dg;
 };
 
 } // end namespace mld

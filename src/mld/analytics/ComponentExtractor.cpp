@@ -21,7 +21,7 @@
 
 #include "mld/analytics/ComponentExtractor.h"
 #include "mld/dao/MLGDao.h"
-#include "mld/model/VirtualGraph.h"
+#include "mld/model/DynamicGraph.h"
 #include "mld/utils/Timer.h"
 #include "mld/utils/ProgressDisplay.h"
 
@@ -29,18 +29,92 @@ using namespace mld;
 using namespace sparksee::gdb;
 
 const int NODE_X_SPACING = 3;
-const int NODE_Y_SPACING = 5;
+const int NODE_Y_SPACING = 1;
 //const double NODE_SIZE = 5.0;
 //const std::wstring NODE_COLOR = L"#888";
 
 namespace {
+
+mld::Node createDyNode( oid_t lid, oid_t nid, MLGDao* dao )
+{
+    OLink ol(dao->getOLink(lid, nid));
+    mld::Node n(dao->getNode(nid));
+
+    // Set Node weight
+    n.setWeight(ol.weight());
+
+    // Remove weight attribute from olink
+    auto wIt = ol.data().find(Attrs::V[OLinkAttr::WEIGHT]);
+    if( wIt != ol.data().end() )
+        ol.data().erase(wIt);
+
+    // Merge attribute maps
+    n.data().insert(ol.data().begin(), ol.data().end());
+
+    return n;
+}
+
+// Label community with patternId from a starting node if nodes are not in the history
+void labelCommunity( DyNodeId nid, int32_t patternId, DyGraph& g, std::unordered_map<DyNodeId, bool>& history )
+{
+    DyOutNodeIter outNeighIt, outNeighEnd;
+
+    boost::tie(outNeighIt, outNeighEnd) = boost::adjacent_vertices(nid, g);
+
+    std::vector<DyNodeId> queue;
+    // Iter through neighbors to preload for a DFS search
+    for( ; outNeighIt != outNeighEnd; ++outNeighIt ) {
+        auto curNeigh = *outNeighIt;
+        queue.push_back(curNeigh);
+        DyNode& node = g[curNeigh];
+        node.data()[Attrs::V[DyNodeAttr::PATTERNID]].SetInteger(patternId);
+    }
+
+    // DO DFS
+    while( queue.size() != 0 ) {
+        DyNodeId current = queue.back();
+        queue.pop_back();
+
+        // Out edges
+        DyOutEdgeIter out_begin, out_end;
+        for( boost::tie(out_begin, out_end) = boost::out_edges(current, g); out_begin != out_end; ++out_begin ) {
+            auto curNeigh = boost::target(*out_begin, g);
+            // If node not found in history
+            auto it = history.find(curNeigh);
+            if( it == history.end() ) {
+                history[curNeigh] = true;
+                queue.push_back(curNeigh);
+            }
+            DyNode& node = g[curNeigh];
+            node.data()[Attrs::V[DyNodeAttr::PATTERNID]].SetInteger(patternId);
+        }
+
+
+        // In edges
+        DyInEdgeIter in_begin, in_end;
+        for( boost::tie(in_begin, in_end) = boost::in_edges(current, g); in_begin != in_end; ++in_begin ) {
+            auto curNeigh = boost::source(*in_begin, g);
+            // If node not found in history
+            auto it = history.find(curNeigh);
+            if( it == history.end() ) {
+                history[curNeigh] = true;
+                queue.push_back(curNeigh);
+            }
+            // Update pattern id
+            DyNode& node = g[curNeigh];
+            node.data()[Attrs::V[DyNodeAttr::PATTERNID]].SetInteger(patternId);
+        }
+    }
+}
+
+
 } // end namespace anonymous
 
 ComponentExtractor::ComponentExtractor( Graph* g )
     : m_dao( new MLGDao(g) )
     , m_override(false)
     , m_alpha(0.0)
-    , m_vgraph(nullptr)
+    , m_dg(nullptr)
 {
 }
 
@@ -50,17 +124,19 @@ ComponentExtractor::~ComponentExtractor()
 
 bool ComponentExtractor::run()
 {
-    if( createVGraph() )
-        return layout();
+    if( createDynamicGraph() ) {
+        if( extractPatterns() )
+            return layout();
+    }
 
     return false;
 }
 
-bool ComponentExtractor::createVGraph()
+bool ComponentExtractor::createDynamicGraph()
 {
-    std::unique_ptr<Timer> t(new Timer("Extracting virtual graph"));
-    LOG(logINFO) << "Extracting virtual graph";
-    m_vgraph.reset( new VirtualGraph );
+    std::unique_ptr<Timer> t(new Timer("Extracting dynamic graph"));
+    LOG(logINFO) << "Extracting dynamic graph";
+    m_dg.reset( new DynamicGraph );
     if( !m_override )
         m_alpha = computeThreshold();
 
@@ -72,24 +148,14 @@ bool ComponentExtractor::createVGraph()
 
     ProgressDisplay display(layers.size());
 
-    if( currentNodes->Count() != 0 )
-        m_vgraph->layerMap()[layers.at(0).id()] = 0;
-
-    addVirtualNodes(layers.at(0), currentNodes);
     ++display;
 
     for( size_t i = 1; i < layers.size(); ++i ) {
         ObjectsPtr nextNodes(filterNodes(layers.at(i), m_alpha));
 
-        // Add next layer nodes in virtual graph
-        if( nextNodes->Count() != 0 )
-            m_vgraph->layerMap()[layers.at(i).id()] = i;
-
-        addVirtualNodes(layers.at(i), nextNodes);
-
         // Add self vlinks between nodes activated in the two layers
         ObjectsPtr commonNodes(Objects::CombineIntersection(currentNodes.get(), nextNodes.get()));
-        addVirtualSelfVLinks(layers.at(i-1), layers.at(i), commonNodes);
+        addSelfDyEdges(layers.at(i-1), layers.at(i), commonNodes);
 
         // Get HLinks for next layer on thresholded nodes
         ObjectsPtr nextHlinks(m_dao->graph()->Explode(nextNodes.get(), m_dao->hlinkType(), Outgoing));
@@ -105,12 +171,12 @@ bool ComponentExtractor::createVGraph()
             // Create VLinks
             if( currentNodes->Exists(src) ) {
                 if( nextNodes->Exists(tgt) )
-                    m_vgraph->addVEdge(layers.at(i-1).id(), src, layers.at(i).id(), tgt);
+                    addSafeDyEdge(layers.at(i-1).id(), src, layers.at(i).id(), tgt);
             }
 
             if( currentNodes->Exists(tgt) ) {
                 if( nextNodes->Exists(src) )
-                    m_vgraph->addVEdge(layers.at(i-1).id(), tgt, layers.at(i).id(), src);
+                    addSafeDyEdge(layers.at(i-1).id(), tgt, layers.at(i).id(), src);
             }
         }
         // Switch to next layer
@@ -123,35 +189,29 @@ bool ComponentExtractor::createVGraph()
     return true;
 }
 
-void ComponentExtractor::addVirtualNodes( const Layer& layer, const ObjectsPtr& nodes )
+void ComponentExtractor::addSelfDyEdges( const Layer& lSrc, const Layer& lTgt, const ObjectsPtr& nodes )
 {
     ObjectsIt it(nodes->Iterator());
     while( it->HasNext() ) {
         auto nid = it->Next();
-        OLink ol(m_dao->getOLink(layer.id(), nid));
-        Node n(m_dao->getNode(nid));
-
-        // Set Node weight
-        n.setWeight(ol.weight());
-
-        // Remove weight attribute from olink
-        auto wIt = ol.data().find(Attrs::V[OLinkAttr::WEIGHT]);
-        if( wIt != ol.data().end() )
-            ol.data().erase(wIt);
-
-        // Merge attribute maps
-        n.data().insert(ol.data().begin(), ol.data().end());
-        m_vgraph->addVNode(layer.id(), n);
+        addSafeDyEdge(lSrc.id(), nid, lTgt.id(), nid);
     }
 }
 
-void ComponentExtractor::addVirtualSelfVLinks( const Layer& lSrc, const Layer& lTgt, const ObjectsPtr& nodes )
+void ComponentExtractor::addSafeDyEdge( oid_t lSrc, oid_t src, oid_t lTgt, oid_t tgt )
 {
-    ObjectsIt it(nodes->Iterator());
-    while( it->HasNext() ) {
-        auto nid = it->Next();
-        m_vgraph->addVEdge(lSrc.id(), nid, lTgt.id(), nid);
+    // Check source
+    if( !m_dg->exist(lSrc, src) ) {
+        m_dg->addDyNode(lSrc, createDyNode(lSrc, src, m_dao.get()));
     }
+
+    // Check target
+    if( !m_dg->exist(lTgt, tgt) ) {
+        m_dg->addDyNode(lTgt, createDyNode(lTgt, tgt, m_dao.get()));
+    }
+
+    //  Add edge
+    m_dg->addDyEdge(lSrc, src, lTgt, tgt);
 }
 
 double ComponentExtractor::computeThreshold()
@@ -183,48 +243,70 @@ ObjectsPtr ComponentExtractor::filterNodes( const Layer& layer, double threshold
     return ObjectsPtr(m_dao->graph()->Heads(filterOl.get()));
 }
 
+bool ComponentExtractor::extractPatterns()
+{
+    DyGraph& g = m_dg->data();
+    // while node to process in dyngraph
+    // diffuse node (via DFS) in order and insert pattern Id in node data
+    // do not diffuse if already flagged with a pattern
+
+    std::unordered_map<DyNodeId, bool> history;
+
+    int32_t patternId = 0;
+    for( auto vp = boost::vertices(g); vp.first != vp.second; ++vp.first ) {
+        DyNodeId nid = *vp.first;
+        auto it = history.find(nid);
+        if( it != history.end() ) // skip if node is already in the history
+            continue;
+
+        // add in history
+        history[nid] = true;
+        labelCommunity(nid, patternId, g, history);
+        // inc pattern num
+        patternId++;
+    }
+
+    m_dg->setPatternCount(patternId + 1);
+    return true;
+}
+
 bool ComponentExtractor::layout()
 {
-    std::unique_ptr<Timer> t(new Timer("Layouting virtual graph"));
-    LOG(logINFO) << "Layouting virtual graph";
-    if( !m_vgraph ) {
+    std::unique_ptr<Timer> t(new Timer("Layouting dynamic graph"));
+    LOG(logINFO) << "Layouting dynamic graph";
+    if( !m_dg ) {
         LOG(logERROR) << "ComponentExtractor::layout: vgraph is null";
         return false;
     }
 
-    VGraph& g = m_vgraph->data();
-    GraphIndex& gIdx = m_vgraph->index();
-
-    ProgressDisplay display(gIdx.size() + boost::num_vertices(g));
+    DyGraph& g = m_dg->data();
+    GraphIndex& gIdx = m_dg->index();
 
     // Loop through all unique base_id to layout the y coordinate
     std::unordered_map<int64_t, int64_t> yCoordMap;
-    VIndexMap vindex = boost::get(boost::vertex_index, g);
+    Layer base(m_dao->baseLayer());
+    ObjectsPtr ids(m_dao->getAllNodeIds(base));
 
-    int64_t yCount = 0;
-    for( auto vp = boost::vertices(g); vp.first != vp.second; ++vp.first ) {
-        VNode& n = g[vindex[*vp.first]];
-        int64_t baseId = n.data()[Attrs::V[VNodeAttr::BASEID]].GetLong();
-        auto it = yCoordMap.find(baseId);
-        if( it == yCoordMap.end() ) {
-            yCoordMap[baseId] = yCount;
-            yCount++;
-        }
-        ++display;
+    auto it = ids->Iterator();
+    int64_t y = 0;
+    while( it->HasNext() ) {
+        int64_t nid = static_cast<int64_t>(it->Next());
+        yCoordMap[nid] = y++;
     }
 
+    ProgressDisplay display(gIdx.size());
     // Loop through all layers to set the rest of the properties
     uint32_t lCount = 0;
-    for( auto& lp: m_vgraph->layerMap() ) {  // iterate through layer in correct order
+    for( auto& lp: m_dg->layerMap() ) {  // iterate through layer in correct order
         for( auto& vnPair: gIdx.at(lp.first) ) { // for each layer in index
-            VNode& vn = g[vnPair.second]; // get bundled property
+            DyNode& vn = g[vnPair.second]; // get bundled property
             // override id with VGraph NodeId
             vn.setId(static_cast<oid_t>(vnPair.second));
-            vn.data()[Attrs::V[VNodeAttr::LAYERPOS]].SetLongVoid(lp.second);
-            vn.data()[Attrs::V[VNodeAttr::SLICEPOS]].SetLongVoid(lCount);
-            vn.data()[Attrs::V[VNodeAttr::X]].SetLongVoid(lCount * NODE_X_SPACING);
-            int64_t baseId = vn.data()[Attrs::V[VNodeAttr::BASEID]].GetLong();
-            vn.data()[Attrs::V[VNodeAttr::Y]].SetLongVoid(yCoordMap.at(baseId) * NODE_Y_SPACING);
+            vn.data()[Attrs::V[DyNodeAttr::LAYERPOS]].SetLongVoid(lp.second);
+            vn.data()[Attrs::V[DyNodeAttr::SLICEPOS]].SetLongVoid(lCount);
+            vn.data()[Attrs::V[DyNodeAttr::X]].SetLongVoid(lCount * NODE_X_SPACING);
+            int64_t baseId = vn.data()[Attrs::V[DyNodeAttr::BASEID]].GetLong();
+            vn.data()[Attrs::V[DyNodeAttr::Y]].SetLongVoid(yCoordMap.at(baseId) * NODE_Y_SPACING);
 
             // vn.data()[Attrs::V[VNodeAttr::SIZE]].SetDoubleVoid(NODE_SIZE);
             // vn.data()[Attrs::V[VNodeAttr::COLOR]].SetStringVoid(NODE_COLOR);

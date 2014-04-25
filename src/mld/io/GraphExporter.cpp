@@ -34,7 +34,7 @@
 #include "mld/dao/MLGDao.h"
 #include "mld/dao/LinkDao.h"
 #include "mld/SparkseeManager.h"
-#include "mld/model/VirtualGraph.h"
+#include "mld/model/DynamicGraph.h"
 
 #include "mld/utils/Timer.h"
 #include "mld/utils/ProgressDisplay.h"
@@ -76,7 +76,7 @@ std::wstring convertValueToWString( const Value& v )
 
 #ifdef MLD_USE_JSON
 
-void writeVNode( js::wmArray& nodes, const mld::Node& n )
+void writeDyNode( js::wmArray& nodes, const mld::Node& n )
 {
     js::wmObject nodeObj;
     auto it = n.data().find(L"id");
@@ -100,24 +100,24 @@ void writeVNode( js::wmArray& nodes, const mld::Node& n )
         else if( kv.first == Attrs::V[NodeAttr::WEIGHT] ) {
             nodeObj[L"weight"] = kv.second.GetDouble();
         }
-        else if( kv.first == Attrs::V[VNodeAttr::LAYERID] ) {
+        else if( kv.first == Attrs::V[DyNodeAttr::LAYERID] ) {
             // nodeObj[L"layer_id"] = kv.second.GetLong();
             ;  // do not export
         }
-        else if( kv.first == Attrs::V[VNodeAttr::BASEID] ) {
+        else if( kv.first == Attrs::V[DyNodeAttr::BASEID] ) {
             // nodeObj[L"base_id"] = kv.second.GetLong();
             ;  // do not export
         }
-        else if( kv.first == Attrs::V[VNodeAttr::LAYERPOS] ) {
+        else if( kv.first == Attrs::V[DyNodeAttr::LAYERPOS] ) {
             nodeObj[L"layer_pos"] = kv.second.GetLong();
         }
-        else if( kv.first == Attrs::V[VNodeAttr::SLICEPOS] ) {
+        else if( kv.first == Attrs::V[DyNodeAttr::SLICEPOS] ) {
             nodeObj[L"slice_pos"] = kv.second.GetLong();
         }
-        else if( kv.first == Attrs::V[VNodeAttr::X] ) {
+        else if( kv.first == Attrs::V[DyNodeAttr::X] ) {
             nodeObj[L"x"] = kv.second.GetLong();
         }
-        else if( kv.first == Attrs::V[VNodeAttr::Y] ) {
+        else if( kv.first == Attrs::V[DyNodeAttr::Y] ) {
             nodeObj[L"y"] = kv.second.GetLong();
         }
 //        else if( kv.first == Attrs::V[VNodeAttr::SIZE] ) {
@@ -126,8 +126,11 @@ void writeVNode( js::wmArray& nodes, const mld::Node& n )
 //        else if( kv.first == Attrs::V[VNodeAttr::COLOR] ) {
 //            nodeObj[L"color"] = kv.second.GetString();
 //        }
-        else if( kv.first == Attrs::V[VNodeAttr::INPUTID] ) {
+        else if( kv.first == Attrs::V[DyNodeAttr::INPUTID] ) {
             nodeObj[L"input_id"] = kv.second.GetString();
+        }
+        else if( kv.first == Attrs::V[DyNodeAttr::PATTERNID] ) {
+            nodeObj[L"pattern_id"] = kv.second.GetInteger();
         }
         else {
             nodeObj[kv.first] = convertValueToWString(kv.second);
@@ -138,7 +141,7 @@ void writeVNode( js::wmArray& nodes, const mld::Node& n )
     nodes.push_back(nodeObj);
 }
 
-void writeVEdge( js::wmArray& edges, const uint32_t eid, const VNodeId src, const VNodeId tgt )
+void writeDyEdge( js::wmArray& edges, const uint32_t eid, const DyNodeId src, const DyNodeId tgt )
 {
     js::wmObject edgeObj;
     edgeObj[L"source"] = std::to_wstring(static_cast<int>(src));
@@ -329,25 +332,25 @@ bool GraphExporter::writeTSEdges( MLGDao& dao, const std::string& edgePath, RInd
     return true;
 }
 
-bool GraphExporter::exportVGraphAsJson( const VirtualGraphPtr& vgraph, const std::string& filename )
+bool GraphExporter::exportDynamicGraphAsJson( const DynGraphPtr& dyGraph, const std::string& filename )
 {
 #ifndef MLD_USE_JSON
-    LOG(logERROR) << "GraphExporter::exportVGraphAsJson:"
+    LOG(logERROR) << "GraphExporter::exportDynamicGraphAsJson:"
                      << "MLD_USE_JSON is not defined, please activate it via the project options";
     return false;
 #endif
 
-    std::unique_ptr<Timer> t(new Timer("Exporting VirtualGraph as json"));
-    LOG(logINFO) << "Exporting VirtualGraph as json to: " << filename;
+    std::unique_ptr<Timer> t(new Timer("Exporting Dynamic Graph as json"));
+    LOG(logINFO) << "Exporting Dynamic as json to: " << filename;
 
-    if( !vgraph ) {
-        LOG(logERROR) << "GraphExporter::exportVGraphAsJson vgraph is null";
+    if( !dyGraph ) {
+        LOG(logERROR) << "GraphExporter::exportDynamicGraphAsJson dynGraph is null";
         return false;
     }
 
     std::wofstream out(filename);
 
-    VGraph& g = vgraph->data();
+    DyGraph& g = dyGraph->data();
     auto numVertices = boost::num_vertices(g);
     auto numEdges = boost::num_edges(g);
 
@@ -358,25 +361,26 @@ bool GraphExporter::exportVGraphAsJson( const VirtualGraphPtr& vgraph, const std
     // General properties
     graphObj[L"node_count"] = static_cast<int64_t>(numVertices);
     graphObj[L"edge_count"] = static_cast<int64_t>(numEdges);
-    graphObj[L"layer_count"] = static_cast<int64_t>(vgraph->layerMap().size());
+    graphObj[L"layer_count"] = static_cast<int64_t>(dyGraph->layerMap().size());
+    graphObj[L"pattern_count"] = static_cast<int32_t>(dyGraph->patternCount());
 
     // Nodes
     js::wmArray nodes;
     // Iterate through nodes and serialize them into nodesObj
-    VIndexMap vindex = boost::get(boost::vertex_index, g);
+    const DyIndexMap& vindex = boost::get(boost::vertex_index, g);
 
     for( auto vp = boost::vertices(g); vp.first != vp.second; ++vp.first ) {
-        writeVNode(nodes, g[vindex[*vp.first]]);
+        writeDyNode(nodes, g[vindex[*vp.first]]);
         ++display;
     }
     graphObj[L"nodes"] = nodes;
 
     // Edges
     js::wmArray edges;
-    VEdgeIter ei, ei_end;
+    DyEdgeIter ei, ei_end;
     uint32_t edgeIdx = 0;
     for( boost::tie(ei, ei_end) = boost::edges(g); ei != ei_end; ++ei ) {
-        writeVEdge(edges, edgeIdx, vindex[boost::source(*ei, g)], vindex[boost::target(*ei, g)]);
+        writeDyEdge(edges, edgeIdx, vindex[boost::source(*ei, g)], vindex[boost::target(*ei, g)]);
         ++edgeIdx;
         ++display;
     }
