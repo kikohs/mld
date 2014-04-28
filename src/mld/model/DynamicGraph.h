@@ -71,12 +71,12 @@ public:
     inline LayerMap& layerMap() { return m_layerMap; }
     inline const LayerMap& layerMap() const { return m_layerMap; }
 
-    inline int32_t patternCount() const { return m_patternCount; }
-    void setPatternCount( int32_t count ) { m_patternCount = count; }
+    inline int32_t componentCount() const { return m_componentCount; }
+    void setComponentCount( int32_t count ) { m_componentCount = count; }
 
 private:
     int64_t m_layerLastPos;
-    int32_t m_patternCount;
+    int32_t m_componentCount;
     GraphIndex m_index;
     DyGraph m_g;
     LayerMap m_layerMap;

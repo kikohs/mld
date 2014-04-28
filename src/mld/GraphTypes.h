@@ -171,7 +171,8 @@ struct MLD_API DyNodeAttr
         SIZE,
         COLOR,
         INPUTID,
-        PATTERNID,
+        COMPONENTID,
+        COMPONENTNUM,
         DYNODEATTR_MAX
     };
 };

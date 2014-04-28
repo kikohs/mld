@@ -129,8 +129,11 @@ void writeDyNode( js::wmArray& nodes, const mld::Node& n )
         else if( kv.first == Attrs::V[DyNodeAttr::INPUTID] ) {
             nodeObj[L"input_id"] = kv.second.GetString();
         }
-        else if( kv.first == Attrs::V[DyNodeAttr::PATTERNID] ) {
-            nodeObj[L"pattern_id"] = kv.second.GetInteger();
+        else if( kv.first == Attrs::V[DyNodeAttr::COMPONENTID] ) {
+            nodeObj[L"component_id"] = kv.second.GetInteger();
+        }
+        else if( kv.first == Attrs::V[DyNodeAttr::COMPONENTNUM] ) {
+            nodeObj[L"component_num"] = kv.second.GetInteger();
         }
         else {
             nodeObj[kv.first] = convertValueToWString(kv.second);
@@ -362,7 +365,7 @@ bool GraphExporter::exportDynamicGraphAsJson( const DynGraphPtr& dyGraph, const 
     graphObj[L"node_count"] = static_cast<int64_t>(numVertices);
     graphObj[L"edge_count"] = static_cast<int64_t>(numEdges);
     graphObj[L"layer_count"] = static_cast<int64_t>(dyGraph->layerMap().size());
-    graphObj[L"pattern_count"] = static_cast<int32_t>(dyGraph->patternCount());
+    graphObj[L"component_count"] = static_cast<int32_t>(dyGraph->componentCount());
 
     // Nodes
     js::wmArray nodes;

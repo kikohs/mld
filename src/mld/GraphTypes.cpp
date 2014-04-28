@@ -49,7 +49,8 @@ Enum2Wstring Attrs::V {
     {DyNodeAttr::SIZE, L"MLD_DYNODE_SIZE"},
     {DyNodeAttr::COLOR, L"MLD_VNODE_COLOR"},
     {DyNodeAttr::INPUTID, L"MLD_DYNODE_INPUTID"},
-    {DyNodeAttr::PATTERNID, L"MLD_DYNODE_PATTERNID"},
+    {DyNodeAttr::COMPONENTID, L"MLD_DYNODE_COMPONENTID"},
+    {DyNodeAttr::COMPONENTID, L"MLD_DYNODE_COMPONENTNUM"},
 };
 
 } // end namespace mld

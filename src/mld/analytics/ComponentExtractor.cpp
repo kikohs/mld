@@ -33,6 +33,8 @@ const int NODE_Y_SPACING = 1;
 //const double NODE_SIZE = 5.0;
 //const std::wstring NODE_COLOR = L"#888";
 
+using ComponentHistory = std::map<DyNodeId, bool>;
+
 namespace {
 
 mld::Node createDyNode( oid_t lid, oid_t nid, MLGDao* dao )
@@ -55,7 +57,7 @@ mld::Node createDyNode( oid_t lid, oid_t nid, MLGDao* dao )
 }
 
 // Label community with patternId from a starting node if nodes are not in the history
-void labelCommunity( DyNodeId nid, int32_t patternId, DyGraph& g, std::unordered_map<DyNodeId, bool>& history )
+void labelCommunity( DyNodeId nid, int32_t componentNum, DyGraph& g, ComponentHistory& history )
 {
     DyOutNodeIter outNeighIt, outNeighEnd;
 
@@ -67,7 +69,8 @@ void labelCommunity( DyNodeId nid, int32_t patternId, DyGraph& g, std::unordered
         auto curNeigh = *outNeighIt;
         queue.push_back(curNeigh);
         DyNode& node = g[curNeigh];
-        node.data()[Attrs::V[DyNodeAttr::PATTERNID]].SetInteger(patternId);
+        node.data()[Attrs::V[DyNodeAttr::COMPONENTID]].SetInteger(nid);
+        node.data()[Attrs::V[DyNodeAttr::COMPONENTNUM]].SetInteger(componentNum);
     }
 
     // DO DFS
@@ -86,7 +89,8 @@ void labelCommunity( DyNodeId nid, int32_t patternId, DyGraph& g, std::unordered
                 queue.push_back(curNeigh);
             }
             DyNode& node = g[curNeigh];
-            node.data()[Attrs::V[DyNodeAttr::PATTERNID]].SetInteger(patternId);
+            node.data()[Attrs::V[DyNodeAttr::COMPONENTID]].SetInteger(nid);
+            node.data()[Attrs::V[DyNodeAttr::COMPONENTNUM]].SetInteger(componentNum);
         }
 
 
@@ -102,7 +106,8 @@ void labelCommunity( DyNodeId nid, int32_t patternId, DyGraph& g, std::unordered
             }
             // Update pattern id
             DyNode& node = g[curNeigh];
-            node.data()[Attrs::V[DyNodeAttr::PATTERNID]].SetInteger(patternId);
+            node.data()[Attrs::V[DyNodeAttr::COMPONENTID]].SetInteger(nid);
+            node.data()[Attrs::V[DyNodeAttr::COMPONENTNUM]].SetInteger(componentNum);
         }
     }
 }
@@ -125,7 +130,7 @@ ComponentExtractor::~ComponentExtractor()
 bool ComponentExtractor::run()
 {
     if( createDynamicGraph() ) {
-        if( extractPatterns() )
+        if( extractComponents() )
             return layout();
     }
 
@@ -171,12 +176,12 @@ bool ComponentExtractor::createDynamicGraph()
             // Create VLinks
             if( currentNodes->Exists(src) ) {
                 if( nextNodes->Exists(tgt) )
-                    addSafeDyEdge(layers.at(i-1).id(), src, layers.at(i).id(), tgt);
+                    addSafeDyEdge(layers.at(i-1), src, layers.at(i), tgt);
             }
 
             if( currentNodes->Exists(tgt) ) {
                 if( nextNodes->Exists(src) )
-                    addSafeDyEdge(layers.at(i-1).id(), tgt, layers.at(i).id(), src);
+                    addSafeDyEdge(layers.at(i-1), tgt, layers.at(i), src);
             }
         }
         // Switch to next layer
@@ -191,27 +196,29 @@ bool ComponentExtractor::createDynamicGraph()
 
 void ComponentExtractor::addSelfDyEdges( const Layer& lSrc, const Layer& lTgt, const ObjectsPtr& nodes )
 {
+    // TODO check layer group here, do not add if not in the same group
     ObjectsIt it(nodes->Iterator());
     while( it->HasNext() ) {
         auto nid = it->Next();
-        addSafeDyEdge(lSrc.id(), nid, lTgt.id(), nid);
+        addSafeDyEdge(lSrc, nid, lTgt, nid);
     }
 }
 
-void ComponentExtractor::addSafeDyEdge( oid_t lSrc, oid_t src, oid_t lTgt, oid_t tgt )
+void ComponentExtractor::addSafeDyEdge( const Layer& lSrc, oid_t src, const Layer& lTgt, oid_t tgt )
 {
+    // TODO check layer group here, do not add if not in the same group
     // Check source
-    if( !m_dg->exist(lSrc, src) ) {
-        m_dg->addDyNode(lSrc, createDyNode(lSrc, src, m_dao.get()));
+    if( !m_dg->exist(lSrc.id(), src) ) {
+        m_dg->addDyNode(lSrc.id(), createDyNode(lSrc.id(), src, m_dao.get()));
     }
 
     // Check target
-    if( !m_dg->exist(lTgt, tgt) ) {
-        m_dg->addDyNode(lTgt, createDyNode(lTgt, tgt, m_dao.get()));
+    if( !m_dg->exist(lTgt.id(), tgt) ) {
+        m_dg->addDyNode(lTgt.id(), createDyNode(lTgt.id(), tgt, m_dao.get()));
     }
 
     //  Add edge
-    m_dg->addDyEdge(lSrc, src, lTgt, tgt);
+    m_dg->addDyEdge(lSrc.id(), src, lTgt.id(), tgt);
 }
 
 double ComponentExtractor::computeThreshold()
@@ -243,16 +250,16 @@ ObjectsPtr ComponentExtractor::filterNodes( const Layer& layer, double threshold
     return ObjectsPtr(m_dao->graph()->Heads(filterOl.get()));
 }
 
-bool ComponentExtractor::extractPatterns()
+bool ComponentExtractor::extractComponents()
 {
     DyGraph& g = m_dg->data();
     // while node to process in dyngraph
     // diffuse node (via DFS) in order and insert pattern Id in node data
     // do not diffuse if already flagged with a pattern
 
-    std::unordered_map<DyNodeId, bool> history;
+    ComponentHistory history;
 
-    int32_t patternId = 0;
+    int32_t componentCount = 0;
     for( auto vp = boost::vertices(g); vp.first != vp.second; ++vp.first ) {
         DyNodeId nid = *vp.first;
         auto it = history.find(nid);
@@ -261,12 +268,13 @@ bool ComponentExtractor::extractPatterns()
 
         // add in history
         history[nid] = true;
-        labelCommunity(nid, patternId, g, history);
+        labelCommunity(nid, componentCount, g, history);
         // inc pattern num
-        patternId++;
+        componentCount++;
     }
 
-    m_dg->setPatternCount(patternId + 1);
+    LOG(logDEBUG) << "ComponentExtractor::extractComponents: " << componentCount + 1;
+    m_dg->setComponentCount(componentCount + 1);
     return true;
 }
 
