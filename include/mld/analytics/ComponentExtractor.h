@@ -61,7 +61,7 @@ private:
     /**
      * @brief Create dynamic graph of nodes, each active node on a layer t is connected
      * to its neighbors only if the neighbors are themselves activated on layer t+1.
-     * Note: to be active, a node should its current weight (the associated OLink weight)
+     * Note: to be active, a node should have its current weight (the associated OLink weight)
      * above a threshold, given by the user or calculated via computeThreshold.
      * The graph minimal degree is 1.
      * @return success
@@ -77,8 +77,8 @@ private:
      * @param lTgt
      * @param tgt
      */
-    void addSafeDyEdge( sparksee::gdb::oid_t lSrc, sparksee::gdb::oid_t src,
-                       sparksee::gdb::oid_t lTgt, sparksee::gdb::oid_t tgt );
+    void addSafeDyEdge( const Layer& lSrc, sparksee::gdb::oid_t src,
+                       const Layer& lTgt, sparksee::gdb::oid_t tgt );
 
 
     /**
@@ -97,7 +97,7 @@ private:
      */
     ObjectsPtr filterNodes( const Layer& layer, double threshold );
 
-    bool extractPatterns();
+    bool extractComponents();
     bool layout();
 
 private:

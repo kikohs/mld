@@ -34,6 +34,7 @@ std::wstring EdgeType::CHILD_OF(L"MLD_CHILD_OF");
 Enum2Wstring Attrs::V {
     {NodeAttr::WEIGHT, L"MLD_N_WEIGHT"},
     {NodeAttr::LABEL, L"MLD_N_LABEL"},
+    {NodeAttr::TSID, L"MLD_N_TSID"},
     {LayerAttr::IS_BASE, L"MLD_LAYER_IS_BASE"},
     {LayerAttr::DESCRIPTION, L"MLD_LAYER_DESCRIPTION"},
     {HLinkAttr::WEIGHT, L"MLD_HLINK_WEIGHT"},

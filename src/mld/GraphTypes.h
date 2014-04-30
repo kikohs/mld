@@ -105,6 +105,7 @@ struct MLD_API NodeAttr
     {
         WEIGHT,
         LABEL,
+        TSID,  // timeseries id
         NODEATTR_MAX
     };
 };

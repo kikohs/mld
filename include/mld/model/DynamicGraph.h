@@ -30,15 +30,16 @@ namespace mld {
 using DyNode = Node;
 using DyGraph = boost::adjacency_list<boost::vecS, // edge container
                                      boost::vecS, // node container
-                                     boost::directedS, // type of the graph
+                                     boost::bidirectionalS, // type of the graph
                                      DyNode, // VertexType
                                      boost::no_property>;
 
 using DyNodeId = DyGraph::vertex_descriptor;
 using DyEdgeId = DyGraph::edge_descriptor;
 using DyGraphTraits = boost::graph_traits<DyGraph>;
-using DyAdjIter = DyGraphTraits::adjacency_iterator;
+using DyOutNodeIter = DyGraphTraits::adjacency_iterator;
 using DyOutEdgeIter = DyGraphTraits::out_edge_iterator;
+using DyInEdgeIter = DyGraphTraits::in_edge_iterator;
 using DyEdgeIter = DyGraphTraits::edge_iterator;
 using DyNodeIter = DyGraphTraits::vertex_iterator;
 using DyIndexMap = boost::property_map<DyGraph, boost::vertex_index_t>::type;
@@ -70,8 +71,12 @@ public:
     inline LayerMap& layerMap() { return m_layerMap; }
     inline const LayerMap& layerMap() const { return m_layerMap; }
 
+    inline int32_t componentCount() const { return m_componentCount; }
+    void setComponentCount( int32_t count ) { m_componentCount = count; }
+
 private:
     int64_t m_layerLastPos;
+    int32_t m_componentCount;
     GraphIndex m_index;
     DyGraph m_g;
     LayerMap m_layerMap;

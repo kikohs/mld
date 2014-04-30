@@ -20,10 +20,16 @@
 #include <codecvt>
 #include <string>
 #include <fstream>
+#include <functional>
+#include <boost/bind.hpp>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/range/algorithm/remove_if.hpp>
 #include <sparksee/gdb/Objects.h>
+
+#ifdef MLD_USE_JSON
+    #include <json_spirit.h>
+#endif
 
 #include "mld/io/GraphImporter.h"
 #include "mld/GraphTypes.h"
@@ -35,6 +41,19 @@
 using namespace mld;
 using namespace sparksee::gdb;
 namespace ba = boost::algorithm;
+
+#ifdef MLD_USE_JSON
+namespace js = json_spirit;
+
+struct AugmentedGraph {
+    int tsCount;
+    int tsDataSize;
+    const js::wmArray& nodes;
+    const js::wmArray& edges;
+    const js::wmArray& ts;
+};
+
+#endif
 
 typedef std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> Converter;
 
@@ -76,6 +95,44 @@ std::vector<std::string> getNextLineAndSplitIntoTokens( std::istream& str )
     }
     return result;
 }
+
+#ifdef MLD_USE_JSON
+
+bool findValue( js::wmValue& out,
+                const std::wstring& name,
+                const js::wmObject& obj )
+{
+    js::wmObject::const_iterator i = obj.find( name );
+
+    if( i == obj.end() )
+        return false;
+
+    out = i->second;
+    return true;
+}
+
+
+AttrMap createNodeData( const js::wmValue& n )
+{
+    AttrMap res;
+    const js::wmObject& node = n.get_obj();
+
+    for( auto kv: node ) {
+
+        if( kv.first == L"label" ) {
+            res[Attrs::V[NodeAttr::LABEL]].SetStringVoid(kv.second.get_str());
+        }
+        else if( kv.first == L"weight" ) {
+            res[Attrs::V[NodeAttr::WEIGHT]].SetDoubleVoid(kv.second.get_real());
+        }
+        else {
+            res[kv.first].SetStringVoid(kv.second.get_str());
+        }
+    }
+    return res;
+}
+
+#endif
 
 } // end namespace anonymous
 
@@ -126,7 +183,7 @@ bool GraphImporter::fromSnapFormat( Graph* g, const std::string& filepath )
     return true;
 }
 
-bool GraphImporter::fromTimeSeries(sparksee::gdb::Graph* g, const std::string& nodePath,
+bool GraphImporter::fromTimeSeries( sparksee::gdb::Graph* g, const std::string& nodePath,
                                    const std::string& edgePath, bool autoCreateAttributes )
 {
     std::unique_ptr<Timer> t(new Timer("Importing TimeSeries graph"));
@@ -312,5 +369,165 @@ bool GraphImporter::importTSEdges( sparksee::gdb::Graph* g,
         dao.addHLink(indexMap.at(src), indexMap.at(tgt), hlinkData);
     }
     infile.close();
+    return true;
+}
+
+bool GraphImporter::fromTimeSeriesJson( Graph* g, const std::string& filename, bool autoCreateAttributes )
+{
+#ifndef MLD_USE_JSON
+    LOG(logERROR) << "GraphImporter::fromTimeSeriesJson MLD_USE_JSON not defined in the project options";
+    return false;
+#endif
+    std::unique_ptr<Timer> t(new Timer("Importing TimeSeries as json"));
+    LOG(logINFO) << "Importing TimeSeries graph dataset from json" << filename;
+
+    if( !g ) {
+        LOG(logERROR) << "GraphImporter::fromTimeSeriesJson graph is null";
+        return false;
+    }
+
+    std::wifstream in(filename);
+
+    js::wmValue root;
+    if( !js::read(in, root) ) {
+        LOG(logERROR) << "GraphImporter::fromTimeSeriesJson error parsing json";
+        return false;
+    }
+
+    js::wmObject& begin(root.get_obj());
+    js::wmValue k;
+
+    if( !findValue(k, L"nodes", begin) ) {
+        LOG(logERROR) << "GraphImporter::fromTimeSeriesJson cannot read: key:nodes";
+        return false;
+    }
+    const js::wmArray& nodes(k.get_array());
+
+    if( !findValue(k, L"edges", begin) ) {
+        LOG(logERROR) << "GraphImporter::fromTimeSeriesJson cannot read: key:edges";
+        return false;
+    }
+
+    const js::wmArray& edges(k.get_array());
+
+    if( !findValue(k, L"graph", begin) ) {
+        LOG(logERROR) << "GraphImporter::fromTimeSeriesJson cannot read: key:graph";
+        return false;
+    }
+
+//    js::wmObject& graphArray = k.get_array();
+//    if( !findValue(k, L"ts_count", graphArray) ) {
+//        LOG(logERROR) << "GraphImporter::fromTimeSeriesJson cannot read: key:ts_count";
+//        return false;
+//    }
+//    int tsCount = k.get_int();
+
+//    if( !findValue(k, L"ts_data_size", graphArray) ) {
+//        LOG(logERROR) << "GraphImporter::fromTimeSeriesJson cannot read: key:ts_size";
+//        return false;
+//    }
+
+//    int tsDataSize = k.get_int();
+
+//    if( !findValue(k, L"ts", graphArray) ) {
+//        LOG(logERROR) << "GraphImporter::fromTimeSeriesJson cannot read: key:ts";
+//        return false;
+//    }
+
+//    const js::wmArray& ts(k.get_array());
+
+    in.close();
+
+//    // Create layers
+//    MLGDao dao(g);
+//    Layer base(dao.addBaseLayer());
+
+//    std::vector<Layer> layers;
+//    layers.reserve(tsDataSize);
+//    layers.push_back(base);
+
+//    // Create all layers
+//    for( int i = 1; i < tsDataSize; ++i )
+//        layers.push_back(dao.addLayerOnTop());
+
+//    // Create node attributes if needed
+//    if( autoCreateAttributes ) {
+//        Converter converter; // string to wstring
+//        AttrMap nodeAttr(createNodeData(nodes.at(0)));
+//        for( auto kv: nodeAttr ) {
+
+//            auto it = std::find_if(Attrs::V.begin(), Attrs::V.end(),
+//                                   boost::bind(&Enum2Wstring::value_type::second, _1) == kv.first);
+//            // if node key is not already in the base scheme map
+//            if( it == Attrs::V.end() ) {
+//                if( !SparkseeManager::addAttrToNode(g, it->second, String, Indexed, Value().SetNull()) ) {
+//                    LOG(logERROR) << "GraphImporter::fromTimeSeriesJson: failed to add attribute "
+//                                  << converter.to_bytes(it->second) << " to Node";
+//                }
+//            }
+//        }
+//        // if we have more than 1 timeseries embedded in the augmented graph
+//        if( tsCount > 1 ) {
+//            if( !SparkseeManager::addAttrToNode(g, Attrs::V[NodeAttr::TSID], Integer, Indexed, Value().SetNull()) ) {
+//                LOG(logERROR) << "GraphImporter::fromTimeSeriesJson: failed to add attribute "
+//                              << converter.to_bytes(Attrs::V[NodeAttr::TSID]) << " to Node";
+//                return false;
+//            }
+//        }
+//    }
+
+//    // Map input ip, ts id, node oid
+//    std::unordered_map<size_t, std::unordered_map<int, Node>> multiIndexMap;
+
+//    // Create nodes
+//    for( size_t i = 0; i < nodes.size(); ++i ) {
+//        AttrMap nodeAttr(createNodeData(nodes.at(i)));
+//        for( int j = 0; j < tsCount; ++j ) {  // for each timeseries
+//            nodeAttr[Attrs::V[NodeAttr::TSID]].SetInteger(j);
+//            Node n(dao.addNodeToLayer(base, nodeAttr));
+//            multiIndexMap[i][j] = n;
+//        }
+//    }
+
+//    // Create edges
+//    for( size_t i = 0; i < edges.size(); ++i ) {
+//        const js::wmObject& edge = edges.at(i).get_obj();
+
+//        size_t source = edge.at(L"source").get_int();
+//        size_t target = edge.at(L"target").get_int();
+//        auto it = edge.find(L"weight");
+
+//        // Add weight if any
+//        AttrMap data;
+//        if( it != edge.end() ) {
+//           double weight = it->second.get_real();
+//           data[Attrs::V[HLinkAttr::WEIGHT]].SetDoubleVoid(weight);
+//        }
+
+//        // for each timeseries
+//        for( int j = 0; j < tsCount; ++j ) {
+//            Node& src(multiIndexMap.at(source).at(j));
+//            Node& tgt(multiIndexMap.at(target).at(j));
+//            dao.addHLink(src, tgt, data);  // add hlink
+//        }
+//    }
+
+//    // Add timeseries data
+//    for( size_t j = 0; j < ts.size(); ++j ) {
+//        double olWeight = ts.at(j).get_real();
+//        for( size_t i = 0; i < nodes.size(); ++i ) {
+//            if( i == 0 ) { // update existing olink
+//                OLink ol = dao.getOLink(layers.at(j).id(), multiIndexMap.at(i).at(j).id());
+//                ol.setWeight(olWeight);
+//                dao.updateOLink(ol);
+//            }
+//            else {  // Add new olinks
+//                AttrMap data;
+//                data[Attrs::V[OLinkAttr::WEIGHT]].SetDoubleVoid(olWeight);
+//                dao.addOLink(layers.at(j), multiIndexMap.at(i).at(j), data);
+//            }
+//        }
+//    }
+
     return true;
 }

@@ -66,8 +66,8 @@ bool parseOptions( int argc, char *argv[], InputContext& out )
         // Define a value argument and add it to the command line.
         ValueArg<std::string> nodeArg("n", "nodes", "nodes data filepath", true, "", "path");
         cmd.add(nodeArg);
-        ValueArg<std::string> edgeArg("e", "edges", "edges data filepath", true, "", "path");
-        cmd.add(edgeArg);
+//        ValueArg<std::string> edgeArg("e", "edges", "edges data filepath", true, "", "path");
+//        cmd.add(edgeArg);
         ValueArg<std::string> wdArg("d", "workDir", "MLD working directory",
                                     false, converter.to_bytes(mld::kRESOURCES_DIR), "path");
         cmd.add(wdArg);
@@ -76,7 +76,7 @@ bool parseOptions( int argc, char *argv[], InputContext& out )
 
         // Get the value parsed by each arg.
         out.nodePath = nodeArg.getValue();
-        out.edgePath = edgeArg.getValue();
+//        out.edgePath = edgeArg.getValue();
         out.workDir = converter.from_bytes(wdArg.getValue());
         out.dbName = extractDbName(converter.from_bytes(out.nodePath));
     } catch( ArgException& e ) {
@@ -100,7 +100,7 @@ int main( int argc, char *argv[] )
     sparksee::gdb::Graph* g = sess->GetGraph();
     m.createBaseScheme(g);
     sess->Begin();
-    if( !GraphImporter::fromTimeSeries(g, ctx.nodePath, ctx.edgePath) ) {
+    if( !GraphImporter::fromTimeSeriesJson(g, ctx.nodePath) ) {
         LOG(logERROR) << "Error parsing timeseries graph";
         sess->Commit();
         return EXIT_FAILURE;

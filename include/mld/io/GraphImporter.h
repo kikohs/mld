@@ -49,6 +49,9 @@ public:
     static bool fromTimeSeries( sparksee::gdb::Graph* g, const std::string& nodePath,
                                 const std::string& edgePath, bool autoCreateAttributes=true );
 
+    static bool fromTimeSeriesJson( sparksee::gdb::Graph* g, const std::string& filename,
+                                    bool autoCreateAttributes=true );
+
 private:
     static bool importTSNodes( sparksee::gdb::Graph* g,
                                const std::string& nodePath, IndexMap& indexMap, bool autoCreateAttributes );
