@@ -45,7 +45,7 @@ public:
     ComponentExtractor& operator=( ComponentExtractor ) = delete;
     ~ComponentExtractor();
 
-    inline void setOverrideThreshold( bool override, double value ) { m_override = override; m_alpha = value; }
+    inline void setOverrideThreshold( bool override, double value ) { m_override = override; m_alphaOverride = value; }
     /**
      * @brief Run the component extractor algorithm:
      * - createDynamicGraph
@@ -82,20 +82,21 @@ private:
 
 
     /**
-     * @brief Compute threashold if not overrided by user
-     * By default, it is equal to 0.5 * max(abs(X)). Where is X is the vector of olink weights.
+     * @brief Compute thresholds if not overrided by user
+     * By default, it is equal to 0.5 * max(abs(X)). Where is X is the vector of olink weights. for each tsgroup
      * @return threshold
      */
-    double computeThreshold();
+    std::vector<double> computeThresholds( const std::vector<TSGroupId>& groups = std::vector<TSGroupId>() );
 
     /**
      * @brief Filter nodes of a layer return only those whose TS value for the input layer
      * is above threshold or inferior to - threshold
      * @param layer Current layer
+     * @param Timeseries group
      * @param threshold
      * @return nodeset
      */
-    ObjectsPtr filterNodes( const Layer& layer, double threshold );
+    ObjectsPtr filterNodes( const Layer& layer, TSGroupId group, double threshold );
 
     bool extractComponents();
     bool layout();
@@ -103,7 +104,8 @@ private:
 private:
     std::unique_ptr<MLGDao> m_dao;
     bool m_override;
-    double m_alpha;
+    double m_alphaOverride;
+    std::vector<double> m_alphas;
     DynGraphPtr m_dg;
 };
 

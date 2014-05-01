@@ -48,7 +48,7 @@ namespace ba = boost::algorithm;
 #endif
 
 using Converter = std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>>;
-Converter converter;
+Converter gConverter;
 
 namespace {
 
@@ -99,6 +99,9 @@ void writeDyNode( js::wmArray& nodes, const mld::Node& n )
         }
         else if( kv.first == Attrs::V[NodeAttr::WEIGHT] ) {
             nodeObj[L"weight"] = kv.second.GetDouble();
+        }
+        else if( kv.first == Attrs::V[NodeAttr::TSID] ) {
+            nodeObj[L"ts_group_id"] = kv.second.GetInteger();
         }
         else if( kv.first == Attrs::V[DyNodeAttr::LAYERID] ) {
             // nodeObj[L"layer_id"] = kv.second.GetLong();

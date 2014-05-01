@@ -164,6 +164,7 @@ void SparkseeManager::createNodeTypes( Graph* g )
         nType = g->NewNodeType(NodeType::NODE);
         addAttr(g, NodeType::NODE, Attrs::V[NodeAttr::WEIGHT], Double, Indexed, val.SetDouble(NODE_DEF_VALUE));
         addAttr(g, NodeType::NODE, Attrs::V[NodeAttr::LABEL], String, Indexed, val.SetString(L""));
+        addAttr(g, NodeType::NODE, Attrs::V[NodeAttr::TSID], Integer, Indexed, val.SetInteger(0));
     }
 
     // Create Layer type

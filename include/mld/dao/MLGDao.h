@@ -279,6 +279,12 @@ public:
 
     LayerIdPair getLayerBounds( sparksee::gdb::oid_t source, TSDirection dir, size_t radius );
 
+    // Timeseries group methods
+    int64_t getTSGroupCount();
+    ObjectsPtr getBaseNodesByTSGroup( TSGroupId id );
+    ObjectsPtr getOLinksByTSGroup( TSGroupId id );
+    std::vector<TSGroupId> getAllTSGroupIds();
+
     // Forward to NodeDao
     void removeNode( sparksee::gdb::oid_t id );
     bool updateNode( Node& n );

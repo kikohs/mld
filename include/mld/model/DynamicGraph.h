@@ -84,4 +84,6 @@ private:
 
 } // end namespace mld
 
+std::ostream& operator<<( std::ostream& out, const mld::DynamicGraph& dg );
+
 #endif // MLD_DYNAMICGRAPH_H

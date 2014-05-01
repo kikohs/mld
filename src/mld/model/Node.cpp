@@ -49,3 +49,8 @@ void Node::setLabel( const std::wstring& label )
 {
     m_data[Attrs::V[NodeAttr::LABEL]].SetStringVoid(label);
 }
+
+void Node::setTSGroupId( TSGroupId id )
+{
+    m_data[Attrs::V[NodeAttr::TSID]].SetIntegerVoid(id);
+}

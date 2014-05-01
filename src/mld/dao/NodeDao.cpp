@@ -76,11 +76,18 @@ void NodeDao::removeNode( oid_t id )
     if( id == Objects::InvalidOID )
         return;
 
-    if( m_g->GetObjectType(id) != m_nType ) {
-        LOG(logERROR) << "NodeDao::removeNode oid is not a Node";
+    try {
+        if( m_g->GetObjectType(id) != m_nType ) {
+            LOG(logERROR) << "NodeDao::removeNode oid is not a Node";
+            return;
+        }
+    }
+    catch( Error& e ) {
+        LOG(logERROR) << "NodeDao::getNode id out of bound: " << e.Message();
         return;
     }
 #endif
+
 #ifdef MLD_SAFE
     try {
 #endif
@@ -103,8 +110,14 @@ mld::Node NodeDao::getNode( oid_t id )
     if( id == Objects::InvalidOID )
         return Node();
 
-    if( m_g->GetObjectType(id) != m_nType ) {
-        LOG(logERROR) << "NodeDao::getNode: " << id << " is not a Node";
+    try {
+        if( m_g->GetObjectType(id) != m_nType ) {
+            LOG(logERROR) << "NodeDao::getNode: " << id << " is not a Node";
+            return Node();
+        }
+    }
+    catch( Error& e ) {
+        LOG(logERROR) << "NodeDao::getNode id out of bound: " << e.Message();
         return Node();
     }
 #endif

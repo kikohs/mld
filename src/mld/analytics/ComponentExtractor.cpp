@@ -118,7 +118,7 @@ void labelCommunity( DyNodeId nid, int32_t componentNum, DyGraph& g, ComponentHi
 ComponentExtractor::ComponentExtractor( Graph* g )
     : m_dao( new MLGDao(g) )
     , m_override(false)
-    , m_alpha(0.0)
+    , m_alphas()
     , m_dg(nullptr)
 {
 }
@@ -130,8 +130,12 @@ ComponentExtractor::~ComponentExtractor()
 bool ComponentExtractor::run()
 {
     if( createDynamicGraph() ) {
-        if( extractComponents() )
-            return layout();
+        if( extractComponents() ) {
+            if( layout() ) {
+                LOG(logINFO) << *m_dg;
+                return true;
+            }
+        }
     }
 
     return false;
@@ -142,53 +146,59 @@ bool ComponentExtractor::createDynamicGraph()
     std::unique_ptr<Timer> t(new Timer("Extracting dynamic graph"));
     LOG(logINFO) << "Extracting dynamic graph";
     m_dg.reset( new DynamicGraph );
-    if( !m_override )
-        m_alpha = computeThreshold();
+    std::vector<TSGroupId> groups(m_dao->getAllTSGroupIds());
+    m_alphas = computeThresholds(groups);
 
+    LOG(logINFO) << "Computed thresholds";
+    for( auto v: m_alphas ) {
+        LOG(logINFO) << v;
+    }
+
+    LOG(logINFO) << "Start extracting active layers";
     auto layers = m_dao->getAllLayers();
 
-    // Get base layer thresholded nodes and hlinks
-    ObjectsPtr currentNodes(filterNodes(layers.at(0), m_alpha));
-    ObjectsPtr currentHlinks(m_dao->graph()->Explode(currentNodes.get(), m_dao->hlinkType(), Outgoing));
-
-    ProgressDisplay display(layers.size());
-
-    ++display;
-
-    for( size_t i = 1; i < layers.size(); ++i ) {
-        ObjectsPtr nextNodes(filterNodes(layers.at(i), m_alpha));
-
-        // Add self vlinks between nodes activated in the two layers
-        ObjectsPtr commonNodes(Objects::CombineIntersection(currentNodes.get(), nextNodes.get()));
-        addSelfDyEdges(layers.at(i-1), layers.at(i), commonNodes);
-
-        // Get HLinks for next layer on thresholded nodes
-        ObjectsPtr nextHlinks(m_dao->graph()->Explode(nextNodes.get(), m_dao->hlinkType(), Outgoing));
-        // Get common hlinks
-        ObjectsPtr commonHl(Objects::CombineIntersection(currentHlinks.get(), nextHlinks.get()));
-        ObjectsIt it(commonHl->Iterator());
-        while( it->HasNext() ) {
-            oid_t eid = it->Next();
-            std::unique_ptr<EdgeData> eData(m_dao->graph()->GetEdgeData(eid));
-            oid_t src = eData->GetTail();
-            oid_t tgt = eData->GetHead();
-
-            // Create VLinks
-            if( currentNodes->Exists(src) ) {
-                if( nextNodes->Exists(tgt) )
-                    addSafeDyEdge(layers.at(i-1), src, layers.at(i), tgt);
-            }
-
-            if( currentNodes->Exists(tgt) ) {
-                if( nextNodes->Exists(src) )
-                    addSafeDyEdge(layers.at(i-1), tgt, layers.at(i), src);
-            }
-        }
-        // Switch to next layer
-        currentNodes = nextNodes;
-        currentHlinks = nextHlinks;
-
+    ProgressDisplay display(layers.size() * groups.size());
+    // For each group
+    for( size_t j = 0; j < groups.size(); ++j ) {
+        // LOG(logDEBUG) << "Group: " << groups.at(j) << " alpha: " << m_alphas.at(j);
+        ObjectsPtr currentNodes(filterNodes(layers.at(0), groups.at(j), m_alphas.at(j)));
+        ObjectsPtr currentHlinks(m_dao->graph()->Explode(currentNodes.get(), m_dao->hlinkType(), Outgoing));
         ++display;
+        // For each layer filtered by group
+        for( size_t i = 1; i < layers.size(); ++i ) {
+            ObjectsPtr nextNodes(filterNodes(layers.at(i), groups.at(j), m_alphas.at(j)));
+            // Add self vlinks between nodes activated in the two layers
+            ObjectsPtr commonNodes(Objects::CombineIntersection(currentNodes.get(), nextNodes.get()));
+            addSelfDyEdges(layers.at(i-1), layers.at(i), commonNodes);
+
+            // Get HLinks for next layer on thresholded nodes
+            ObjectsPtr nextHlinks(m_dao->graph()->Explode(nextNodes.get(), m_dao->hlinkType(), Outgoing));
+            // Get common hlinks
+            ObjectsPtr commonHl(Objects::CombineIntersection(currentHlinks.get(), nextHlinks.get()));
+            ObjectsIt it(commonHl->Iterator());
+            while( it->HasNext() ) {
+                oid_t eid = it->Next();
+                std::unique_ptr<EdgeData> eData(m_dao->graph()->GetEdgeData(eid));
+                oid_t src = eData->GetTail();
+                oid_t tgt = eData->GetHead();
+
+                // Create VLinks
+                if( currentNodes->Exists(src) ) {
+                    if( nextNodes->Exists(tgt) )
+                        addSafeDyEdge(layers.at(i-1), src, layers.at(i), tgt);
+                }
+
+                if( currentNodes->Exists(tgt) ) {
+                    if( nextNodes->Exists(src) )
+                        addSafeDyEdge(layers.at(i-1), tgt, layers.at(i), src);
+                }
+            }
+            // Switch to next layer
+            currentNodes = nextNodes;
+            currentHlinks = nextHlinks;
+
+            ++display;
+        }
     }
 
     return true;
@@ -196,7 +206,6 @@ bool ComponentExtractor::createDynamicGraph()
 
 void ComponentExtractor::addSelfDyEdges( const Layer& lSrc, const Layer& lTgt, const ObjectsPtr& nodes )
 {
-    // TODO check layer group here, do not add if not in the same group
     ObjectsIt it(nodes->Iterator());
     while( it->HasNext() ) {
         auto nid = it->Next();
@@ -206,7 +215,6 @@ void ComponentExtractor::addSelfDyEdges( const Layer& lSrc, const Layer& lTgt, c
 
 void ComponentExtractor::addSafeDyEdge( const Layer& lSrc, oid_t src, const Layer& lTgt, oid_t tgt )
 {
-    // TODO check layer group here, do not add if not in the same group
     // Check source
     if( !m_dg->exist(lSrc.id(), src) ) {
         m_dg->addDyNode(lSrc.id(), createDyNode(lSrc.id(), src, m_dao.get()));
@@ -221,32 +229,73 @@ void ComponentExtractor::addSafeDyEdge( const Layer& lSrc, oid_t src, const Laye
     m_dg->addDyEdge(lSrc.id(), src, lTgt.id(), tgt);
 }
 
-double ComponentExtractor::computeThreshold()
+std::vector<double> ComponentExtractor::computeThresholds( const std::vector<TSGroupId>& groups )
 {
-    auto attr = m_dao->graph()->FindAttribute(m_dao->olinkType(), Attrs::V[OLinkAttr::WEIGHT]);
-    std::unique_ptr<AttributeStatistics> stats(m_dao->graph()->GetAttributeStatistics(attr, true));
+    std::vector<double> res;
+    auto olWeightAttr = m_dao->graph()->FindAttribute(m_dao->olinkType(), Attrs::V[OLinkAttr::WEIGHT]);
+    // no groups
+    if( groups.size() == 1 ) {
+        if( m_override ) {
+            res.push_back(m_alphaOverride);
+            return res;
+        }
 
-    double maxValue = stats->GetMax().GetDouble();
-    double minValue = stats->GetMin().GetDouble();
+        std::unique_ptr<AttributeStatistics> stats(m_dao->graph()->GetAttributeStatistics(olWeightAttr, true));
+        double maxVal = stats->GetMax().GetDouble();
+        double minVal = stats->GetMin().GetDouble();
 
-    // 0.5 * max(abs(X))
-    return std::max(std::abs(maxValue), std::abs(minValue)) / 2.0;
+        // 0.5 * max(abs(X))
+        res.push_back(std::max(std::abs(maxVal), std::abs(minVal)) / 2.0);
+        return res;
+    }
+
+    // Groups of values
+    Value val;
+    for( auto& gId: groups ) {
+        if( m_override ) {
+            res.push_back(m_alphaOverride);
+        }
+        else {
+            double minVal = 0.0;
+            double maxVal = 0.0;
+            ObjectsPtr olinks(m_dao->getOLinksByTSGroup(gId));
+            ObjectsIt it(olinks->Iterator());
+            while( it->HasNext() ) {
+                oid_t ol = it->Next();
+                m_dao->graph()->GetAttribute(ol, olWeightAttr, val);
+                double v = val.GetDouble();
+
+                // Get both max and min value
+                if( v > maxVal )
+                    maxVal = v;
+                if( v < minVal )
+                    minVal = v;
+            }
+
+            // Get threshold for this group
+            res.push_back(std::max(std::abs(maxVal), std::abs(minVal)) / 2.0);
+        }
+    }
+
+    return res;
 }
 
-ObjectsPtr ComponentExtractor::filterNodes( const Layer& layer, double threshold )
+ObjectsPtr ComponentExtractor::filterNodes( const Layer& layer, TSGroupId group, double threshold )
 {
-    auto attr = m_dao->graph()->FindAttribute(m_dao->olinkType(), Attrs::V[OLinkAttr::WEIGHT]);
     ObjectsPtr olinks(m_dao->graph()->Explode(layer.id(), m_dao->olinkType(), Outgoing));
+
+    ObjectsPtr olGroup(m_dao->getOLinksByTSGroup(group));
+    ObjectsPtr layerGroup(Objects::CombineIntersection(olinks.get(), olGroup.get()));
     Value v;
     v.SetDoubleVoid(threshold);
     // Select on restricted edge set
-    ObjectsPtr filterOl(m_dao->graph()->Select(attr, GreaterEqual, v, olinks.get()));
+    auto olWeightAttr = m_dao->graph()->FindAttribute(m_dao->olinkType(), Attrs::V[OLinkAttr::WEIGHT]);
+    ObjectsPtr filterOl(m_dao->graph()->Select(olWeightAttr, GreaterEqual, v, layerGroup.get()));
     // Get olinks with value x <= -threshold
     v.SetDoubleVoid(-threshold);
-    ObjectsPtr filterOl2(m_dao->graph()->Select(attr, LessEqual, v, olinks.get()));
+    ObjectsPtr filterOl2(m_dao->graph()->Select(olWeightAttr, LessEqual, v, layerGroup.get()));
     filterOl->Union(filterOl2.get());
-
-    // Return targets of olinks (Nodes)
+    // fill nodes to return
     return ObjectsPtr(m_dao->graph()->Heads(filterOl.get()));
 }
 
@@ -273,7 +322,6 @@ bool ComponentExtractor::extractComponents()
         componentCount++;
     }
 
-    LOG(logDEBUG) << "ComponentExtractor::extractComponents: " << componentCount + 1;
     m_dg->setComponentCount(componentCount + 1);
     return true;
 }
@@ -294,7 +342,6 @@ bool ComponentExtractor::layout()
     std::unordered_map<int64_t, int64_t> yCoordMap;
     Layer base(m_dao->baseLayer());
     ObjectsPtr ids(m_dao->getAllNodeIds(base));
-
     auto it = ids->Iterator();
     int64_t y = 0;
     while( it->HasNext() ) {
@@ -312,7 +359,8 @@ bool ComponentExtractor::layout()
             vn.setId(static_cast<oid_t>(vnPair.second));
             vn.data()[Attrs::V[DyNodeAttr::LAYERPOS]].SetLongVoid(lp.second);
             vn.data()[Attrs::V[DyNodeAttr::SLICEPOS]].SetLongVoid(lCount);
-            vn.data()[Attrs::V[DyNodeAttr::X]].SetLongVoid(lCount * NODE_X_SPACING);
+            int64_t x = lCount * NODE_X_SPACING;
+            vn.data()[Attrs::V[DyNodeAttr::X]].SetLongVoid(x);
             int64_t baseId = vn.data()[Attrs::V[DyNodeAttr::BASEID]].GetLong();
             vn.data()[Attrs::V[DyNodeAttr::Y]].SetLongVoid(yCoordMap.at(baseId) * NODE_Y_SPACING);
 

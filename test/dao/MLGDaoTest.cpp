@@ -491,3 +491,34 @@ TEST( MLGDaoTest, GetSignal )
     EXPECT_DOUBLE_EQ(0.0, signal.data().front());
     EXPECT_DOUBLE_EQ(5.0, signal.data().back());
 }
+
+TEST( MLGDaoTest, TSGroups )
+{
+    mld::SparkseeManager sparkseeManager(mld::kRESOURCES_DIR + L"mysparksee.cfg");
+    sparkseeManager.createDatabase(mld::kRESOURCES_DIR + L"MLDTest.sparksee", L"MLDTest");
+
+    SessionPtr sess = sparkseeManager.newSession();
+    Graph* g = sess->GetGraph();
+    // Create Db scheme
+    sparkseeManager.createBaseScheme(g);
+
+    std::unique_ptr<MLGDao> dao( new MLGDao(g) );
+    Layer base = dao->addBaseLayer();
+
+    // Add OLinks
+    mld::Node n1 = dao->addNodeToLayer(base);
+
+    int64_t gCount = dao->getTSGroupCount();
+    EXPECT_EQ(1, gCount);
+
+    ObjectsPtr obj(dao->getBaseNodesByTSGroup(0));
+    EXPECT_EQ(1, obj->Count());
+
+    obj = dao->getOLinksByTSGroup(0);
+    EXPECT_EQ(1, obj->Count());
+
+    auto vec = dao->getAllTSGroupIds();
+    EXPECT_EQ(size_t(1), vec.size());
+
+    obj.reset();
+}

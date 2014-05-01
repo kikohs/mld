@@ -34,6 +34,8 @@
 using namespace TCLAP;
 using namespace mld;
 
+std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> gConverter;
+
 struct InputContext {
     std::wstring dbName;
     std::wstring workDir;
@@ -52,13 +54,13 @@ std::wstring extractDbName( const std::wstring& inputPath )
     // Remove last part of .txt for instance
     strs.pop_back();
     // Remove *.nodes or *.edges
-    strs.pop_back();
+//    strs.pop_back();
     return boost::algorithm::join(strs, L".");
 }
 
 bool parseOptions( int argc, char *argv[], InputContext& out )
 {
-    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+
     try {
         // Define the command line object.
         CmdLine cmd("TimeSeries graph Parser", ' ', "0.1");
@@ -69,7 +71,7 @@ bool parseOptions( int argc, char *argv[], InputContext& out )
 //        ValueArg<std::string> edgeArg("e", "edges", "edges data filepath", true, "", "path");
 //        cmd.add(edgeArg);
         ValueArg<std::string> wdArg("d", "workDir", "MLD working directory",
-                                    false, converter.to_bytes(mld::kRESOURCES_DIR), "path");
+                                    false, gConverter.to_bytes(mld::kRESOURCES_DIR), "path");
         cmd.add(wdArg);
         // Parse the args.
         cmd.parse(argc, argv);
@@ -77,8 +79,8 @@ bool parseOptions( int argc, char *argv[], InputContext& out )
         // Get the value parsed by each arg.
         out.nodePath = nodeArg.getValue();
 //        out.edgePath = edgeArg.getValue();
-        out.workDir = converter.from_bytes(wdArg.getValue());
-        out.dbName = extractDbName(converter.from_bytes(out.nodePath));
+        out.workDir = gConverter.from_bytes(wdArg.getValue());
+        out.dbName = extractDbName(gConverter.from_bytes(out.nodePath));
     } catch( ArgException& e ) {
         LOG(logERROR) << "error: " << e.error() << " for arg " << e.argId();
         return false;

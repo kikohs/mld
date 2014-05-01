@@ -98,3 +98,14 @@ bool DynamicGraph::exist( oid_t layer, oid_t src )
      return true;
 }
 
+std::ostream& operator<<( std::ostream& out, const DynamicGraph& dg )
+{
+    const DyGraph& g = dg.data();
+    out << "Dynamic graph: "
+        << "#layers: " << dg.layerMap().size() << " "
+        << "#nodes: " << boost::num_vertices(g) << " "
+        << "#edges: " << boost::num_edges(g) << " "
+        << "#components: " << dg.componentCount() << " "
+        ;
+    return out;
+}

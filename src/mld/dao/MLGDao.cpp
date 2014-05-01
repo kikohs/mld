@@ -726,6 +726,43 @@ LayerIdPair MLGDao::getLayerBounds( oid_t curLayer, TSDirection dir, size_t radi
     return res;
 }
 
+int64_t MLGDao::getTSGroupCount()
+{
+    auto tsGroupAttr = m_g->FindAttribute(m_node->nodeType(), Attrs::V[NodeAttr::TSID]);
+    std::unique_ptr<Values> val(m_g->GetValues(tsGroupAttr));
+    return val->Count();
+}
+
+ObjectsPtr MLGDao::getBaseNodesByTSGroup( TSGroupId id )
+{
+    auto tsGroupAttr = m_g->FindAttribute(m_node->nodeType(), Attrs::V[NodeAttr::TSID]);
+    m_v->SetInteger(id);
+    return ObjectsPtr(m_g->Select(tsGroupAttr, Equal, *m_v));
+}
+
+ObjectsPtr MLGDao::getOLinksByTSGroup( TSGroupId id )
+{
+    ObjectsPtr nodes(getBaseNodesByTSGroup(id));
+    return ObjectsPtr(m_g->Explode(nodes.get(), m_link->olinkType(), Ingoing));
+}
+
+std::vector<TSGroupId> MLGDao::getAllTSGroupIds()
+{
+    std::vector<TSGroupId> res;
+    auto tsGroupAttr = m_g->FindAttribute(m_node->nodeType(), Attrs::V[NodeAttr::TSID]);
+    std::unique_ptr<Values> val(m_g->GetValues(tsGroupAttr));
+    res.reserve(val->Count());
+    std::unique_ptr<ValuesIterator> valIt(val->Iterator(Ascendent));
+
+    // For each value sorted by weight descendent
+    while( valIt->HasNext() ) {
+        res.push_back(valIt->Next()->GetInteger());
+    }
+
+    return res;
+}
+
+
 // ****** FORWARD METHOD OF SN DAO ****** //
 
 void MLGDao::removeNode( oid_t id )

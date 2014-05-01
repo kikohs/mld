@@ -62,6 +62,8 @@ typedef std::unique_ptr<sparksee::gdb::AttributeListIterator> AttributeListIt;
 
 using DynGraphPtr = std::shared_ptr<DynamicGraph>;
 
+using TSGroupId = int32_t;  // ts group id
+
 static const double HLINK_DEF_VALUE = 1.0;
 static const double VLINK_DEF_VALUE = 1.0;
 static const double OLINK_DEF_VALUE = 0.0;

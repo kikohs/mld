@@ -27,8 +27,6 @@ namespace mld {
  */
 class MLD_API Node: public GraphObject
 {
-//    friend class MLGDao;
-//    friend class NodeDao;
 public:
     explicit Node();
     /**
@@ -45,6 +43,8 @@ public:
     void setWeight( double v );
     inline std::wstring label() const { return m_data[Attrs::V[NodeAttr::LABEL]].GetString(); }
     void setLabel( const std::wstring& label );
+    inline TSGroupId groupId() const { return m_data[Attrs::V[NodeAttr::TSID]].GetInteger(); }
+    void setTSGroupId( TSGroupId id );
 };
 
 } // end namespace mld
