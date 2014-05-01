@@ -41,7 +41,9 @@ void DynamicGraph::addDyNode( oid_t layer, const Node& vn )
     if( it != d.end() ) {
         std::wstring newId = it->second.GetString();
         d.erase(it);
-        d[Attrs::V[DyNodeAttr::INPUTID]].SetStringVoid(newId);
+        // assumes id are numbers
+        int nid = std::stoi(newId);
+        d[Attrs::V[DyNodeAttr::INPUTID]].SetIntegerVoid(nid);
     }
 
     // update index map

@@ -130,7 +130,7 @@ void writeDyNode( js::wmArray& nodes, const mld::Node& n )
 //            nodeObj[L"color"] = kv.second.GetString();
 //        }
         else if( kv.first == Attrs::V[DyNodeAttr::INPUTID] ) {
-            nodeObj[L"input_id"] = kv.second.GetString();
+            nodeObj[L"input_id"] = kv.second.GetInteger();
         }
         else if( kv.first == Attrs::V[DyNodeAttr::COMPONENTID] ) {
             nodeObj[L"component_id"] = kv.second.GetInteger();
@@ -392,7 +392,8 @@ bool GraphExporter::exportDynamicGraphAsJson( const DynGraphPtr& dyGraph, const 
     }
     graphObj[L"edges"] = edges;
 
-    js::write_formatted(graphObj, out, DOUBLE_PRECISION);
+    js::write(graphObj, out, js::none, DOUBLE_PRECISION);
+    // js::write_formatted(graphObj, out, DOUBLE_PRECISION);
     ++display;
     out.close();
 
