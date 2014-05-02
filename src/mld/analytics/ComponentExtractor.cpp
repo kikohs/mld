@@ -18,6 +18,7 @@
 
 #include <cmath>
 #include <sparksee/gdb/Graph.h>
+#include <boost/graph/connected_components.hpp>
 
 #include "mld/analytics/ComponentExtractor.h"
 #include "mld/dao/MLGDao.h"
@@ -56,63 +57,6 @@ mld::Node createDyNode( oid_t lid, oid_t nid, MLGDao* dao )
     return n;
 }
 
-// Label community with patternId from a starting node if nodes are not in the history
-void labelCommunity( DyNodeId nid, int32_t componentNum, DyGraph& g, ComponentHistory& history )
-{
-    DyOutNodeIter outNeighIt, outNeighEnd;
-
-    boost::tie(outNeighIt, outNeighEnd) = boost::adjacent_vertices(nid, g);
-
-    std::vector<DyNodeId> queue;
-    // Iter through neighbors to preload for a DFS search
-    for( ; outNeighIt != outNeighEnd; ++outNeighIt ) {
-        auto curNeigh = *outNeighIt;
-        queue.push_back(curNeigh);
-        DyNode& node = g[curNeigh];
-        node.data()[Attrs::V[DyNodeAttr::COMPONENTID]].SetInteger(nid);
-        node.data()[Attrs::V[DyNodeAttr::COMPONENTNUM]].SetInteger(componentNum);
-    }
-
-    // DO DFS
-    while( queue.size() != 0 ) {
-        DyNodeId current = queue.back();
-        queue.pop_back();
-
-        // Out edges
-        DyOutEdgeIter out_begin, out_end;
-        for( boost::tie(out_begin, out_end) = boost::out_edges(current, g); out_begin != out_end; ++out_begin ) {
-            auto curNeigh = boost::target(*out_begin, g);
-            // If node not found in history
-            auto it = history.find(curNeigh);
-            if( it == history.end() ) {
-                history[curNeigh] = true;
-                queue.push_back(curNeigh);
-            }
-            DyNode& node = g[curNeigh];
-            node.data()[Attrs::V[DyNodeAttr::COMPONENTID]].SetInteger(nid);
-            node.data()[Attrs::V[DyNodeAttr::COMPONENTNUM]].SetInteger(componentNum);
-        }
-
-
-        // In edges
-        DyInEdgeIter in_begin, in_end;
-        for( boost::tie(in_begin, in_end) = boost::in_edges(current, g); in_begin != in_end; ++in_begin ) {
-            auto curNeigh = boost::source(*in_begin, g);
-            // If node not found in history
-            auto it = history.find(curNeigh);
-            if( it == history.end() ) {
-                history[curNeigh] = true;
-                queue.push_back(curNeigh);
-            }
-            // Update pattern id
-            DyNode& node = g[curNeigh];
-            node.data()[Attrs::V[DyNodeAttr::COMPONENTID]].SetInteger(nid);
-            node.data()[Attrs::V[DyNodeAttr::COMPONENTNUM]].SetInteger(componentNum);
-        }
-    }
-}
-
-
 } // end namespace anonymous
 
 ComponentExtractor::ComponentExtractor( Graph* g )
@@ -148,6 +92,7 @@ bool ComponentExtractor::createDynamicGraph()
     m_dg.reset( new DynamicGraph );
     std::vector<TSGroupId> groups(m_dao->getAllTSGroupIds());
     m_alphas = computeThresholds(groups);
+    m_dg->setGroupCount(groups.size());
 
     LOG(logINFO) << "Computed thresholds";
     for( auto v: m_alphas ) {
@@ -302,27 +247,16 @@ ObjectsPtr ComponentExtractor::filterNodes( const Layer& layer, TSGroupId group,
 bool ComponentExtractor::extractComponents()
 {
     DyGraph& g = m_dg->data();
-    // while node to process in dyngraph
-    // diffuse node (via DFS) in order and insert pattern Id in node data
-    // do not diffuse if already flagged with a pattern
 
-    ComponentHistory history;
-
-    int32_t componentCount = 0;
+    std::vector<int> component(boost::num_vertices(g));
+    size_t componentCount = boost::connected_components(g, &component[0]);
+    int i = 0;
     for( auto vp = boost::vertices(g); vp.first != vp.second; ++vp.first ) {
         DyNodeId nid = *vp.first;
-        auto it = history.find(nid);
-        if( it != history.end() ) // skip if node is already in the history
-            continue;
-
-        // add in history
-        history[nid] = true;
-        labelCommunity(nid, componentCount, g, history);
-        // inc pattern num
-        componentCount++;
+        g[nid].data()[Attrs::V[DyNodeAttr::COMPONENTNUM]].SetInteger(component.at(i));
+        ++i;
     }
-
-    m_dg->setComponentCount(componentCount + 1);
+    m_dg->setComponentCount(componentCount);
     return true;
 }
 

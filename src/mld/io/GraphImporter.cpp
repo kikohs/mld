@@ -46,7 +46,7 @@ namespace ba = boost::algorithm;
 namespace js = json_spirit;
 
 struct AugmentedGraph {
-    int tsCount;
+    int groupCount;
     int tsDataSize;
     js::wmArray nodes;
     js::wmArray edges;
@@ -183,11 +183,11 @@ bool parseAugmentedGraph( AugmentedGraph& ag, const std::string& filepath )
     js::wmObject& graphData = graphDataArray.at(1).get_obj();
 
     js::wmValue tsV;
-    if( !findValue(tsV, L"ts_count", graphData) ) {
-        LOG(logERROR) << "GraphImporter::fromTimeSeriesJson cannot read: key:ts_count";
+    if( !findValue(tsV, L"group_count", graphData) ) {
+        LOG(logERROR) << "GraphImporter::fromTimeSeriesJson cannot read: key:group_count";
         return false;
     }
-    ag.tsCount = tsV.get_int();
+    ag.groupCount = tsV.get_int();
 
     if( !findValue(tsV, L"ts_data_size", graphData) ) {
         LOG(logERROR) << "GraphImporter::fromTimeSeriesJson cannot read: key:ts_size";
@@ -502,7 +502,7 @@ bool GraphImporter::fromTimeSeriesJson( Graph* g, const std::string& filename, b
     LOG(logINFO) << "Creating nodes";
     for( size_t i = 0; i < ag.nodes.size(); ++i ) {
         AttrMap nodeAttr(createNodeData(ag.nodes.at(i)));
-        for( int j = 0; j < ag.tsCount; ++j ) {  // for each timeseries
+        for( int j = 0; j < ag.groupCount; ++j ) {  // for each timeseries
             nodeAttr[Attrs::V[NodeAttr::TSID]].SetInteger(j);
             Node n(dao.addNodeToLayer(base, nodeAttr));
             multiIndexMap[i][j] = n;
@@ -526,7 +526,7 @@ bool GraphImporter::fromTimeSeriesJson( Graph* g, const std::string& filename, b
         }
 
         // for each timeseries
-        for( int j = 0; j < ag.tsCount; ++j ) {
+        for( int j = 0; j < ag.groupCount; ++j ) {
             Node& src(multiIndexMap.at(source).at(j));
             Node& tgt(multiIndexMap.at(target).at(j));
             dao.addHLink(src, tgt, data);  // add hlink

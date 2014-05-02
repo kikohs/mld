@@ -24,6 +24,7 @@ using namespace sparksee::gdb;
 DynamicGraph::DynamicGraph()
     : m_layerLastPos(0)
     , m_componentCount(0)
+    , m_groupCount(0)
 {
 }
 

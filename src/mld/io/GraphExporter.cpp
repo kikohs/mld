@@ -123,17 +123,8 @@ void writeDyNode( js::wmArray& nodes, const mld::Node& n )
         else if( kv.first == Attrs::V[DyNodeAttr::Y] ) {
             nodeObj[L"y"] = kv.second.GetLong();
         }
-//        else if( kv.first == Attrs::V[VNodeAttr::SIZE] ) {
-//            nodeObj[L"size"] = kv.second.GetDouble();
-//        }
-//        else if( kv.first == Attrs::V[VNodeAttr::COLOR] ) {
-//            nodeObj[L"color"] = kv.second.GetString();
-//        }
         else if( kv.first == Attrs::V[DyNodeAttr::INPUTID] ) {
             nodeObj[L"input_id"] = kv.second.GetInteger();
-        }
-        else if( kv.first == Attrs::V[DyNodeAttr::COMPONENTID] ) {
-            nodeObj[L"component_id"] = kv.second.GetInteger();
         }
         else if( kv.first == Attrs::V[DyNodeAttr::COMPONENTNUM] ) {
             nodeObj[L"component_num"] = kv.second.GetInteger();
@@ -369,6 +360,7 @@ bool GraphExporter::exportDynamicGraphAsJson( const DynGraphPtr& dyGraph, const 
     graphObj[L"edge_count"] = static_cast<int64_t>(numEdges);
     graphObj[L"layer_count"] = static_cast<int64_t>(dyGraph->layerMap().size());
     graphObj[L"component_count"] = static_cast<int32_t>(dyGraph->componentCount());
+    graphObj[L"group_count"] = static_cast<int32_t>(dyGraph->groupCount());
 
     // Nodes
     js::wmArray nodes;
