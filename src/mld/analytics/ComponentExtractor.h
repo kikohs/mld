@@ -86,7 +86,7 @@ private:
      * By default, it is equal to 0.5 * max(abs(X)). Where is X is the vector of olink weights. for each tsgroup
      * @return threshold
      */
-    std::vector<double> computeThresholds( const std::vector<TSGroupId>& groups = std::vector<TSGroupId>() );
+    std::vector<double> computeThresholds( const std::vector<TSGroupId>& groups = std::vector<TSGroupId>(), bool onlyPositive=false );
 
     /**
      * @brief Filter nodes of a layer return only those whose TS value for the input layer
@@ -94,9 +94,10 @@ private:
      * @param layer Current layer
      * @param Timeseries group
      * @param threshold
+     * @param onlyPositive Keep only positive values
      * @return nodeset
      */
-    ObjectsPtr filterNodes( const Layer& layer, TSGroupId group, double threshold );
+    ObjectsPtr filterNodes( const Layer& layer, TSGroupId group, double threshold, bool onlyPositive=false );
 
     bool extractComponents();
     bool layout();

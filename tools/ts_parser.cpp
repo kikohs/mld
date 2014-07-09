@@ -39,8 +39,7 @@ std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> gConverter;
 struct InputContext {
     std::wstring dbName;
     std::wstring workDir;
-    std::string nodePath;
-    std::string edgePath;
+    std::string inputPath;
 };
 
 std::wstring extractDbName( const std::wstring& inputPath )
@@ -66,10 +65,8 @@ bool parseOptions( int argc, char *argv[], InputContext& out )
         CmdLine cmd("TimeSeries graph Parser", ' ', "0.1");
 
         // Define a value argument and add it to the command line.
-        ValueArg<std::string> nodeArg("n", "nodes", "nodes data filepath", true, "", "path");
-        cmd.add(nodeArg);
-//        ValueArg<std::string> edgeArg("e", "edges", "edges data filepath", true, "", "path");
-//        cmd.add(edgeArg);
+        ValueArg<std::string> inputArg("i", "input", "input timeseries json", true, "", "path");
+        cmd.add(inputArg);
         ValueArg<std::string> wdArg("d", "workDir", "MLD working directory",
                                     false, gConverter.to_bytes(mld::kRESOURCES_DIR), "path");
         cmd.add(wdArg);
@@ -77,10 +74,9 @@ bool parseOptions( int argc, char *argv[], InputContext& out )
         cmd.parse(argc, argv);
 
         // Get the value parsed by each arg.
-        out.nodePath = nodeArg.getValue();
-//        out.edgePath = edgeArg.getValue();
+        out.inputPath = inputArg.getValue();
         out.workDir = gConverter.from_bytes(wdArg.getValue());
-        out.dbName = extractDbName(gConverter.from_bytes(out.nodePath));
+        out.dbName = extractDbName(gConverter.from_bytes(out.inputPath));
     } catch( ArgException& e ) {
         LOG(logERROR) << "error: " << e.error() << " for arg " << e.argId();
         return false;
@@ -102,7 +98,7 @@ int main( int argc, char *argv[] )
     sparksee::gdb::Graph* g = sess->GetGraph();
     m.createBaseScheme(g);
     sess->Begin();
-    if( !GraphImporter::fromTimeSeriesJson(g, ctx.nodePath) ) {
+    if( !GraphImporter::fromTimeSeriesJson(g, ctx.inputPath) ) {
         LOG(logERROR) << "Error parsing timeseries graph";
         sess->Commit();
         return EXIT_FAILURE;

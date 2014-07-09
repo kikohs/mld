@@ -30,7 +30,7 @@ namespace mld {
 using DyNode = Node;
 using DyGraph = boost::adjacency_list<boost::vecS, // edge container
                                      boost::vecS, // node container
-                                     boost::bidirectionalS, // type of the graph
+                                     boost::undirectedS, // type of the graph
                                      DyNode, // VertexType
                                      boost::no_property>;
 
@@ -74,9 +74,14 @@ public:
     inline int32_t componentCount() const { return m_componentCount; }
     void setComponentCount( int32_t count ) { m_componentCount = count; }
 
+    inline int32_t groupCount() const { return m_groupCount; }
+    void setGroupCount( int32_t count ) { m_groupCount = count; }
+
+
 private:
     int64_t m_layerLastPos;
     int32_t m_componentCount;
+    int32_t m_groupCount;
     GraphIndex m_index;
     DyGraph m_g;
     LayerMap m_layerMap;

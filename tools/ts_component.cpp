@@ -33,10 +33,13 @@
 using namespace TCLAP;
 using namespace mld;
 
+const double INVALID_THRESHOLD = INT64_MAX;
+
 struct InputContext {
     std::wstring dbName;
     std::wstring workDir;
     std::string outName;
+    double activationThreshold;
 };
 
 bool parseOptions( int argc, char *argv[], InputContext& out )
@@ -56,6 +59,11 @@ bool parseOptions( int argc, char *argv[], InputContext& out )
                                     true, "", "string");
         cmd.add(nameArg);
 
+        // Db Name
+        ValueArg<double> thresholdArg("t", "threshold", "Activation threshold",
+                                    false, INVALID_THRESHOLD, "double");
+        cmd.add(thresholdArg);
+
         // Out name
         ValueArg<std::string> outNameArg("o", "outname", "Output filepath ", true, "", "path");
         cmd.add(outNameArg);
@@ -67,6 +75,7 @@ bool parseOptions( int argc, char *argv[], InputContext& out )
         out.workDir = converter.from_bytes(wdArg.getValue());
         out.dbName = converter.from_bytes(nameArg.getValue());
         out.outName = outNameArg.getValue();
+        out.activationThreshold = thresholdArg.getValue();
         if( out.outName.empty() ) {
             out.outName = converter.to_bytes(out.dbName);
         }
@@ -90,6 +99,8 @@ int main( int argc, char *argv[] )
     sparksee::gdb::Graph* g = sess->GetGraph();
 
     std::unique_ptr<ComponentExtractor> extractor(new ComponentExtractor(g));
+    if( ctx.activationThreshold != INVALID_THRESHOLD )
+        extractor->setOverrideThreshold(true, ctx.activationThreshold);
 
     if( !extractor->run() ) {
         LOG(logERROR) << "Component extraction failed";

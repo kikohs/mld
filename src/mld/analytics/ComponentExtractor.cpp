@@ -174,7 +174,7 @@ void ComponentExtractor::addSafeDyEdge( const Layer& lSrc, oid_t src, const Laye
     m_dg->addDyEdge(lSrc.id(), src, lTgt.id(), tgt);
 }
 
-std::vector<double> ComponentExtractor::computeThresholds( const std::vector<TSGroupId>& groups )
+std::vector<double> ComponentExtractor::computeThresholds( const std::vector<TSGroupId>& groups, bool onlyPositive )
 {
     std::vector<double> res;
     auto olWeightAttr = m_dao->graph()->FindAttribute(m_dao->olinkType(), Attrs::V[OLinkAttr::WEIGHT]);
@@ -190,7 +190,10 @@ std::vector<double> ComponentExtractor::computeThresholds( const std::vector<TSG
         double minVal = stats->GetMin().GetDouble();
 
         // 0.5 * max(abs(X))
-        res.push_back(std::max(std::abs(maxVal), std::abs(minVal)) / 2.0);
+        if( !onlyPositive )
+            res.push_back(std::max(std::abs(maxVal), std::abs(minVal)) / 2.0);
+        else
+            res.push_back(maxVal / 2.0);
         return res;
     }
 
@@ -218,14 +221,17 @@ std::vector<double> ComponentExtractor::computeThresholds( const std::vector<TSG
             }
 
             // Get threshold for this group
-            res.push_back(std::max(std::abs(maxVal), std::abs(minVal)) / 2.0);
+            if( !onlyPositive )
+                res.push_back(std::max(std::abs(maxVal), std::abs(minVal)) / 2.0);
+            else
+                res.push_back(maxVal / 2.0);
         }
     }
 
     return res;
 }
 
-ObjectsPtr ComponentExtractor::filterNodes( const Layer& layer, TSGroupId group, double threshold )
+ObjectsPtr ComponentExtractor::filterNodes( const Layer& layer, TSGroupId group, double threshold, bool onlyPositive )
 {
     ObjectsPtr olinks(m_dao->graph()->Explode(layer.id(), m_dao->olinkType(), Outgoing));
 
@@ -236,10 +242,13 @@ ObjectsPtr ComponentExtractor::filterNodes( const Layer& layer, TSGroupId group,
     // Select on restricted edge set
     auto olWeightAttr = m_dao->graph()->FindAttribute(m_dao->olinkType(), Attrs::V[OLinkAttr::WEIGHT]);
     ObjectsPtr filterOl(m_dao->graph()->Select(olWeightAttr, GreaterEqual, v, layerGroup.get()));
-    // Get olinks with value x <= -threshold
-    v.SetDoubleVoid(-threshold);
-    ObjectsPtr filterOl2(m_dao->graph()->Select(olWeightAttr, LessEqual, v, layerGroup.get()));
-    filterOl->Union(filterOl2.get());
+
+    if( !onlyPositive ) {
+        // Get olinks with value x <= -threshold
+        v.SetDoubleVoid(-threshold);
+        ObjectsPtr filterOl2(m_dao->graph()->Select(olWeightAttr, LessEqual, v, layerGroup.get()));
+        filterOl->Union(filterOl2.get());
+    }
     // fill nodes to return
     return ObjectsPtr(m_dao->graph()->Heads(filterOl.get()));
 }

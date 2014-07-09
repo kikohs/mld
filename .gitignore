@@ -46,6 +46,8 @@ install_manifest.txt
 *.sql
 *.sqlite
 *.dat
+*.sparksee
+*.tmp
 
 # Config files
 *.cfg
@@ -65,12 +67,10 @@ Thumbs.db
 build/
 bin/
 lib/
-resources/
 docs/
+datasets/
+export/
 .svn/
 .idea/
-
-# Specific 3rdparty
-3rdparty/dex
 
 
